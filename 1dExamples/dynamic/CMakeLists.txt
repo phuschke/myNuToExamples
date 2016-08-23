@@ -1,0 +1,12 @@
+# 1d_uniaxial_dynamic
+  ADD_EXECUTABLE(1d_uniaxial_tension_dynamic 1d_uniaxial_tension_dynamic.cpp)
+  TARGET_LINK_LIBRARIES(1d_uniaxial_tension_dynamic NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
+  IF (ENABLE_VISUALIZE)
+    TARGET_LINK_LIBRARIES(1d_uniaxial_tension_dynamic NuToVisualize)
+  ENDIF (ENABLE_VISUALIZE)
+  IF(MUMPS_FOUND)
+    TARGET_LINK_LIBRARIES(1d_uniaxial_tension_dynamic ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+  ENDIF(MUMPS_FOUND)
+  IF(MINGW)
+    SET_TARGET_PROPERTIES(1d_uniaxial_tension_dynamic PROPERTIES LINK_FLAGS -Wl,--enable-auto-import)
+  ENDIF(MINGW)  
