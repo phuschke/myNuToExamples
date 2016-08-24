@@ -1,6 +1,6 @@
-#include "/opt/nuto/include/eigen3/Eigen/Core"
-#include "/opt/nuto/include/eigen3/Eigen/Dense"
-#include "/opt/nuto/include/eigen3/Eigen/Sparse"
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Dense>
+#include <eigen3/Eigen/Sparse>
 
 namespace Eigen {
 
