@@ -13,6 +13,24 @@
 #include <cstdlib>
 #include <chrono>
 #include "ImportMesh.h"
+
+#include "nuto/mechanics/nodes/NodeEnum.h"
+#include "nuto/mechanics/groups/GroupEnum.h"
+#include "nuto/mechanics/sections/SectionEnum.h"
+#include "nuto/mechanics/constitutive/ConstitutiveEnum.h"
+#include "nuto/visualize/VisualizeEnum.h"
+#include "nuto/mechanics/interpolationtypes/InterpolationTypeEnum.h"
+#include "nuto/mechanics/elements/IpDataEnum.h"
+#include "nuto/mechanics/elements/ElementDataEnum.h"
+
+#include "nuto/mechanics/nodes/NodeBase.h"
+
+#include "nuto/math/SparseMatrixCSR.h"
+#include "nuto/math/SparseMatrixCSRGeneral.h"
+#include "nuto/mechanics/dofSubMatrixStorage/BlockSparseMatrix.h"
+#include "nuto/mechanics/structures/StructureOutputBlockMatrix.h"
+#include"nuto/base/ErrorEnum.h"
+
 class Parameters
 {
 public:
@@ -42,7 +60,7 @@ void AssignSection(NuTo::Structure& rStructure, const int rMPIrank)
     std::cout << "**      Section rank = " << rMPIrank << std::endl;
     std::cout << "***********************************" << std::endl;
 
-    int section00 = rStructure.SectionCreate(NuTo::Section::PLANE_STRESS);
+    int section00 = rStructure.SectionCreate(NuTo::eSectionType::PLANE_STRESS);
     rStructure.SectionSetThickness(section00, Parameters::mMatrixThickness);
 
     rStructure.ElementTotalSetSection(section00);
@@ -82,7 +100,7 @@ void AssembleStiffnesMatrix(NuTo::Structure& structure, Eigen::SparseMatrix<doub
 {
     // assemble stiffness matrix
     NuTo::StructureOutputBlockMatrix stiffnessMatrix = structure.BuildGlobalHessian0();
-    NuTo::SparseMatrixCSRGeneral<double> stiffnessMatrixCSR(stiffnessMatrix.JJ(NuTo::Node::DISPLACEMENTS, NuTo::Node::DISPLACEMENTS));
+    NuTo::SparseMatrixCSRGeneral<double> stiffnessMatrixCSR(stiffnessMatrix.JJ(NuTo::Node::eDof::DISPLACEMENTS, NuTo::Node::eDof::DISPLACEMENTS));
 
     std::cout << "stiffnessMatrixCSR.GetNumEntries()" << stiffnessMatrixCSR.GetNumEntries() << std::endl;
     std::cout << "stiffnessMatrixCSR.GetNumColumns()" << stiffnessMatrixCSR.GetColumns().size() << std::endl;
@@ -109,10 +127,10 @@ void AssembleStiffnesMatrix(NuTo::Structure& structure, Eigen::SparseMatrix<doub
 void AssembleExternalForceVectorThreePointBending(const double searchTol, NuTo::FullVector<double, Eigen::Dynamic>& externalForce, NuTo::Structure& structure, double xCoord)
 {
     NuTo::FullVector<double, 2> nodeCoords;
-    nodeCoords[0] = 40;
+    nodeCoords[0] = 30;
     nodeCoords[1] = 0;
-    int loadNodeGroup = structure.GroupCreate(NuTo::Groups::Nodes);
-    structure.GroupAddNodeRadiusRange(loadNodeGroup, nodeCoords, 0, 1.0e-1);
+    int loadNodeGroup = structure.GroupCreate(NuTo::eGroupId::Nodes);
+    structure.GroupAddNodeRadiusRange(loadNodeGroup, nodeCoords, 0, 1.0e+1);
 
     auto loadNodes = structure.GroupGetMemberIds(loadNodeGroup);
     for (int iNode = 0; iNode < loadNodes.rows(); ++iNode)
@@ -135,7 +153,7 @@ void AssembleRigidBodyModes(const int numNodes, NuTo::Structure& structure, Eige
     {
         NuTo::FullVector<int, Eigen::Dynamic> displacementDofs;
         structure.NodeGetDisplacementDofs(node.first, displacementDofs);
-        const Eigen::Matrix<double, 2, 1> coordinates = node.second->Get(NuTo::Node::COORDINATES);
+        const Eigen::Matrix<double, 2, 1> coordinates = node.second->Get(NuTo::Node::eDof::COORDINATES);
         rigidBodyModes.block(displacementDofs[0], 0, 1, 3) << 1., 0., -coordinates.at(1, 0);
         rigidBodyModes.block(displacementDofs[1], 0, 1, 3) << 0., 1.,  coordinates.at(0, 0);
     }
@@ -151,13 +169,13 @@ ImportContainer ImportMesh(int rank)
     switch (rank)
     {
     case 0:
-        meshFile = "/home/phuschke/meshFiles/2d/feti/feti.msh_000001";
+        meshFile = "/home/phuschke/meshFiles/2d/feti/fine/feti.msh_000001";
         break;
     case 1:
-        meshFile = "/home/phuschke/meshFiles/2d/feti/feti.msh_000002";
+        meshFile = "/home/phuschke/meshFiles/2d/feti/fine/feti.msh_000002";
         break;
     case 2:
-        meshFile = "/home/phuschke/meshFiles/2d/feti/feti.msh_000003";
+        meshFile = "/home/phuschke/meshFiles/2d/feti/fine/feti.msh_000003";
         break;
     default:
         throw NuTo::MechanicsException("Number of tasks > number of subdomains.");
@@ -175,15 +193,12 @@ int main(int argc, char* argv[])
     int numProcesses;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &numProcesses);
-    MPI_Request request[3];
-    MPI_Status status[3];
 
     using Eigen::VectorXd;
     using Eigen::MatrixXd;
     using std::cout;
     using std::endl;
 
-    constexpr int nodesOnEdge = 11;
     constexpr int dim = 2;
     NuTo::Structure structure(dim);
     structure.SetVerboseLevel(10);
@@ -194,12 +209,16 @@ int main(int argc, char* argv[])
     for (const auto& node : importContainer.mNodeList)
         structure.NodeCreate(node.mId, node.mCoordinates.head(dim));
 
-    int interpolationType = structure.InterpolationTypeCreate(NuTo::Interpolation::QUAD2D);
-    structure.InterpolationTypeAdd(interpolationType, NuTo::Node::COORDINATES, NuTo::Interpolation::EQUIDISTANT1);
-    structure.InterpolationTypeAdd(interpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT1);
+    structure.Info();
+
+    int interpolationType = structure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::QUAD2D);
+    structure.InterpolationTypeAdd(interpolationType, NuTo::Node::eDof::COORDINATES, NuTo::Interpolation::eTypeOrder::EQUIDISTANT1);
+    structure.InterpolationTypeAdd(interpolationType, NuTo::Node::eDof::DISPLACEMENTS, NuTo::Interpolation::eTypeOrder::EQUIDISTANT1);
 
     for (const auto& element : importContainer.mElementList)
-        structure.ElementCreate(element.mId,interpolationType, element.mNodeIds,NuTo::ElementData::CONSTITUTIVELAWIP,NuTo::IpData::STATICDATA);
+        structure.ElementCreate(element.mId,interpolationType, element.mNodeIds,NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,NuTo::IpData::eIpDataType::STATICDATA);
+
+    structure.Info();
 
     structure.ElementTotalConvertToInterpolationType();
 
@@ -208,7 +227,7 @@ int main(int argc, char* argv[])
 
     structure.NodeBuildGlobalDofs();
 
-    const int numDofs  = structure.GetNumDofs(NuTo::Node::DISPLACEMENTS);
+    const int numDofs  = structure.GetNumDofs(NuTo::Node::eDof::DISPLACEMENTS);
     const int numNodes = structure.GetNumNodes();
     structure.CalculateMaximumIndependentSets();
 
@@ -229,9 +248,10 @@ int main(int argc, char* argv[])
 
 
 
+    structure.Info();
 
-    const int num_interface_nodes_global = 8;
-    const int num_boundary_nodes_global = 8;
+    const int num_interface_nodes_global = 42;
+    const int num_boundary_nodes_global = 42;
     const int num_lagrange_multipliers  = dim * (num_interface_nodes_global + num_boundary_nodes_global);
     Eigen::SparseMatrix<double> connectivityMatrix(num_lagrange_multipliers, numDofs);
 
@@ -410,11 +430,11 @@ int main(int argc, char* argv[])
     std::cout << "***********************************" << std::endl;
 
 
-    int groupAllElements = structure.GroupCreate(NuTo::Groups::Elements);
+    int groupAllElements = structure.GroupCreate(NuTo::eGroupId::Elements);
     structure.GroupAddElementsTotal(groupAllElements);
-    structure.AddVisualizationComponent(groupAllElements, NuTo::VisualizeBase::DISPLACEMENTS);
-    structure.AddVisualizationComponent(groupAllElements, NuTo::VisualizeBase::ENGINEERING_STRESS);
-    structure.AddVisualizationComponent(groupAllElements, NuTo::VisualizeBase::ENGINEERING_STRAIN);
+    structure.AddVisualizationComponent(groupAllElements, NuTo::eVisualizeWhat::DISPLACEMENTS);
+    structure.AddVisualizationComponent(groupAllElements, NuTo::eVisualizeWhat::ENGINEERING_STRESS);
+    structure.AddVisualizationComponent(groupAllElements, NuTo::eVisualizeWhat::ENGINEERING_STRAIN);
 
     char outputFile[200];
     sprintf(outputFile, "/home/phuschke/structure_rank_%03d_0.vtk", rank);

@@ -1,0 +1,12 @@
+$MeshFormat
+2.2 0 8
+$EndMeshFormat
+$Nodes
+2
+1 10.753705 1.614448 9.014901
+2 50.301797 8.900957999999999 9.565191
+$EndNodes
+$Elements
+1
+1 1 2 222 30001 1 2
+$EndElements

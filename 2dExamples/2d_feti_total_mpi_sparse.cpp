@@ -12,6 +12,22 @@
 #include <ctime>
 #include <cstdlib>
 #include <chrono>
+
+#include "nuto/mechanics/nodes/NodeEnum.h"
+#include "nuto/mechanics/groups/GroupEnum.h"
+#include "nuto/mechanics/sections/SectionEnum.h"
+#include "nuto/mechanics/constitutive/ConstitutiveEnum.h"
+#include "nuto/visualize/VisualizeEnum.h"
+#include "nuto/mechanics/interpolationtypes/InterpolationTypeEnum.h"
+#include "nuto/mechanics/elements/IpDataEnum.h"
+#include "nuto/mechanics/elements/ElementDataEnum.h"
+
+#include "nuto/mechanics/dofSubMatrixStorage/BlockSparseMatrix.h"
+#include "nuto/mechanics/structures/StructureOutputBlockMatrix.h"
+#include"nuto/base/ErrorEnum.h"
+
+#include "nuto/mechanics/nodes/NodeBase.h"
+
 class Parameters
 {
 public:
@@ -41,7 +57,7 @@ void AssignSection(NuTo::Structure& rStructure, const int rMPIrank)
     std::cout << "**      Section rank = " << rMPIrank << std::endl;
     std::cout << "***********************************" << std::endl;
 
-    int section00 = rStructure.SectionCreate(NuTo::Section::PLANE_STRESS);
+    int section00 = rStructure.SectionCreate(NuTo::eSectionType::PLANE_STRESS);
     rStructure.SectionSetThickness(section00, Parameters::mMatrixThickness);
 
     rStructure.ElementTotalSetSection(section00);
@@ -81,7 +97,7 @@ void AssembleStiffnesMatrix(NuTo::Structure& structure, Eigen::SparseMatrix<doub
 {
     // assemble stiffness matrix
     NuTo::StructureOutputBlockMatrix stiffnessMatrix = structure.BuildGlobalHessian0();
-    NuTo::SparseMatrixCSRGeneral<double> stiffnessMatrixCSR(stiffnessMatrix.JJ(NuTo::Node::DISPLACEMENTS, NuTo::Node::DISPLACEMENTS));
+    NuTo::SparseMatrixCSRGeneral<double> stiffnessMatrixCSR(stiffnessMatrix.JJ(NuTo::Node::eDof::DISPLACEMENTS, NuTo::Node::eDof::DISPLACEMENTS));
 
     std::cout << "stiffnessMatrixCSR.GetNumEntries()" << stiffnessMatrixCSR.GetNumEntries() << std::endl;
     std::cout << "stiffnessMatrixCSR.GetNumColumns()" << stiffnessMatrixCSR.GetColumns().size() << std::endl;
@@ -197,10 +213,11 @@ void my_conjugate_projected_gradient(const Eigen::MatrixXd& mat, const Eigen::Ve
 
 void AssenbleExternalForceVector(const double searchTol, NuTo::FullVector<double, Eigen::Dynamic>& externalForce, NuTo::Structure& structure, double xCoord)
 {
+
     NuTo::FullVector<double, 2> nodeCoords;
     nodeCoords[0] = xCoord;
     nodeCoords[1] = 0;
-    int loadNodeGroup = structure.GroupCreate(NuTo::Groups::Nodes);
+    int loadNodeGroup = structure.GroupCreate(NuTo::eGroupId::Nodes);
     //        structure.GroupAddNodeRadiusRange(loadNodeGroup, nodeCoords, 0, 1.0e-6);
     structure.GroupAddNodeCoordinateRange(loadNodeGroup, 0, xCoord - searchTol, xCoord + searchTol);
     auto loadNodes = structure.GroupGetMemberIds(loadNodeGroup);
@@ -218,7 +235,7 @@ void AssenbleExternalForceVectorThreePointBending(const double searchTol, NuTo::
     NuTo::FullVector<double, 2> nodeCoords;
     nodeCoords[0] = 30;
     nodeCoords[1] = 10;
-    int loadNodeGroup = structure.GroupCreate(NuTo::Groups::Nodes);
+    int loadNodeGroup = structure.GroupCreate(NuTo::eGroupId::Nodes);
     structure.GroupAddNodeRadiusRange(loadNodeGroup, nodeCoords, 0, 1.0e-6);
 
     auto loadNodes = structure.GroupGetMemberIds(loadNodeGroup);
@@ -235,11 +252,11 @@ void AssenbleExternalForceVectorThreePointBending(const double searchTol, NuTo::
 Eigen::SparseMatrix<double> AssembleConnectivityMatrixThreePointBending(const double searchTol, int rank, NuTo::Structure& structure, int nodesOnEdge)
 {
     // get all nodes on the interface 01
-    int groupNodeInterface01 = structure.GroupCreate(NuTo::Groups::Nodes);
+    int groupNodeInterface01 = structure.GroupCreate(NuTo::eGroupId::Nodes);
     structure.GroupAddNodeCoordinateRange(groupNodeInterface01, 0, 20.0 - searchTol, 20.0 + searchTol);
 
     // get all nodes on the interface 12
-    int groupNodeInterface12 = structure.GroupCreate(NuTo::Groups::Nodes);
+    int groupNodeInterface12 = structure.GroupCreate(NuTo::eGroupId::Nodes);
     structure.GroupAddNodeCoordinateRange(groupNodeInterface12, 0, 40.0 - searchTol, 40.0 + searchTol);
 
     int numInterface01 = structure.GroupGetNumMembers(groupNodeInterface01);
@@ -259,13 +276,13 @@ Eigen::SparseMatrix<double> AssembleConnectivityMatrixThreePointBending(const do
     NuTo::FullVector<double, 2> nodeCoords;
     nodeCoords[0] = 0.0;
     nodeCoords[1] = 0.0;
-    int groupNodeBoundaryLeft = structure.GroupCreate(NuTo::Groups::Nodes);
+    int groupNodeBoundaryLeft = structure.GroupCreate(NuTo::eGroupId::Nodes);
     structure.GroupAddNodeRadiusRange(groupNodeBoundaryLeft, nodeCoords, 0, 1);
     int numBoundaryNodesLeft = structure.GroupGetNumMembers(groupNodeBoundaryLeft);
 
     nodeCoords[0] = 60.0;
     nodeCoords[1] = 0.0;
-    int groupNodeBoundaryRight = structure.GroupCreate(NuTo::Groups::Nodes);
+    int groupNodeBoundaryRight = structure.GroupCreate(NuTo::eGroupId::Nodes);
     structure.GroupAddNodeRadiusRange(groupNodeBoundaryRight, nodeCoords, 0, 1);
     int numBoundaryNodesRight = structure.GroupGetNumMembers(groupNodeBoundaryRight);
 
@@ -280,7 +297,7 @@ Eigen::SparseMatrix<double> AssembleConnectivityMatrixThreePointBending(const do
 
     const int numLagrangeMultiplier = Parameters::mDimension * (numBoundaryNodesRightSum + numBoundaryNodesLeftSum + numInterface01Sum + numInterface12Sum);
 
-    Eigen::SparseMatrix<double> connectivityMatrix(numLagrangeMultiplier, structure.GetNumDofs(NuTo::Node::DISPLACEMENTS));
+    Eigen::SparseMatrix<double> connectivityMatrix(numLagrangeMultiplier, structure.GetNumDofs(NuTo::Node::eDof::DISPLACEMENTS));
 
     if (rank==0)
     {
@@ -296,7 +313,7 @@ Eigen::SparseMatrix<double> AssembleConnectivityMatrixThreePointBending(const do
         NuTo::FullVector<double, 2> nodeCoords;
         nodeCoords[0] = 20;
         nodeCoords[1] = i * 10.0/(2*(nodesOnEdge-1));
-        int groupNodeTmp = structure.GroupCreate(NuTo::Groups::Nodes);
+        int groupNodeTmp = structure.GroupCreate(NuTo::eGroupId::Nodes);
         structure.GroupAddNodeRadiusRange(groupNodeTmp, nodeCoords, 0, 1.0e-6);
         auto tmpNode = structure.GroupGetMemberIds(groupNodeTmp);
         NuTo::FullVector<int, -1> displacementDofs;
@@ -313,7 +330,7 @@ Eigen::SparseMatrix<double> AssembleConnectivityMatrixThreePointBending(const do
         NuTo::FullVector<double, 2> nodeCoords;
         nodeCoords[0] = 40;
         nodeCoords[1] = i * 10.0 / (2 * (nodesOnEdge - 1));
-        int groupNodeTmp = structure.GroupCreate(NuTo::Groups::Nodes);
+        int groupNodeTmp = structure.GroupCreate(NuTo::eGroupId::Nodes);
         structure.GroupAddNodeRadiusRange(groupNodeTmp, nodeCoords, 0, 1.0e-6);
         auto tmpNode = structure.GroupGetMemberIds(groupNodeTmp);
         NuTo::FullVector<int, -1> displacementDofs;
@@ -353,11 +370,11 @@ Eigen::SparseMatrix<double> AssembleConnectivityMatrixThreePointBending(const do
 Eigen::SparseMatrix<double> AssembleConnectivityMatrix(const double searchTol, int rank, NuTo::Structure& structure, int nodesOnEdge)
 {
     // get all nodes on the interface 01
-    int groupNodeInterface01 = structure.GroupCreate(NuTo::Groups::Nodes);
+    int groupNodeInterface01 = structure.GroupCreate(NuTo::eGroupId::Nodes);
     structure.GroupAddNodeCoordinateRange(groupNodeInterface01, 0, 20.0 - searchTol, 20.0 + searchTol);
 
     // get all nodes on the interface 12
-    int groupNodeInterface12 = structure.GroupCreate(NuTo::Groups::Nodes);
+    int groupNodeInterface12 = structure.GroupCreate(NuTo::eGroupId::Nodes);
     structure.GroupAddNodeCoordinateRange(groupNodeInterface12, 0, 40.0 - searchTol, 40.0 + searchTol);
 
     int numInterface01 = structure.GroupGetNumMembers(groupNodeInterface01);
@@ -375,7 +392,7 @@ Eigen::SparseMatrix<double> AssembleConnectivityMatrix(const double searchTol, i
 
 
     // get all nodes on the boundary
-    int groupNodeBoundary = structure.GroupCreate(NuTo::Groups::Nodes);
+    int groupNodeBoundary = structure.GroupCreate(NuTo::eGroupId::Nodes);
     structure.GroupAddNodeCoordinateRange(groupNodeBoundary, 0, 0.0 - searchTol, 0.0 + searchTol);
     int numBoundaryNodes = structure.GroupGetNumMembers(groupNodeBoundary);
 
@@ -386,7 +403,7 @@ Eigen::SparseMatrix<double> AssembleConnectivityMatrix(const double searchTol, i
 
     const int numLagrangeMultiplier = Parameters::mDimension * (numBoundaryNodesSum + numInterface01Sum + numInterface12Sum);
 
-    Eigen::SparseMatrix<double> connectivityMatrix(numLagrangeMultiplier, structure.GetNumDofs(NuTo::Node::DISPLACEMENTS));
+    Eigen::SparseMatrix<double> connectivityMatrix(numLagrangeMultiplier, structure.GetNumDofs(NuTo::Node::eDof::DISPLACEMENTS));
 
 
     if (rank==0)
@@ -402,7 +419,7 @@ Eigen::SparseMatrix<double> AssembleConnectivityMatrix(const double searchTol, i
         NuTo::FullVector<double, 2> nodeCoords;
         nodeCoords[0] = 20;
         nodeCoords[1] = i * 10.0/(2*(nodesOnEdge-1));
-        int groupNodeTmp = structure.GroupCreate(NuTo::Groups::Nodes);
+        int groupNodeTmp = structure.GroupCreate(NuTo::eGroupId::Nodes);
         structure.GroupAddNodeRadiusRange(groupNodeTmp, nodeCoords, 0, 1.0e-6);
         auto tmpNode = structure.GroupGetMemberIds(groupNodeTmp);
         NuTo::FullVector<int, -1> displacementDofs;
@@ -417,7 +434,7 @@ Eigen::SparseMatrix<double> AssembleConnectivityMatrix(const double searchTol, i
         NuTo::FullVector<double, 2> nodeCoords;
         nodeCoords[0] = 40;
         nodeCoords[1] = i * 10.0 / (2 * (nodesOnEdge - 1));
-        int groupNodeTmp = structure.GroupCreate(NuTo::Groups::Nodes);
+        int groupNodeTmp = structure.GroupCreate(NuTo::eGroupId::Nodes);
         structure.GroupAddNodeRadiusRange(groupNodeTmp, nodeCoords, 0, 1.0e-6);
         auto tmpNode = structure.GroupGetMemberIds(groupNodeTmp);
         NuTo::FullVector<int, -1> displacementDofs;
@@ -445,7 +462,7 @@ void AssembleRigidBodyModes(const int numNodes, NuTo::Structure& structure, Eige
     {
         const int startRow = 2 * iNode;
         constexpr int startCol = 0;
-        const Eigen::Matrix<double, 2, 1> coordinates = structure.NodeGetNodePtr(iNode)->Get(NuTo::Node::COORDINATES);
+        const Eigen::Matrix<double, 2, 1> coordinates = structure.NodeGetNodePtr(iNode)->Get(NuTo::Node::eDof::COORDINATES);
         rigidBodyModes.block(startRow, startCol, Parameters::mDimension, 3) << 1., 0., -coordinates.at(1, 0), 0., 1., coordinates.at(0, 0);
     }
 }
@@ -527,11 +544,11 @@ void ImportMesh(NuTo::Structure& rStructure, const int nodesOnEdge, const int rM
     }
 
 
-    NuTo::FullMatrix<int, Eigen::Dynamic, Eigen::Dynamic> createdGroupIdMatrix = rStructure.ImportFromGmsh(meshFile, NuTo::ElementData::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::STATICDATA);
+    NuTo::FullMatrix<int, Eigen::Dynamic, Eigen::Dynamic> createdGroupIdMatrix = rStructure.ImportFromGmsh(meshFile, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::STATICDATA);
     int subdomain00 = createdGroupIdMatrix.GetValue(0, 0);
     int interpolationType00 = createdGroupIdMatrix.GetValue(0, 1);
 
-    rStructure.InterpolationTypeAdd(interpolationType00, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT2);
+    rStructure.InterpolationTypeAdd(interpolationType00, NuTo::Node::eDof::DISPLACEMENTS, NuTo::Interpolation::eTypeOrder::EQUIDISTANT2);
     rStructure.ElementGroupSetInterpolationType(subdomain00, interpolationType00);
     rStructure.ElementTotalConvertToInterpolationType(1.e-6, 10);
 }
@@ -563,7 +580,7 @@ int main(int argc, char* argv[])
     AssignSection(structure, rank);
 
     structure.NodeBuildGlobalDofs();
-    const int numDofs  = structure.GetNumDofs(NuTo::Node::DISPLACEMENTS);
+    const int numDofs  = structure.GetNumDofs(NuTo::Node::eDof::DISPLACEMENTS);
     const int numNodes = structure.GetNumNodes();
     structure.CalculateMaximumIndependentSets();
 
@@ -734,11 +751,11 @@ int main(int argc, char* argv[])
     std::cout << "***********************************" << std::endl;
 
 
-    int groupAllElements = structure.GroupCreate(NuTo::Groups::Elements);
+    int groupAllElements = structure.GroupCreate(NuTo::eGroupId::Elements);
     structure.GroupAddElementsTotal(groupAllElements);
-    structure.AddVisualizationComponent(groupAllElements, NuTo::VisualizeBase::DISPLACEMENTS);
-    structure.AddVisualizationComponent(groupAllElements, NuTo::VisualizeBase::ENGINEERING_STRESS);
-    structure.AddVisualizationComponent(groupAllElements, NuTo::VisualizeBase::ENGINEERING_STRAIN);
+    structure.AddVisualizationComponent(groupAllElements, NuTo::eVisualizeWhat::DISPLACEMENTS);
+    structure.AddVisualizationComponent(groupAllElements, NuTo::eVisualizeWhat::ENGINEERING_STRESS);
+    structure.AddVisualizationComponent(groupAllElements, NuTo::eVisualizeWhat::ENGINEERING_STRAIN);
 
     char outputFile[200];
     sprintf(outputFile, "/home/phuschke/structure_rank_%03d_0.vtk", rank);
