@@ -160,7 +160,7 @@ ImportContainer ImportMeshFile(const std::string &rFileName)
 
     std::ifstream file(rFileName.c_str(), std::ios::in);
     if (not file.is_open())
-        throw std::exception();
+        std::cout << "Mesh file did not open. Check path." << std::endl;
 
     ImportContainer importContainer;
 
