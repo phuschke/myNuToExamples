@@ -1,17 +1,32 @@
 #ADD_SUBDIRECTORY(interface)
 ADD_SUBDIRECTORY(dynamic)
 
+# create symlinks to the necessary mesh files
+execute_process(
+  COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "${CMAKE_SOURCE_DIR}/myNutoExamples/meshFiles/2d/2d_miehe_symmetric_three_point_bending.msh" "${CMAKE_CURRENT_BINARY_DIR}/2d_miehe_symmetric_three_point_bending.msh"
+)
 
 # 2d_phase_field_3_point_miehe.cpp
-#ADD_EXECUTABLE(2d_phase_field_3_point_miehe 2d_phase_field_3_point_miehe.cpp)
-#TARGET_LINK_LIBRARIES(2d_phase_field_3_point_miehe NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
-#IF (ENABLE_VISUALIZE)
-#  TARGET_LINK_LIBRARIES(2d_phase_field_3_point_miehe NuToVisualize)
-#ENDIF (ENABLE_VISUALIZE)
-#IF(MUMPS_FOUND)
-#  TARGET_LINK_LIBRARIES(2d_phase_field_3_point_miehe ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-#ENDIF(MUMPS_FOUND)
-#
+ADD_EXECUTABLE(2d_phase_field_3_point_miehe 2d_phase_field_3_point_miehe.cpp)
+TARGET_LINK_LIBRARIES(2d_phase_field_3_point_miehe NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
+IF (ENABLE_VISUALIZE)
+  TARGET_LINK_LIBRARIES(2d_phase_field_3_point_miehe NuToVisualize)
+ENDIF (ENABLE_VISUALIZE)
+IF(MUMPS_FOUND)
+  TARGET_LINK_LIBRARIES(2d_phase_field_3_point_miehe ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+ENDIF(MUMPS_FOUND)
+
+# 2d_local_damage_3_point_bending.cpp
+ADD_EXECUTABLE(2d_local_damage_3_point_bending 2d_local_damage_3_point_bending.cpp)
+TARGET_LINK_LIBRARIES(2d_local_damage_3_point_bending NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
+IF (ENABLE_VISUALIZE)
+  TARGET_LINK_LIBRARIES(2d_local_damage_3_point_bending NuToVisualize)
+ENDIF (ENABLE_VISUALIZE)
+IF(MUMPS_FOUND)
+  TARGET_LINK_LIBRARIES(2d_local_damage_3_point_bending ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+ENDIF(MUMPS_FOUND)
+
+
 ## 2d_phase_field_single_edge_notched_tension.cpp
 #ADD_EXECUTABLE(2d_phase_field_single_edge_notched_tension 2d_phase_field_single_edge_notched_tension.cpp)
 #TARGET_LINK_LIBRARIES(2d_phase_field_single_edge_notched_tension NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})

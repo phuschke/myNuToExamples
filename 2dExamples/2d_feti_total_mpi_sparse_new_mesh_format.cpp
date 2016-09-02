@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <chrono>
 #include "ImportMesh.h"
+#include "FetiSolver.h"
 
 #include "nuto/mechanics/nodes/NodeEnum.h"
 #include "nuto/mechanics/groups/GroupEnum.h"
@@ -94,8 +95,6 @@ void AssignMaterial(NuTo::Structure& rStructure, const int rMPIrank)
     //    rStructure.ElementTotalSetConstitutiveLaw(matrixMaterial);
 }
 
-
-
 void AssembleStiffnesMatrix(NuTo::Structure& structure, Eigen::SparseMatrix<double>& stiffnessMatrixSparse)
 {
     // assemble stiffness matrix
@@ -123,7 +122,6 @@ void AssembleStiffnesMatrix(NuTo::Structure& structure, Eigen::SparseMatrix<doub
 
 }
 
-
 void AssembleExternalForceVectorThreePointBending(const double searchTol, NuTo::FullVector<double, Eigen::Dynamic>& externalForce, NuTo::Structure& structure, double xCoord)
 {
     NuTo::FullVector<double, 2> nodeCoords;
@@ -141,8 +139,6 @@ void AssembleExternalForceVectorThreePointBending(const double searchTol, NuTo::
         externalForce(displacementDofs.at(1, 0)) = -1;
     }
 }
-
-
 
 void AssembleRigidBodyModes(const int numNodes, NuTo::Structure& structure, Eigen::MatrixXd& rigidBodyModes)
 {
@@ -292,11 +288,10 @@ int main(int argc, char* argv[])
         Eigen::MatrixXd interfaceRigidBodyModesLocal    = connectivityMatrix * rigidBodyModes;
         Eigen::VectorXd rigidBodyForceVectorLocal       = rigidBodyModes.transpose() * externalForce;
 
-        // Robust Cholesky decomposition of a matrix with pivoting.
-        //    Eigen::SimplicialLDLT<Eigen::SparseMatrix<double,Eigen::ColMajor>> solver;
-        Eigen::SparseQR<Eigen::SparseMatrix<double>,Eigen::COLAMDOrdering<int>> solver;
-        //    Eigen::SparseLU<Eigen::SparseMatrix<double,Eigen::ColMajor>> solver;
 
+        //    Eigen::SimplicialLDLT<Eigen::SparseMatrix<double,Eigen::ColMajor>> solver;
+        //    Eigen::SparseLU<Eigen::SparseMatrix<double,Eigen::ColMajor>> solver;
+        Eigen::SparseQR<Eigen::SparseMatrix<double>,Eigen::COLAMDOrdering<int>> solver;
         solver.compute(stiffnessMatrixSparse);
 
         Eigen::VectorXd displacementGapLocal    = connectivityMatrix * solver.solve(externalForce);

@@ -1,16 +1,9 @@
 #include "nuto/mechanics/structures/unstructured/Structure.h"
 #include "nuto/mechanics/timeIntegration/NewmarkDirect.h"
-#include "nuto/mechanics/constitutive/laws/PhaseField.h"
 
-#include "nuto/mechanics/nodes/NodeEnum.h"
-#include "nuto/mechanics/groups/GroupEnum.h"
-#include "nuto/mechanics/sections/SectionEnum.h"
-#include "nuto/mechanics/constitutive/ConstitutiveEnum.h"
-#include "nuto/visualize/VisualizeEnum.h"
-#include "nuto/mechanics/interpolationtypes/InterpolationTypeEnum.h"
-#include "nuto/mechanics/elements/IpDataEnum.h"
-#include "nuto/mechanics/elements/ElementDataEnum.h"
-#include "nuto/mechanics/integrationtypes/IntegrationTypeEnum.h"
+
+#include"../myNutoExamples/EnumsAndTypedefs.h"
+
 
 #include "nuto/mechanics/nodes/NodeBase.h"
 
@@ -18,42 +11,43 @@
 #include "nuto/math/SparseMatrixCSRGeneral.h"
 #include "nuto/mechanics/dofSubMatrixStorage/BlockSparseMatrix.h"
 #include "nuto/mechanics/structures/StructureOutputBlockMatrix.h"
-#include"nuto/base/ErrorEnum.h"
+
 
 #include <boost/filesystem.hpp>
 #include <fstream>
 #include <string>
 #include <chrono>
 
-using std::cout;
-using std::endl;
-using NuTo::Constitutive::ePhaseFieldEnergyDecomposition;
 
+
+// geometry
 constexpr   int         dimension                   = 2;
+
+// material
+constexpr   double      youngsModulus               = 4.0e4;
+constexpr   double      poissonsRatio               = 0.2;
+constexpr   double      tensileStrength             = 3;
+constexpr   double      compressiveStrength         = 30;
+constexpr   double      fractureEnergy              = 0.01;
+
+// section
+constexpr   double      thickness                   = 1.0;
+
+// integration
 constexpr   bool        performLineSearch           = false;
 constexpr   bool        automaticTimeStepping       = true;
-constexpr   double      youngsModulus               = 2.1e5;
-constexpr   double      poissonsRatio               = 0.3;
-constexpr   double      thickness                   = 1.0;
-constexpr   double      lengthScaleParameter        = 3.0e-2;
-constexpr   double      fractureEnergy              = 2.7;
-constexpr   double      artificialViscosity         = 0.1;
 constexpr   double      timeStep                    = 1e-2;
 constexpr   double      minTimeStep                 = 1e-5;
 constexpr   double      maxTimeStep                 =  1e-1;
 constexpr   double      toleranceForce              = 1e-6;
 constexpr   double      simulationTime              = 1.0;
-constexpr   double      loadFactor                  = -0.4;
-constexpr   ePhaseFieldEnergyDecomposition energyDecomposition = ePhaseFieldEnergyDecomposition::ANISOTROPIC_SPECTRAL_DECOMPOSITION;
+constexpr   double      loadFactor                  = -0.001;
 
-void WriteParameters(const int subdirectory, const int dispOrder, const int phaseFieldOrder, const int ipOrder, boost::filesystem::path resultPath)
+void WriteParameters(const std::string& subdirectory, boost::filesystem::path resultPath)
 {
     std::ofstream file;
     file.open(std::string(resultPath.string() + "parameters.txt"));
     cout << "Writing simulation parameters to file: " << std::string(resultPath.string() + "parameters.txt") << std::endl;
-    file << "dispOrder            " << dispOrder            << std::endl;
-    file << "phaseFieldOrder      " << phaseFieldOrder      << std::endl;
-    file << "ipOrder              " << ipOrder              << std::endl;
     file << "subdirectory         " << subdirectory         << std::endl;
     file << "dimension            " << dimension            << std::endl;
     file << "performLineSearch    " << performLineSearch    << std::endl;
@@ -61,9 +55,6 @@ void WriteParameters(const int subdirectory, const int dispOrder, const int phas
     file << "youngsModulus        " << youngsModulus        << std::endl;
     file << "poissonsRatio        " << poissonsRatio        << std::endl;
     file << "thickness            " << thickness            << std::endl;
-    file << "lengthScaleParameter " << lengthScaleParameter << std::endl;
-    file << "fractureEnergy       " << fractureEnergy       << std::endl;
-    file << "artificialViscosity  " << artificialViscosity  << std::endl;
     file << "timeStep             " << timeStep             << std::endl;
     file << "minTimeStep          " << minTimeStep          << std::endl;
     file << "maxTimeStep          " << maxTimeStep          << std::endl;
@@ -77,19 +68,18 @@ void WriteParameters(const int subdirectory, const int dispOrder, const int phas
 int main(int argc, char* argv[])
 {
 
-    if (argc != 5)
+    if (argc != 2)
     {
-        std::cout << "input arguments: displacement order, damage order, integration order, subdirectory" << std::endl;
+        std::cout << "input arguments: subdirectory" << std::endl;
         return EXIT_FAILURE;
     }
 
-    const       int         dispOrder                   = std::stoi(argv[1]);
-    const       int         phaseFieldOrder             = std::stoi(argv[2]);
-    const       int         ipOrder                     = std::stoi(argv[3]);
-    const       int         subdirectory                = std::stoi(argv[4]);
+    std::string subdirectory = argv[1];
+    std::cout << subdirectory << endl;
 
+    boost::filesystem::path resultPath(std::string("/home/phuschke/results/2d/2d_local_damage_model/" + subdirectory + "/"));
+    cout << resultPath.string() << endl;
 
-    boost::filesystem::path resultPath(std::string("/home/phuschke/results/2d/2d_miehe_three_point_bending_phase_field/" + std::to_string(subdirectory) + "/"));
     const boost::filesystem::path meshFilePath("2d_miehe_symmetric_three_point_bending.msh");
 
     const NuTo::FullVector<double, dimension> directionX    = NuTo::FullVector<double, dimension>::UnitX();
@@ -102,7 +92,7 @@ int main(int argc, char* argv[])
     cout << "**********************************************" << endl;
 
     NuTo::Structure myStructure(dimension);
-    myStructure.SetNumTimeDerivatives(1);
+    myStructure.SetNumTimeDerivatives(0);
     myStructure.SetShowTime(false);
 
     cout << "Writing results to:" << endl;
@@ -124,7 +114,7 @@ int main(int argc, char* argv[])
     myIntegrationScheme.SetPerformLineSearch        ( performLineSearch         );
     myIntegrationScheme.SetResultDirectory          ( resultPath.string(), true );
 
-    WriteParameters(subdirectory, dispOrder, phaseFieldOrder, ipOrder, resultPath);
+    WriteParameters(subdirectory, resultPath);
 
     cout << "**********************************************" << endl;
     cout << "**  section                                 **" << endl;
@@ -137,82 +127,34 @@ int main(int argc, char* argv[])
     cout << "**  material                                **" << endl;
     cout << "**********************************************" << endl;
 
-    NuTo::ConstitutiveBase* phaseField = new NuTo::PhaseField(youngsModulus,
-                                                              poissonsRatio,
-                                                              lengthScaleParameter,
-                                                              fractureEnergy,
-                                                              artificialViscosity,
-                                                              energyDecomposition
-                                                              );
+    int myMaterial = myStructure.ConstitutiveLawCreate(eConstitutiveType::LOCAL_DAMAGE_MODEL);
 
-    int matrixMaterial = myStructure.AddConstitutiveLaw(phaseField);
+    myStructure.ConstitutiveLawSetParameterDouble(myMaterial, eConstitutiveParameter::YOUNGS_MODULUS,       youngsModulus);
+    myStructure.ConstitutiveLawSetParameterDouble(myMaterial, eConstitutiveParameter::POISSONS_RATIO,       poissonsRatio);
+    myStructure.ConstitutiveLawSetParameterDouble(myMaterial, eConstitutiveParameter::TENSILE_STRENGTH,     tensileStrength);
+    myStructure.ConstitutiveLawSetParameterDouble(myMaterial, eConstitutiveParameter::COMPRESSIVE_STRENGTH, compressiveStrength);
+    myStructure.ConstitutiveLawSetParameterDouble(myMaterial, eConstitutiveParameter::FRACTURE_ENERGY,      fractureEnergy);
+
 
     cout << "**********************************************" << endl;
     cout << "**  geometry                                **" << endl;
     cout << "**********************************************" << endl;
 
-    NuTo::FullMatrix<int, Eigen::Dynamic, Eigen::Dynamic> createdGroupIds = myStructure.ImportFromGmsh(meshFilePath.string(), NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::STATICDATA);
+    NuTo::FullMatrix<int, Eigen::Dynamic, Eigen::Dynamic> createdGroupIds = myStructure.ImportFromGmsh(meshFilePath.string(), eElementDataType::CONSTITUTIVELAWIP, eIpDataType::STATICDATA);
     int groupId = createdGroupIds.GetValue(0, 0);
 
-    int myInterpolationType = myStructure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::TRIANGLE2D);
-    myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::eDof::COORDINATES, NuTo::Interpolation::eTypeOrder::EQUIDISTANT1);
-
-    switch (dispOrder)
-    {
-    case 1:
-        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::eDof::DISPLACEMENTS, NuTo::Interpolation::eTypeOrder::EQUIDISTANT1);
-        break;
-    case 2:
-        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::eDof::DISPLACEMENTS, NuTo::Interpolation::eTypeOrder::EQUIDISTANT2);
-        break;
-    case 3:
-        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::eDof::DISPLACEMENTS, NuTo::Interpolation::eTypeOrder::EQUIDISTANT3);
-        break;
-    case 4:
-        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::eDof::DISPLACEMENTS, NuTo::Interpolation::eTypeOrder::EQUIDISTANT4);
-        break;
-    default:
-        std::cout << "dispOrder either 2,3 or 4." << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    switch (phaseFieldOrder)
-    {
-    case 1:
-        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::eDof::CRACKPHASEFIELD, NuTo::Interpolation::eTypeOrder::EQUIDISTANT1);
-        break;
-    default:
-        std::cout << "nlOrder either 1,2 or 3." << std::endl;
-        return EXIT_FAILURE;
-    }
-
+    int myInterpolationType = myStructure.InterpolationTypeCreate(eShapeType::TRIANGLE2D);
+    myStructure.InterpolationTypeAdd(myInterpolationType, eDof::COORDINATES,   eTypeOrder::EQUIDISTANT1);
+    myStructure.InterpolationTypeAdd(myInterpolationType, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT2);
     myStructure.ElementGroupSetInterpolationType(groupId, myInterpolationType);
-
-    switch (ipOrder)
-    {
-    case 1:
-        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::eIntegrationType::IntegrationType2D3NGauss1Ip, NuTo::IpData::eIpDataType::STATICDATA);
-        break;
-    case 2:
-        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::eIntegrationType::IntegrationType2D3NGauss3Ip, NuTo::IpData::eIpDataType::STATICDATA);
-        break;
-    case 3:
-        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::eIntegrationType::IntegrationType2D3NGauss6Ip, NuTo::IpData::eIpDataType::STATICDATA);
-        break;
-    case 4:
-        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::eIntegrationType::IntegrationType2D3NGauss12Ip, NuTo::IpData::eIpDataType::STATICDATA);
-        break;
-    default:
-        std::cout << "ipOrder either 2, 3 or 4." << std::endl;
-        return EXIT_FAILURE;
-    }
+    myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::eIntegrationType::IntegrationType2D3NGauss3Ip, eIpDataType::STATICDATA);
 
     myStructure.InterpolationTypeInfo(myInterpolationType);
 
     myStructure.ElementTotalConvertToInterpolationType(1.e-6, 10);
 
     myStructure.ElementTotalSetSection(mySection);
-    myStructure.ElementTotalSetConstitutiveLaw(matrixMaterial);
+    myStructure.ElementTotalSetConstitutiveLaw(myMaterial);
 
     cout << "**********************************************" << endl;
     cout << "**  bc                                      **" << endl;
@@ -257,8 +199,8 @@ int main(int argc, char* argv[])
     cout << "**  visualization                           **" << endl;
     cout << "**********************************************" << endl;
 
-    myStructure.AddVisualizationComponent(groupId, NuTo::eVisualizeWhat::DISPLACEMENTS);
-    myStructure.AddVisualizationComponent(groupId, NuTo::eVisualizeWhat::CRACK_PHASE_FIELD);
+    myStructure.AddVisualizationComponent(groupId, NuTo::eVisualizeWhat::DISPLACEMENTS);    
+    myStructure.AddVisualizationComponent(groupId, NuTo::eVisualizeWhat::DAMAGE);
 
     cout << "**********************************************" << endl;
     cout << "**  solver                                  **" << endl;
