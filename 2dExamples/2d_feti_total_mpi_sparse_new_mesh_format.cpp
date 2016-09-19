@@ -15,14 +15,7 @@
 #include "ImportMesh.h"
 #include "FetiSolver.h"
 
-#include "nuto/mechanics/nodes/NodeEnum.h"
-#include "nuto/mechanics/groups/GroupEnum.h"
-#include "nuto/mechanics/sections/SectionEnum.h"
-#include "nuto/mechanics/constitutive/ConstitutiveEnum.h"
-#include "nuto/visualize/VisualizeEnum.h"
-#include "nuto/mechanics/interpolationtypes/InterpolationTypeEnum.h"
-#include "nuto/mechanics/elements/IpDataEnum.h"
-#include "nuto/mechanics/elements/ElementDataEnum.h"
+#include "../myNutoExamples/EnumsAndTypedefs.h"
 
 #include "nuto/mechanics/nodes/NodeBase.h"
 
@@ -30,7 +23,7 @@
 #include "nuto/math/SparseMatrixCSRGeneral.h"
 #include "nuto/mechanics/dofSubMatrixStorage/BlockSparseMatrix.h"
 #include "nuto/mechanics/structures/StructureOutputBlockMatrix.h"
-#include"nuto/base/ErrorEnum.h"
+
 
 class Parameters
 {
@@ -185,10 +178,8 @@ ImportContainer ImportMesh(int rank)
 int main(int argc, char* argv[])
 {
     MPI_Init(&argc, &argv);
-    int rank;
-    int numProcesses;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &numProcesses);
+    int rank            = MPI::COMM_WORLD.Get_rank();
+    int numProcesses    = MPI::COMM_WORLD.Get_size();
 
     try
     {
@@ -406,6 +397,7 @@ int main(int argc, char* argv[])
         std::cout << "**      Visualization rank = " << rank        << std::endl;
         std::cout << "***********************************" << std::endl;
 
+//        auto displacement = solver.solve(externalForce);
 
         int groupAllElements = structure.GroupCreate(NuTo::eGroupId::Elements);
         structure.GroupAddElementsTotal(groupAllElements);

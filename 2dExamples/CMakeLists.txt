@@ -6,14 +6,41 @@ execute_process(
   COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "${CMAKE_SOURCE_DIR}/myNutoExamples/meshFiles/2d/2d_miehe_symmetric_three_point_bending.msh" "${CMAKE_CURRENT_BINARY_DIR}/2d_miehe_symmetric_three_point_bending.msh"
 )
 
-# 2d_phase_field_3_point_miehe.cpp
-ADD_EXECUTABLE(2d_phase_field_3_point_miehe 2d_phase_field_3_point_miehe.cpp)
-TARGET_LINK_LIBRARIES(2d_phase_field_3_point_miehe NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
+# create symlinks to the necessary mesh files
+execute_process(
+  COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "${CMAKE_SOURCE_DIR}/myNutoExamples/meshFiles/2d/feti/fine/feti.msh_000001" "${CMAKE_CURRENT_BINARY_DIR}/feti.msh_000001"
+)
+execute_process(
+  COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "${CMAKE_SOURCE_DIR}/myNutoExamples/meshFiles/2d/feti/fine/feti.msh_000002" "${CMAKE_CURRENT_BINARY_DIR}/feti.msh_000002"
+)
+execute_process(
+  COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "${CMAKE_SOURCE_DIR}/myNutoExamples/meshFiles/2d/feti/fine/feti.msh_000003" "${CMAKE_CURRENT_BINARY_DIR}/feti.msh_000003"
+)
+
+execute_process(
+  COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "${CMAKE_SOURCE_DIR}/myNutoExamples/meshFiles/2d/feti/fine/feti_beam.msh" "${CMAKE_CURRENT_BINARY_DIR}/feti_beam.msh"
+)
+
+
+
+# read_json.cpp
+ADD_EXECUTABLE(read_json read_json.cpp jsoncpp.cpp)
+TARGET_LINK_LIBRARIES(read_json NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
 IF (ENABLE_VISUALIZE)
-  TARGET_LINK_LIBRARIES(2d_phase_field_3_point_miehe NuToVisualize)
+  TARGET_LINK_LIBRARIES(read_json NuToVisualize)
 ENDIF (ENABLE_VISUALIZE)
 IF(MUMPS_FOUND)
-  TARGET_LINK_LIBRARIES(2d_phase_field_3_point_miehe ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+  TARGET_LINK_LIBRARIES(read_json ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+ENDIF(MUMPS_FOUND)
+
+# 2d_feti_structure_compare.cpp
+ADD_EXECUTABLE(2d_feti_structure_compare 2d_feti_structure_compare.cpp)
+TARGET_LINK_LIBRARIES(2d_feti_structure_compare NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
+IF (ENABLE_VISUALIZE)
+  TARGET_LINK_LIBRARIES(2d_feti_structure_compare NuToVisualize)
+ENDIF (ENABLE_VISUALIZE)
+IF(MUMPS_FOUND)
+  TARGET_LINK_LIBRARIES(2d_feti_structure_compare ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 ENDIF(MUMPS_FOUND)
 
 # 2d_local_damage_3_point_bending.cpp
@@ -50,8 +77,8 @@ ENDIF(MUMPS_FOUND)
 
 message(status "##########################################")
 
-find_package(MPI REQUIRED)
-include_directories(${MPI_INCLUDE_PATH})
+#find_package(MPI REQUIRED)
+#include_directories(${MPI_INCLUDE_PATH})
 
 
 #if(MPI_COMPILE_FLAGS)
@@ -99,6 +126,22 @@ message(status "##########################################")
  # ENDIF(MINGW)
  #
  #
+  # 2d_feti_structure
+  ADD_EXECUTABLE(2d_feti_structure 2d_feti_structure.cpp)
+  target_link_libraries(2d_feti_structure ${MPI_LIBRARIES})
+  TARGET_LINK_LIBRARIES(2d_feti_structure NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
+  IF (ENABLE_VISUALIZE)
+    TARGET_LINK_LIBRARIES(2d_feti_structure NuToVisualize)
+  ENDIF (ENABLE_VISUALIZE)
+  IF(MUMPS_FOUND)
+    TARGET_LINK_LIBRARIES(2d_feti_structure ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+  ENDIF(MUMPS_FOUND)
+  IF(MINGW)
+    SET_TARGET_PROPERTIES(2d_feti_structure PROPERTIES LINK_FLAGS -Wl,--enable-auto-import)
+  ENDIF(MINGW)
+
+
+
   # 2d_feti_total_mpi_sparse_new_mesh_format
   ADD_EXECUTABLE(2d_feti_total_mpi_sparse_new_mesh_format 2d_feti_total_mpi_sparse_new_mesh_format.cpp)
   target_link_libraries(2d_feti_total_mpi_sparse_new_mesh_format ${MPI_LIBRARIES})
@@ -112,4 +155,3 @@ message(status "##########################################")
   IF(MINGW)
     SET_TARGET_PROPERTIES(2d_feti_total_mpi_sparse_new_mesh_format PROPERTIES LINK_FLAGS -Wl,--enable-auto-import)
   ENDIF(MINGW)
-

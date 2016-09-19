@@ -19,3 +19,5 @@ using NuTo::Interpolation::eTypeOrder;
 using NuTo::ElementData::eElementDataType;
 using NuTo::IpData::eIpDataType;
 using NuTo::Interpolation::eShapeType;
+using NuTo::eGroupId;
+using NuTo::eVisualizeWhat;
