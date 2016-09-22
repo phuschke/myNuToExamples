@@ -21,8 +21,6 @@ execute_process(
   COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "${CMAKE_SOURCE_DIR}/myNutoExamples/meshFiles/2d/feti/fine/feti_beam.msh" "${CMAKE_CURRENT_BINARY_DIR}/feti_beam.msh"
 )
 
-
-
 # read_json.cpp
 ADD_EXECUTABLE(read_json read_json.cpp jsoncpp.cpp)
 TARGET_LINK_LIBRARIES(read_json NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
@@ -33,36 +31,58 @@ IF(MUMPS_FOUND)
   TARGET_LINK_LIBRARIES(read_json ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 ENDIF(MUMPS_FOUND)
 
+# 2d_feti_structure_compare_phase_field.cpp
+ADD_EXECUTABLE(2d_feti_structure_compare_phase_field 2d_feti_structure_compare_phase_field.cpp)
+TARGET_LINK_LIBRARIES(2d_feti_structure_compare_phase_field NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
+IF (ENABLE_VISUALIZE)
+  TARGET_LINK_LIBRARIES(2d_feti_structure_compare_phase_field NuToVisualize)
+ENDIF (ENABLE_VISUALIZE)
+IF(MUMPS_FOUND)
+  TARGET_LINK_LIBRARIES(2d_feti_structure_compare_phase_field ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+ENDIF(MUMPS_FOUND)
+
+# 2d_feti_structure_compare_gradient_damage.cpp
+ADD_EXECUTABLE(2d_feti_structure_compare_gradient_damage 2d_feti_structure_compare_gradient_damage.cpp)
+TARGET_LINK_LIBRARIES(2d_feti_structure_compare_gradient_damage NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
+IF (ENABLE_VISUALIZE)
+  TARGET_LINK_LIBRARIES(2d_feti_structure_compare_gradient_damage NuToVisualize)
+ENDIF (ENABLE_VISUALIZE)
+IF(MUMPS_FOUND)
+  TARGET_LINK_LIBRARIES(2d_feti_structure_compare_gradient_damage ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+ENDIF(MUMPS_FOUND)
+
+
+
 # 2d_feti_structure_compare.cpp
-ADD_EXECUTABLE(2d_feti_structure_compare 2d_feti_structure_compare.cpp)
-TARGET_LINK_LIBRARIES(2d_feti_structure_compare NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
-IF (ENABLE_VISUALIZE)
-  TARGET_LINK_LIBRARIES(2d_feti_structure_compare NuToVisualize)
-ENDIF (ENABLE_VISUALIZE)
-IF(MUMPS_FOUND)
-  TARGET_LINK_LIBRARIES(2d_feti_structure_compare ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-ENDIF(MUMPS_FOUND)
-
-# 2d_local_damage_3_point_bending.cpp
-ADD_EXECUTABLE(2d_local_damage_3_point_bending 2d_local_damage_3_point_bending.cpp)
-TARGET_LINK_LIBRARIES(2d_local_damage_3_point_bending NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
-IF (ENABLE_VISUALIZE)
-  TARGET_LINK_LIBRARIES(2d_local_damage_3_point_bending NuToVisualize)
-ENDIF (ENABLE_VISUALIZE)
-IF(MUMPS_FOUND)
-  TARGET_LINK_LIBRARIES(2d_local_damage_3_point_bending ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-ENDIF(MUMPS_FOUND)
-
-
-## 2d_phase_field_single_edge_notched_tension.cpp
-#ADD_EXECUTABLE(2d_phase_field_single_edge_notched_tension 2d_phase_field_single_edge_notched_tension.cpp)
-#TARGET_LINK_LIBRARIES(2d_phase_field_single_edge_notched_tension NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
+#ADD_EXECUTABLE(2d_feti_structure_compare 2d_feti_structure_compare.cpp)
+#TARGET_LINK_LIBRARIES(2d_feti_structure_compare NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
 #IF (ENABLE_VISUALIZE)
-#  TARGET_LINK_LIBRARIES(2d_phase_field_single_edge_notched_tension NuToVisualize)
+#  TARGET_LINK_LIBRARIES(2d_feti_structure_compare NuToVisualize)
 #ENDIF (ENABLE_VISUALIZE)
 #IF(MUMPS_FOUND)
-#  TARGET_LINK_LIBRARIES(2d_phase_field_single_edge_notched_tension ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+#  TARGET_LINK_LIBRARIES(2d_feti_structure_compare ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 #ENDIF(MUMPS_FOUND)
+
+# 2d_local_damage_3_point_bending.cpp
+#ADD_EXECUTABLE(2d_local_damage_3_point_bending 2d_local_damage_3_point_bending.cpp)
+#TARGET_LINK_LIBRARIES(2d_local_damage_3_point_bending NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
+#IF (ENABLE_VISUALIZE)
+#  TARGET_LINK_LIBRARIES(2d_local_damage_3_point_bending NuToVisualize)
+#ENDIF (ENABLE_VISUALIZE)
+#IF(MUMPS_FOUND)
+#  TARGET_LINK_LIBRARIES(2d_local_damage_3_point_bending ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+#ENDIF(MUMPS_FOUND)
+
+
+# 2d_phase_field_single_edge_notched_tension.cpp
+ADD_EXECUTABLE(2d_phase_field_single_edge_notched_tension 2d_phase_field_single_edge_notched_tension.cpp)
+TARGET_LINK_LIBRARIES(2d_phase_field_single_edge_notched_tension NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
+IF (ENABLE_VISUALIZE)
+  TARGET_LINK_LIBRARIES(2d_phase_field_single_edge_notched_tension NuToVisualize)
+ENDIF (ENABLE_VISUALIZE)
+IF(MUMPS_FOUND)
+  TARGET_LINK_LIBRARIES(2d_phase_field_single_edge_notched_tension ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+ENDIF(MUMPS_FOUND)
 
 ## 2d_phase_field_single_edge_notched_shear.cpp
 #ADD_EXECUTABLE(2d_phase_field_single_edge_notched_shear 2d_phase_field_single_edge_notched_shear.cpp)
@@ -126,6 +146,21 @@ message(status "##########################################")
  # ENDIF(MINGW)
  #
  #
+  # 2d_feti_structure_phase_field
+  ADD_EXECUTABLE(2d_feti_structure_phase_field 2d_feti_structure_phase_field.cpp)
+  target_link_libraries(2d_feti_structure_phase_field ${MPI_LIBRARIES})
+  TARGET_LINK_LIBRARIES(2d_feti_structure_phase_field NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
+  IF (ENABLE_VISUALIZE)
+    TARGET_LINK_LIBRARIES(2d_feti_structure_phase_field NuToVisualize)
+  ENDIF (ENABLE_VISUALIZE)
+  IF(MUMPS_FOUND)
+    TARGET_LINK_LIBRARIES(2d_feti_structure_phase_field ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+  ENDIF(MUMPS_FOUND)
+  IF(MINGW)
+    SET_TARGET_PROPERTIES(2d_feti_structure_phase_field PROPERTIES LINK_FLAGS -Wl,--enable-auto-import)
+  ENDIF(MINGW)
+
+
   # 2d_feti_structure
   ADD_EXECUTABLE(2d_feti_structure 2d_feti_structure.cpp)
   target_link_libraries(2d_feti_structure ${MPI_LIBRARIES})
@@ -140,18 +175,16 @@ message(status "##########################################")
     SET_TARGET_PROPERTIES(2d_feti_structure PROPERTIES LINK_FLAGS -Wl,--enable-auto-import)
   ENDIF(MINGW)
 
-
-
-  # 2d_feti_total_mpi_sparse_new_mesh_format
-  ADD_EXECUTABLE(2d_feti_total_mpi_sparse_new_mesh_format 2d_feti_total_mpi_sparse_new_mesh_format.cpp)
-  target_link_libraries(2d_feti_total_mpi_sparse_new_mesh_format ${MPI_LIBRARIES})
-  TARGET_LINK_LIBRARIES(2d_feti_total_mpi_sparse_new_mesh_format NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
+  # 2d_feti_structure_gradient_damage
+  ADD_EXECUTABLE(2d_feti_structure_gradient_damage 2d_feti_structure_gradient_damage.cpp)
+  target_link_libraries(2d_feti_structure_gradient_damage ${MPI_LIBRARIES})
+  TARGET_LINK_LIBRARIES(2d_feti_structure_gradient_damage NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
   IF (ENABLE_VISUALIZE)
-    TARGET_LINK_LIBRARIES(2d_feti_total_mpi_sparse_new_mesh_format NuToVisualize)
+    TARGET_LINK_LIBRARIES(2d_feti_structure_gradient_damage NuToVisualize)
   ENDIF (ENABLE_VISUALIZE)
   IF(MUMPS_FOUND)
-    TARGET_LINK_LIBRARIES(2d_feti_total_mpi_sparse_new_mesh_format ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+    TARGET_LINK_LIBRARIES(2d_feti_structure_gradient_damage ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
   ENDIF(MUMPS_FOUND)
   IF(MINGW)
-    SET_TARGET_PROPERTIES(2d_feti_total_mpi_sparse_new_mesh_format PROPERTIES LINK_FLAGS -Wl,--enable-auto-import)
+    SET_TARGET_PROPERTIES(2d_feti_structure_gradient_damage PROPERTIES LINK_FLAGS -Wl,--enable-auto-import)
   ENDIF(MINGW)

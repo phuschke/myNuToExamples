@@ -17,7 +17,7 @@
 #include "FetiSolver.h"
 #include "nuto/mechanics/timeIntegration/NewmarkDirect.h"
 #include "../myNutoExamples/EnumsAndTypedefs.h"
-
+#include "nuto/mechanics/constitutive/laws/PhaseField.h"
 #include "nuto/mechanics/nodes/NodeBase.h"
 
 #include "nuto/math/SparseMatrixCSR.h"
@@ -39,19 +39,22 @@ constexpr   int         dimension                   = 2;
 constexpr   double      thickness                   = 1.0;
 
 // material
-constexpr   double      youngsModulus               = 4.0e4;
+constexpr   double      youngsModulus               = 4.0;                // N/mm^2
 constexpr   double      poissonsRatio               = 0.2;
-constexpr   double      tensileStrength             = 3;
-constexpr   double      compressiveStrength         = 30;
-constexpr   double      fractureEnergy              = 0.1;
+constexpr   double      nonlocalRadius              = 0.1;                   // mm
+constexpr   double      fractureEnergy              = 0.0001;                   // N/mm
+constexpr   double      compressiveStrength         = 30.e-4;                  // N/mm
+constexpr   double      tensileStrength             = 3.e-4;                  // N/mm
+
 
 // integration
 constexpr   bool        performLineSearch           = true;
 constexpr   bool        automaticTimeStepping       = true;
 constexpr   double      timeStep                    = 1e-1;
 constexpr   double      minTimeStep                 = 1e-5;
-constexpr   double      maxTimeStep                 =  1e-1;
-constexpr   double      toleranceDisp              = 1e-6;
+constexpr   double      maxTimeStep                 = 1e-1;
+constexpr   double      toleranceDisp               = 1e-6;
+constexpr   double      toleranceNlEqStrain         = 1e-6;
 constexpr   double      simulationTime              = 1.0;
 constexpr   double      loadFactor                  = -0.01;
 constexpr   double      maxInterations              = 10;
@@ -66,7 +69,7 @@ void AssignSection(NuTo::StructureFETI& rStructure)
     std::cout << "**      Section rank = " << rStructure.mRank << std::endl;
     std::cout << "***********************************" << std::endl;
 
-    int section00 = rStructure.SectionCreate(NuTo::eSectionType::PLANE_STRESS);
+    int section00 = rStructure.SectionCreate(NuTo::eSectionType::PLANE_STRAIN);
     rStructure.SectionSetThickness(section00, thickness);
 
     rStructure.ElementTotalSetSection(section00);
@@ -78,18 +81,14 @@ void AssignMaterial(NuTo::StructureFETI& rStructure)
     std::cout << "**      Material rank = " << rStructure.mRank << std::endl;
     std::cout << "***********************************" << std::endl;
 
-//    int material00 = rStructure.ConstitutiveLawCreate(eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
-
-//    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
-//    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::POISSONS_RATIO, poissonsRatio);
-
-
-    int material00 = rStructure.ConstitutiveLawCreate(eConstitutiveType::LOCAL_DAMAGE_MODEL);
+    int material00 = rStructure.ConstitutiveLawCreate(eConstitutiveType::GRADIENT_DAMAGE_ENGINEERING_STRESS);
     rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::YOUNGS_MODULUS,       youngsModulus);
     rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::POISSONS_RATIO,       poissonsRatio);
     rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::TENSILE_STRENGTH,     tensileStrength);
     rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::COMPRESSIVE_STRENGTH, compressiveStrength);
+    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::NONLOCAL_RADIUS,      nonlocalRadius);
     rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::FRACTURE_ENERGY,      fractureEnergy);
+
 
     rStructure.ElementTotalSetConstitutiveLaw(material00);
 
@@ -105,11 +104,12 @@ int main(int argc, char* argv[])
     std::cout << meshFile << std::endl;
 
     NuTo::StructureFETI structure(dim);
+    structure.SetNumTimeDerivatives(0);
 
     const int interpolationTypeId = structure.InterpolationTypeCreate(eShapeType::QUAD2D);
-    structure.InterpolationTypeAdd(interpolationTypeId, eDof::COORDINATES,    eTypeOrder::EQUIDISTANT1);
-    structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS,  eTypeOrder::EQUIDISTANT1);
-
+    structure.InterpolationTypeAdd(interpolationTypeId, eDof::COORDINATES,     eTypeOrder::EQUIDISTANT1);
+    structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS,   eTypeOrder::EQUIDISTANT1);
+    structure.InterpolationTypeAdd(interpolationTypeId, eDof::NONLOCALEQSTRAIN, eTypeOrder::EQUIDISTANT1);
     structure.ImportMesh(meshFile, interpolationTypeId);
 
     structure.SetVerboseLevel(10);
@@ -126,20 +126,22 @@ int main(int argc, char* argv[])
 
     int groupNodesLeftBoundary = structure.GroupCreate(eGroupId::Nodes);
 
-//    structure.GroupAddNodeCoordinateRange(groupNodesLeftBoundary,0,-1.e-6,+1.e-6);
+//            structure.GroupAddNodeCoordinateRange(groupNodesLeftBoundary,0,-1.e-6,+1.e-6);
 
     nodeCoords[0] = 0;
     nodeCoords[1] = 0;
-    structure.GroupAddNodeRadiusRange(groupNodesLeftBoundary, nodeCoords, 0, 1.e-6);
+    structure.GroupAddNodeRadiusRange(groupNodesLeftBoundary, nodeCoords, 0, 1.e0);
+
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesLeftBoundary, directionX, 0);
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesLeftBoundary, directionY, 0);
 
     int groupNodesRightBoundary = structure.GroupCreate(eGroupId::Nodes);
-//    structure.GroupAddNodeCoordinateRange(groupNodesRightBoundary,0,60-1.e-6,60+1.e-6);
+//            structure.GroupAddNodeCoordinateRange(groupNodesRightBoundary,0,60-1.e-6,60+1.e-6);
 
     nodeCoords[0] = 60;
     nodeCoords[1] = 0;
-    structure.GroupAddNodeRadiusRange(groupNodesRightBoundary, nodeCoords, 0, 1.e-6);
+    structure.GroupAddNodeRadiusRange(groupNodesRightBoundary, nodeCoords, 0, 1.e0);
+
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, directionX, 0);
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, directionY, 0);
 
@@ -172,6 +174,8 @@ int main(int argc, char* argv[])
     structure.GroupAddElementsTotal(groupAllElements);
     structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DISPLACEMENTS);
     structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DAMAGE);
+    structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::NONLOCAL_EQ_STRAIN);
+    structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::ENGINEERING_STRAIN);
 
 
     cout << "**********************************************" << endl;
@@ -190,6 +194,7 @@ int main(int argc, char* argv[])
     myIntegrationScheme.SetResultDirectory          ( resultPath.string(), true );
     myIntegrationScheme.SetPerformLineSearch        ( performLineSearch         );
     myIntegrationScheme.SetToleranceResidual        ( eDof::DISPLACEMENTS, toleranceDisp );
+    myIntegrationScheme.SetToleranceResidual        ( eDof::NONLOCALEQSTRAIN, toleranceNlEqStrain );
 
     Eigen::Matrix2d dispRHS;
     dispRHS(0, 0) = 0;
