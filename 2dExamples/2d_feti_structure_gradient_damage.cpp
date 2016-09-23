@@ -41,22 +41,22 @@ constexpr   double      thickness                   = 1.0;
 // material
 constexpr   double      youngsModulus               = 4.0;                // N/mm^2
 constexpr   double      poissonsRatio               = 0.2;
-constexpr   double      nonlocalRadius              = 0.1;                   // mm
-constexpr   double      fractureEnergy              = 0.0001;                   // N/mm
+constexpr   double      nonlocalRadius              = 1;                   // mm
+constexpr   double      fractureEnergy              = 1e-6;                   // N/mm
 constexpr   double      compressiveStrength         = 30.e-4;                  // N/mm
 constexpr   double      tensileStrength             = 3.e-4;                  // N/mm
 
 
 // integration
-constexpr   bool        performLineSearch           = true;
+constexpr   bool        performLineSearch           = false;
 constexpr   bool        automaticTimeStepping       = true;
-constexpr   double      timeStep                    = 1e-1;
+constexpr   double      timeStep                    = 1e-2;
 constexpr   double      minTimeStep                 = 1e-5;
 constexpr   double      maxTimeStep                 = 1e-1;
 constexpr   double      toleranceDisp               = 1e-6;
 constexpr   double      toleranceNlEqStrain         = 1e-6;
 constexpr   double      simulationTime              = 1.0;
-constexpr   double      loadFactor                  = -0.01;
+constexpr   double      loadFactor                  = -0.3;
 constexpr   double      maxInterations              = 10;
 
 
@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
 
     cout << "**********************************************" << endl;
     cout << "**  constraints                             **" << endl;
-    cout << "**********************************************" << endl;    
+    cout << "**********************************************" << endl;
     Eigen::VectorXd nodeCoords(2);
 
     int groupNodesLeftBoundary = structure.GroupCreate(eGroupId::Nodes);
@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
 
     nodeCoords[0] = 0;
     nodeCoords[1] = 0;
-    structure.GroupAddNodeRadiusRange(groupNodesLeftBoundary, nodeCoords, 0, 1.e0);
+    structure.GroupAddNodeRadiusRange(groupNodesLeftBoundary, nodeCoords, 0, 1.e-6);
 
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesLeftBoundary, directionX, 0);
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesLeftBoundary, directionY, 0);
@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
 
     nodeCoords[0] = 60;
     nodeCoords[1] = 0;
-    structure.GroupAddNodeRadiusRange(groupNodesRightBoundary, nodeCoords, 0, 1.e0);
+    structure.GroupAddNodeRadiusRange(groupNodesRightBoundary, nodeCoords, 0, 1.e-6);
 
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, directionX, 0);
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, directionY, 0);
@@ -196,6 +196,17 @@ int main(int argc, char* argv[])
     myIntegrationScheme.SetToleranceResidual        ( eDof::DISPLACEMENTS, toleranceDisp );
     myIntegrationScheme.SetToleranceResidual        ( eDof::NONLOCALEQSTRAIN, toleranceNlEqStrain );
 
+
+    if (structure.mRank == 1)
+    {
+        myIntegrationScheme.AddResultGroupNodeForce("myforce", loadNodeGroup);
+
+        nodeCoords[0] = 30;
+        nodeCoords[1] = 10;
+        int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
+        structure.GroupAddNodeRadiusRange(grpNodes_output_disp, nodeCoords, 0, 1.e-6);
+        myIntegrationScheme.AddResultNodeDisplacements("mydisplacements", structure.GroupGetMemberIds(grpNodes_output_disp).GetValue(0, 0));
+    }
     Eigen::Matrix2d dispRHS;
     dispRHS(0, 0) = 0;
     dispRHS(1, 0) = simulationTime;
@@ -210,6 +221,8 @@ int main(int argc, char* argv[])
     cout << "***********************************" << std::endl;
 
     myIntegrationScheme.Solve(simulationTime);
+    std::string command = "paste " +  resultPath.string() + "/myforce.dat " +  resultPath.string() + "/mydisplacements.dat > " +  resultPath.string() + "/forceDisp.dat";
+    system(command.c_str());
 
     MPI_Finalize();
 }

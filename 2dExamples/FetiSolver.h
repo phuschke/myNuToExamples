@@ -445,7 +445,7 @@ public:
 
 
     //! @brief Conjugate projected gradient method
-    StructureOutputBlockVector ConjugateProjectedGradientMethod(BlockFullVector<double> residual_mod, const std::set<Node::eDof>& activeDofSet,VectorXd& lambda)
+    StructureOutputBlockVector ConjugateProjectedGradientMethod(BlockFullVector<double> residual_mod, const std::set<Node::eDof>& activeDofSet,const VectorXd& lastConverged_lambda, VectorXd& deltaLambda)
     {
 
         StructureFETI* structure = static_cast<StructureFETI*>(mStructure);
@@ -520,10 +520,10 @@ public:
                       MPI_SUM,
                       MPI_COMM_WORLD);
 
-        lambda = G * GtransGinv * rigidBodyForceVectorGlobal;
+        deltaLambda = G * GtransGinv * rigidBodyForceVectorGlobal;
 
         VectorXd rhs    = displacementGap;
-        VectorXd x      = lambda;
+        VectorXd x      = deltaLambda;
 
         VectorXd alphaGlobal =VectorXd::Zero(numRigidBodyModesGlobal);
 
@@ -554,7 +554,7 @@ public:
 
 
         MPI_Barrier(MPI_COMM_WORLD);
-        lambda = x;
+        deltaLambda = x;
 
         VectorXd tmp = B * mSolver.solve(Btrans*x);
         MPI_Allreduce(MPI_IN_PLACE, tmp.data(), tmp.size(), MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
@@ -569,7 +569,7 @@ public:
         VectorXd alphaLocal = alphaGlobal.segment(displs[structure->mRank], numRigidBodyModesLocal);
 
         StructureOutputBlockVector  delta_dof_dt0(structure->GetDofStatus());
-        VectorXd delta_dof_active = mSolver.solve(residual_mod.Export() - Btrans * lambda);
+        VectorXd delta_dof_active = mSolver.solve(residual_mod.Export() - Btrans * deltaLambda);
 
 
         if (structure->mNumRigidBodyModes > 0)
@@ -602,7 +602,8 @@ public:
             const SparseMatrix& B       = structure->GetConnectivityMatrix();
             const SparseMatrix& Btrans  = B.transpose();
             VectorXd lambda             = VectorXd::Zero(B.rows());
-
+            VectorXd deltaLambda             = VectorXd::Zero(B.rows());
+            VectorXd lastConverged_lambda = VectorXd::Zero(B.rows());
             double curTime  = mTime;
             double timeStep = mTimeStep;
             mStructure->SetPrevTime(curTime);
@@ -717,29 +718,21 @@ public:
                     mStructure->Evaluate(inputMap, evalInternalGradientAndHessian0);
                     // ******************************************************
 
-                    residual =  prevExtForce - extForce;
+                    residual =  intForce - extForce;
                     delta_dof_dt0.J.SetZero();
                     delta_dof_dt0.K = deltaBRHS;
                     residual += hessian0 * delta_dof_dt0;
+                    residual_mod = residual.J;
+                    residual_mod = BlockFullVector<double>(residual_mod.Export() + Btrans * lastConverged_lambda, dofStatus);
 
-                    residual.ApplyCMatrix(residual_mod, mStructure->GetConstraintMatrix());
-                    hessian0.ApplyCMatrix(mStructure->GetConstraintMatrix());
-
-//                    residual_mod = BlockFullVector<double>(residual_mod.Export() + Btrans * lambda, dofStatus);
                     mSolver.compute(hessian0.JJ.ExportToEigenSparseMatrix());
 
                     // -1 * residual_mod because it actually represents the rhs of the linear system...
-                    delta_dof_dt0 = ConjugateProjectedGradientMethod(-1*residual_mod, activeDofSet, lambda);
-
-
-
-                    delta_dof_dt0.K = deltaBRHS - mStructure->GetConstraintMatrix()*delta_dof_dt0.J;
+                    delta_dof_dt0 = ConjugateProjectedGradientMethod(-1*residual_mod, activeDofSet, lastConverged_lambda, deltaLambda);
+                    delta_dof_dt0.K = deltaBRHS;
                     dof_dt0 = lastConverged_dof_dt0 + delta_dof_dt0;
 
-
                     mStructure->NodeMergeDofValues(dof_dt0);
-
-
 
                     // ******************************************************
                     mStructure->Evaluate(inputMap, evalInternalGradient);
@@ -747,41 +740,44 @@ public:
 
 
                     residual = intForce - extForce;
-                    residual.ApplyCMatrix(residual_mod, cmat);
+                    residual_mod = residual.J;
 
 
                     // WARNING! This function modifies residual_mod. Need to find a better way to
                     // calculate the norm and calculate the "true" residual_mod. The problem is that
                     // the internal forces at the interfaces are always nonzero but balance each other out.
-                    BlockScalar normResidual = CalculateNormResidual(residual_mod, activeDofSet);
+//                    BlockScalar normResidual = CalculateNormResidual(residual_mod, activeDofSet);
 
-//                    residual_mod = BlockFullVector<double>(residual_mod.Export() + Btrans * lambda, dofStatus);
-//                    BlockScalar normResidual = residual_mod.CalculateInfNorm();
-//                    for (const auto& dof : activeDofSet)
-//                        MPI_Allreduce(MPI_IN_PLACE,  &normResidual[dof], 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+                    residual_mod = BlockFullVector<double>(residual_mod.Export() + Btrans * (lastConverged_lambda), dofStatus);
+                    BlockScalar normResidual = residual_mod.CalculateInfNorm();
+                    for (const auto& dof : activeDofSet)
+                        MPI_Allreduce(MPI_IN_PLACE,  &normResidual[dof], 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
+
+                    if (structure->mRank == 0)
+                    {
+                        mStructure->GetLogger() << "normResidual= \t" << normResidual << "\n" <<"tolerance= \t" << mToleranceResidual <<  "\n";
+
+                    }
 
                     MPI_Barrier(MPI_COMM_WORLD);
 
                     int iteration = 0;
-                    while( normResidual > mToleranceResidual and iteration < mMaxNumIterations)
+                    while( not(normResidual < mToleranceResidual) and iteration < mMaxNumIterations)
                     {
-
-
-                            std::cout << "rank " << structure->mRank << " entered while loop" << std::endl;
-                            MPI_Barrier(MPI_COMM_WORLD);
 
                         // ******************************************************
                         mStructure->Evaluate(inputMap, evalHessian0);
                         // ******************************************************
 
                         // ******************************************************
-//                        Eigen::SparseMatrix<double> stiffnessMatrixSparse = ConvertToEigenSparseMatrix(hessian0.JJ(Node::eDof::DISPLACEMENTS,Node::eDof::DISPLACEMENTS));
+
                         mSolver.compute(hessian0.JJ.ExportToEigenSparseMatrix());
 
                         // -1 * residual_mod because it actually represents the rhs of the linear system...
-                        delta_dof_dt0 = ConjugateProjectedGradientMethod(-1*residual_mod, activeDofSet,lambda);
+                        delta_dof_dt0 = ConjugateProjectedGradientMethod(-1*residual_mod, activeDofSet,lastConverged_lambda, deltaLambda);
                         delta_dof_dt0.K = cmat*delta_dof_dt0.J*(-1.);
+
                         // ******************************************************
 
 
@@ -799,19 +795,19 @@ public:
                             mStructure->Evaluate(inputMap, evalInternalGradient);
                             // ******************************************************
 
-                            residual = intForce - prevExtForce;
-                            residual.ApplyCMatrix(residual_mod, cmat);
+                            residual = intForce - extForce;
+                            residual_mod = residual.J;
 
 
                             // WARNING! This function modifies residual_mod. Need to find a better way to
                             // calculate the norm and calculate the "true" residual_mod. The problem is that
                             // the internal forces at the interfaces are always nonzero but balance each other out.
-                            trialNormResidual = CalculateNormResidual(residual_mod, activeDofSet);
+//                            trialNormResidual = CalculateNormResidual(residual_mod, activeDofSet);
 
-//                            residual_mod = BlockFullVector<double>(residual_mod.Export() + Btrans * lambda, dofStatus);
-//                            trialNormResidual = residual_mod.CalculateInfNorm();
-//                            for (const auto& dof : activeDofSet)
-//                                MPI_Allreduce(MPI_IN_PLACE,  &normResidual[dof], 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+                            residual_mod = BlockFullVector<double>(residual_mod.Export() + Btrans * (lastConverged_lambda+deltaLambda), dofStatus);
+                            trialNormResidual = residual_mod.CalculateInfNorm();
+                            for (const auto& dof : activeDofSet)
+                                MPI_Allreduce(MPI_IN_PLACE,  &trialNormResidual[dof], 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
                             if (structure->mRank == 0)
                                 mStructure->GetLogger() << "[Linesearch a=" << std::to_string(alpha).substr(0, 6) << "] Trial residual: " << trialNormResidual <<  "\n";
@@ -850,6 +846,7 @@ public:
 
                         //store converged step
                         lastConverged_dof_dt0 = dof_dt0;
+                        lastConverged_lambda  = lastConverged_lambda + deltaLambda;
 
                         prevResidual = residual;
 
