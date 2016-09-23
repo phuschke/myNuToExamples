@@ -278,7 +278,8 @@ public:
         VectorXd vProj(n);
 
         const double tol    = mCpgTolerance;
-        const double tol2   = tol*tol*rhs_sqnorm;
+//        const double tol2   = tol*tol*rhs_sqnorm;
+        const double tol2   = 1.0e-4*rhs_sqnorm; // the phase-field model is worse conditioned it seems. Lower tolerance required?
 
         //const double eps    = std::numeric_limits<double>::epsilon();
         //const double eps2   = eps*eps;
@@ -923,6 +924,6 @@ public:
 private:
     Eigen::SparseQR<Eigen::SparseMatrix<double>,Eigen::COLAMDOrdering<int>> mSolver;
     const double    mCpgTolerance     = 1.0e-6;
-    const int       mCpgMaxIterations = 50;
+    const int       mCpgMaxIterations = 100;
 };
 }// namespace NuTo

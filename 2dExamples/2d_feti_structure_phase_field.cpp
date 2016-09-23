@@ -35,19 +35,20 @@ using std::endl;
 
 
 
+
 constexpr   int         dimension                   = 2;
 constexpr   double      thickness                   = 1.0;
 
 // material
-constexpr   double      youngsModulus               = 2.1e5;                // N/mm^2
+constexpr   double      youngsModulus               = 2.0;                // N/mm^2
 constexpr   double      poissonsRatio               = 0.3;
 constexpr   double      lengthScaleParameter        = 4.0e0;               // mm
-constexpr   double      fractureEnergy              = 2.7;                  // N/mm
+constexpr   double      fractureEnergy              = 1.0e-6;                  // N/mm
 constexpr   double      artificialViscosity         = 1.0e-0;               // Ns/mm^2
 constexpr   ePhaseFieldEnergyDecomposition energyDecomposition = ePhaseFieldEnergyDecomposition::ISOTROPIC;
 
 // integration
-constexpr   bool        performLineSearch           = true;
+constexpr   bool        performLineSearch           = false;
 constexpr   bool        automaticTimeStepping       = true;
 constexpr   double      timeStep                    = 1e-1;
 constexpr   double      minTimeStep                 = 1e-5;
@@ -55,7 +56,7 @@ constexpr   double      maxTimeStep                 =  1e-1;
 constexpr   double      toleranceDisp              = 1e-6;
 constexpr   double      toleranceCrack              = 1e-6;
 constexpr   double      simulationTime              = 1.0;
-constexpr   double      loadFactor                  = -0.3;
+constexpr   double      loadFactor                  = -0.012;
 constexpr   double      maxInterations              = 10;
 
 
@@ -80,18 +81,18 @@ void AssignMaterial(NuTo::StructureFETI& rStructure)
     std::cout << "**      Material rank = " << rStructure.mRank << std::endl;
     std::cout << "***********************************" << std::endl;
 
-//    int material00 = rStructure.ConstitutiveLawCreate(eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+    //    int material00 = rStructure.ConstitutiveLawCreate(eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
 
-//    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
-//    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::POISSONS_RATIO, poissonsRatio);
+    //    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
+    //    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::POISSONS_RATIO, poissonsRatio);
 
 
-//    int material00 = rStructure.ConstitutiveLawCreate(eConstitutiveType::LOCAL_DAMAGE_MODEL);
-//    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::YOUNGS_MODULUS,       youngsModulus);
-//    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::POISSONS_RATIO,       poissonsRatio);
-//    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::TENSILE_STRENGTH,     tensileStrength);
-//    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::COMPRESSIVE_STRENGTH, compressiveStrength);
-//    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::FRACTURE_ENERGY,      fractureEnergy);
+    //    int material00 = rStructure.ConstitutiveLawCreate(eConstitutiveType::LOCAL_DAMAGE_MODEL);
+    //    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::YOUNGS_MODULUS,       youngsModulus);
+    //    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::POISSONS_RATIO,       poissonsRatio);
+    //    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::TENSILE_STRENGTH,     tensileStrength);
+    //    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::COMPRESSIVE_STRENGTH, compressiveStrength);
+    //    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::FRACTURE_ENERGY,      fractureEnergy);
 
     NuTo::ConstitutiveBase* phaseField = new NuTo::PhaseField(youngsModulus,
                                                               poissonsRatio,
@@ -119,7 +120,7 @@ int main(int argc, char* argv[])
     std::cout << meshFile << std::endl;
 
     NuTo::StructureFETI structure(dim);
-    structure.SetNumTimeDerivatives(1);
+    structure.SetNumTimeDerivatives(0);
 
     const int interpolationTypeId = structure.InterpolationTypeCreate(eShapeType::QUAD2D);
     structure.InterpolationTypeAdd(interpolationTypeId, eDof::COORDINATES,     eTypeOrder::EQUIDISTANT1);
@@ -136,7 +137,7 @@ int main(int argc, char* argv[])
 
     cout << "**********************************************" << endl;
     cout << "**  constraints                             **" << endl;
-    cout << "**********************************************" << endl;    
+    cout << "**********************************************" << endl;
     Eigen::VectorXd nodeCoords(2);
 
     int groupNodesLeftBoundary = structure.GroupCreate(eGroupId::Nodes);
@@ -145,7 +146,7 @@ int main(int argc, char* argv[])
 
     nodeCoords[0] = 0;
     nodeCoords[1] = 0;
-    structure.GroupAddNodeRadiusRange(groupNodesLeftBoundary, nodeCoords, 0, 1.e0);
+    structure.GroupAddNodeRadiusRange(groupNodesLeftBoundary, nodeCoords, 0, 1.e-6);
 
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesLeftBoundary, directionX, 0);
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesLeftBoundary, directionY, 0);
@@ -155,7 +156,7 @@ int main(int argc, char* argv[])
 
     nodeCoords[0] = 60;
     nodeCoords[1] = 0;
-    structure.GroupAddNodeRadiusRange(groupNodesRightBoundary, nodeCoords, 0, 1.e0);
+    structure.GroupAddNodeRadiusRange(groupNodesRightBoundary, nodeCoords, 0, 1.e-6);
 
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, directionX, 0);
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, directionY, 0);
@@ -172,13 +173,13 @@ int main(int argc, char* argv[])
     nodeCoords[1] = 10;
     structure.GroupAddNodeRadiusRange(loadNodeGroup, nodeCoords, 0, 1.e-6);
 
-//    nodeCoords[0] = 29;
-//    nodeCoords[1] = 10;
-//    structure.GroupAddNodeRadiusRange(loadNodeGroup, nodeCoords, 0, 1.e-6);
+    //    nodeCoords[0] = 29;
+    //    nodeCoords[1] = 10;
+    //    structure.GroupAddNodeRadiusRange(loadNodeGroup, nodeCoords, 0, 1.e-6);
 
 
     int loadId = structure.ConstraintLinearSetDisplacementNodeGroup(loadNodeGroup, directionY, 0);
-//    int loadId = structure.LoadCreateNodeGroupForce(0, loadNodeGroup, directionY, 1);
+    //    int loadId = structure.LoadCreateNodeGroupForce(0, loadNodeGroup, directionY, 1);
 
 
     std::cout << "***********************************" << std::endl;
@@ -209,6 +210,17 @@ int main(int argc, char* argv[])
     myIntegrationScheme.SetToleranceResidual        ( eDof::DISPLACEMENTS, toleranceDisp );
     myIntegrationScheme.SetToleranceResidual        ( eDof::CRACKPHASEFIELD, toleranceCrack );
 
+
+    if (structure.mRank == 1)
+    {
+        myIntegrationScheme.AddResultGroupNodeForce("myforce", loadNodeGroup);
+        nodeCoords[0] = 30;
+        nodeCoords[1] = 10;
+        int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
+        structure.GroupAddNodeRadiusRange(grpNodes_output_disp, nodeCoords, 0, 1.e-6);
+        myIntegrationScheme.AddResultNodeDisplacements("mydisplacements", structure.GroupGetMemberIds(grpNodes_output_disp).GetValue(0, 0));
+    }
+
     Eigen::Matrix2d dispRHS;
     dispRHS(0, 0) = 0;
     dispRHS(1, 0) = simulationTime;
@@ -216,7 +228,7 @@ int main(int argc, char* argv[])
     dispRHS(1, 1) = loadFactor;
 
     myIntegrationScheme.AddTimeDependentConstraint(loadId, dispRHS);
-//    myIntegrationScheme.SetTimeDependentLoadCase(loadId, dispRHS);
+    //    myIntegrationScheme.SetTimeDependentLoadCase(loadId, dispRHS);
 
     cout << "***********************************" << std::endl;
     cout << "**      Solve                    **" << std::endl;

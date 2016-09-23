@@ -39,15 +39,15 @@ constexpr   int         dimension                   = 2;
 constexpr   double      thickness                   = 1.0;
 
 // material
-constexpr   double      youngsModulus               = 2.1e5;                // N/mm^2
+constexpr   double      youngsModulus               = 2.0;                // N/mm^2
 constexpr   double      poissonsRatio               = 0.3;
 constexpr   double      lengthScaleParameter        = 4.0e0;               // mm
-constexpr   double      fractureEnergy              = 2.7;                  // N/mm
+constexpr   double      fractureEnergy              = 1.0e-6;                  // N/mm
 constexpr   double      artificialViscosity         = 1.0e-0;               // Ns/mm^2
-constexpr   ePhaseFieldEnergyDecomposition energyDecomposition = ePhaseFieldEnergyDecomposition::ANISOTROPIC_SPECTRAL_DECOMPOSITION;
+constexpr   ePhaseFieldEnergyDecomposition energyDecomposition = ePhaseFieldEnergyDecomposition::ISOTROPIC;
 
 // integration
-constexpr   bool        performLineSearch           = true;
+constexpr   bool        performLineSearch           = false;
 constexpr   bool        automaticTimeStepping       = true;
 constexpr   double      timeStep                    = 1e-1;
 constexpr   double      minTimeStep                 = 1e-5;
@@ -55,8 +55,9 @@ constexpr   double      maxTimeStep                 =  1e-1;
 constexpr   double      toleranceDisp              = 1e-6;
 constexpr   double      toleranceCrack              = 1e-6;
 constexpr   double      simulationTime              = 1.0;
-constexpr   double      loadFactor                  = -0.3;
+constexpr   double      loadFactor                  = -0.012;
 constexpr   double      maxInterations              = 10;
+
 
 const NuTo::FullVector<double, dimension> directionX    = NuTo::FullVector<double, dimension>::UnitX();
 const NuTo::FullVector<double, dimension> directionY    = NuTo::FullVector<double, dimension>::UnitY();
@@ -111,7 +112,7 @@ int main(int argc, char* argv[])
         std::cout << meshFile << std::endl;
 
         NuTo::Structure structure(dim);
-        structure.SetNumTimeDerivatives(1);
+        structure.SetNumTimeDerivatives(0);
         structure.SetVerboseLevel(10);
         structure.SetShowTime(false);
 
@@ -141,7 +142,7 @@ int main(int argc, char* argv[])
 
         nodeCoords[0] = 0;
         nodeCoords[1] = 0;
-        structure.GroupAddNodeRadiusRange(groupNodesLeftBoundary, nodeCoords, 0, 1.e0);
+        structure.GroupAddNodeRadiusRange(groupNodesLeftBoundary, nodeCoords, 0, 1.e-6);
 
         structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesLeftBoundary, directionX, 0);
         structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesLeftBoundary, directionY, 0);
@@ -151,7 +152,7 @@ int main(int argc, char* argv[])
 
         nodeCoords[0] = 60;
         nodeCoords[1] = 0;
-        structure.GroupAddNodeRadiusRange(groupNodesRightBoundary, nodeCoords, 0, 1.e0);
+        structure.GroupAddNodeRadiusRange(groupNodesRightBoundary, nodeCoords, 0, 1.e-6);
 
         structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, directionX, 0);
         structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, directionY, 0);
@@ -204,6 +205,15 @@ int main(int argc, char* argv[])
         myIntegrationScheme.SetPerformLineSearch        ( performLineSearch         );
         myIntegrationScheme.SetToleranceResidual        ( eDof::DISPLACEMENTS, toleranceDisp );
         myIntegrationScheme.SetToleranceResidual        ( eDof::CRACKPHASEFIELD, toleranceCrack );
+
+
+        myIntegrationScheme.AddResultGroupNodeForce("myforce", loadNodeGroup);
+        nodeCoords[0] = 30;
+        nodeCoords[1] = 10;
+        int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
+        structure.GroupAddNodeRadiusRange(grpNodes_output_disp, nodeCoords, 0, 1.e-6);
+        myIntegrationScheme.AddResultNodeDisplacements("mydisplacements", structure.GroupGetMemberIds(grpNodes_output_disp).GetValue(0, 0));
+
 
         Eigen::Matrix2d dispRHS;
         dispRHS(0, 0) = 0;
