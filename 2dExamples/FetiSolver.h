@@ -28,7 +28,6 @@ namespace NuTo
 class FetiSolver : public NewmarkDirect
 {
 public:
-
     using VectorXd      = Eigen::VectorXd;
     using MatrixXd      = Eigen::MatrixXd;
     using SparseMatrix  = Eigen::SparseMatrix<double>;
@@ -52,96 +51,6 @@ public:
         throw MechanicsException(__PRETTY_FUNCTION__, "Not implemented!");
     }
 
-//    Eigen::SparseMatrix<double> ConvertToEigenSparseMatrix(NuTo::SparseMatrixCSRVector2<double>& sparseMatrix)
-//    {
-//        NuTo::SparseMatrixCSRGeneral<double> stiffnessMatrixCSR(sparseMatrix);
-//        std::vector<Eigen::Triplet<double>> tripletList;
-
-//        std::vector<double> val = stiffnessMatrixCSR.GetValues();
-//        std::vector<int> colInd = stiffnessMatrixCSR.GetColumns();
-//        std::vector<int> rowInd = stiffnessMatrixCSR.GetRowIndex();
-
-//        for (unsigned i = 0; i < rowInd.size() - 1; ++i)
-//        {
-//            for (int k = rowInd[i]; k < rowInd[i + 1]; ++k)
-//                tripletList.push_back(Eigen::Triplet<double>(i, colInd[k], val[k]));
-//        }
-
-//        Eigen::SparseMatrix<double> stiffnessMatrixSparse(sparseMatrix.GetNumRows(), sparseMatrix.GetNumColumns());
-//        stiffnessMatrixSparse.setFromTriplets(tripletList.begin(), tripletList.end());
-//        stiffnessMatrixSparse.makeCompressed();
-
-//        return stiffnessMatrixSparse;
-//    }
-
-//    Eigen::SparseMatrix<double> ConvertToEigenSparseMatrix(StructureOutputBlockMatrix rMatrix)
-//    {
-//        std::vector<Eigen::Triplet<double>> tripletList;
-//        std::vector<double> val;
-//        std::vector<int> colInd;
-//        std::vector<int> rowInd;
-
-//        // JJ starts at row = 0, col = 0
-//        NuTo::SparseMatrixCSRGeneral<double> stiffnessMatrixCSRJJ(rMatrix.JJ(Node::eDof::DISPLACEMENTS, Node::eDof::DISPLACEMENTS));
-//        int numColsJJ = stiffnessMatrixCSRJJ.GetNumColumns();
-//        int numRowsJJ = stiffnessMatrixCSRJJ.GetNumRows();
-
-//        val = stiffnessMatrixCSRJJ.GetValues();
-//        colInd = stiffnessMatrixCSRJJ.GetColumns();
-//        rowInd = stiffnessMatrixCSRJJ.GetRowIndex();
-
-//        for (unsigned i = 0; i < rowInd.size() - 1; ++i)
-//        {
-//            for (int k = rowInd[i]; k < rowInd[i + 1]; ++k)
-//                tripletList.push_back(Eigen::Triplet<double>(i, colInd[k], val[k]));
-//        }
-
-//        // JK
-//        NuTo::SparseMatrixCSRGeneral<double> stiffnessMatrixCSRJK(rMatrix.JK(Node::eDof::DISPLACEMENTS, Node::eDof::DISPLACEMENTS));
-
-//        val = stiffnessMatrixCSRJK.GetValues();
-//        colInd = stiffnessMatrixCSRJK.GetColumns();
-//        rowInd = stiffnessMatrixCSRJK.GetRowIndex();
-
-//        for (unsigned i = 0; i < rowInd.size() - 1; ++i)
-//        {
-//            for (int k = rowInd[i]; k < rowInd[i + 1]; ++k)
-//                tripletList.push_back(Eigen::Triplet<double>(i, colInd[k] + numColsJJ, val[k]));
-//        }
-
-//        // KJ
-//        NuTo::SparseMatrixCSRGeneral<double> stiffnessMatrixCSRKJ(rMatrix.KJ(Node::eDof::DISPLACEMENTS, Node::eDof::DISPLACEMENTS));
-
-//        val = stiffnessMatrixCSRKJ.GetValues();
-//        colInd = stiffnessMatrixCSRKJ.GetColumns();
-//        rowInd = stiffnessMatrixCSRKJ.GetRowIndex();
-
-//        for (unsigned i = 0; i < rowInd.size() - 1; ++i)
-//        {
-//            for (int k = rowInd[i]; k < rowInd[i + 1]; ++k)
-//                tripletList.push_back(Eigen::Triplet<double>(i + numRowsJJ, colInd[k], val[k]));
-//        }
-
-//        // KK
-//        NuTo::SparseMatrixCSRGeneral<double> stiffnessMatrixCSRKK(rMatrix.KK(Node::eDof::DISPLACEMENTS, Node::eDof::DISPLACEMENTS));
-//        val = stiffnessMatrixCSRKK.GetValues();
-//        colInd = stiffnessMatrixCSRKK.GetColumns();
-//        rowInd = stiffnessMatrixCSRKK.GetRowIndex();
-
-//        for (unsigned i = 0; i < rowInd.size() - 1; ++i)
-//        {
-//            for (int k = rowInd[i]; k < rowInd[i + 1]; ++k)
-//                tripletList.push_back(Eigen::Triplet<double>(i + numRowsJJ, colInd[k] + numRowsJJ, val[k]));
-//        }
-
-
-//        int numDofs = mStructure->GetNumDofs(Node::eDof::DISPLACEMENTS);
-//        Eigen::SparseMatrix<double> stiffnessMatrixSparse(numDofs,numDofs);
-//        stiffnessMatrixSparse.setFromTriplets(tripletList.begin(), tripletList.end());
-//        stiffnessMatrixSparse.makeCompressed();
-
-//        return stiffnessMatrixSparse;
-//    }
 
     MatrixXd GatherInterfaceRigidBodyModes(const Eigen::MatrixXd& interfaceRigidBodyModes, const int numRigidBodyModesGlobal)
     {
@@ -237,8 +146,10 @@ public:
 
     }
 
-
-
+    //! @brief Projected stabilized Bi-conjugate gradient method (BiCGStab)
+    //!
+    //! Iterative method to solve the interface problem.
+    //! @param projection: Projection matrix that guarantees that the solution satisfies the constraint at every iteration
     int BiCgStab(const MatrixXd& projection, VectorXd& x, const VectorXd& rhs)
     {
 
@@ -274,12 +185,10 @@ public:
         VectorXd z(n);
         VectorXd s(n);
         VectorXd t(n);
-        VectorXd tProj(n);
-        VectorXd vProj(n);
 
         const double tol    = mCpgTolerance;
 //        const double tol2   = tol*tol*rhs_sqnorm;
-        const double tol2   = 1.0e-4*rhs_sqnorm; // the phase-field model is worse conditioned it seems. Lower tolerance required?
+        const double tol2   = 1.0e-9*rhs_sqnorm; // the phase-field model is worse conditioned it seems. Lower tolerance required?
 
         //const double eps    = std::numeric_limits<double>::epsilon();
         //const double eps2   = eps*eps;
@@ -305,9 +214,8 @@ public:
 
                 if (structure->mRank == 0)
                 {
-                    std::cout << "Shit is happending! (rho) " << (rho) <<  std::endl << std::endl;
-                    std::cout << "Shit is happending! std::fabs(rho) " << std::fabs(rho) <<  std::endl << std::endl;
-                    std::cout << "Shit is happending! (tol) " << tol <<  std::endl << std::endl;
+                    std::cout << "The new residual vector became too orthogonal to the arbitrarily chosen direction r0.\n"
+                                 "Let's restart with a new r0!" << std::endl;
                 }
 
                 // The new residual vector became too orthogonal to the arbitrarily chosen direction r0
@@ -341,16 +249,6 @@ public:
 
             s = rProj - alpha * v;
 
-            if (s.norm() < 1.0e-15)
-            {
-                x += alpha *p;
-
-                if (structure->mRank == 0)
-                    std::cout << "Early exit!"<< std::endl << std::endl;
-
-                break;
-            }
-
             //      z = precond.solve(s);
             z = s;
 
@@ -382,7 +280,10 @@ public:
 
     }
 
-
+    //! @brief Conjugate projected gradient method (CG)
+    //!
+    //! Iterative method to solve the interface problem.
+    //! @param projection: Projection matrix that guarantees that the solution satisfies the constraint at every iteration
     int CPG(const MatrixXd& projection, VectorXd& x, const VectorXd& rhs)
     {
 
@@ -442,30 +343,38 @@ public:
     }
 
 
+    void CalculateProjectionMatrixAndInitialGuess(VectorXd& deltaLambda, MatrixXd& projection)
+    {
 
 
+    }
 
-    //! @brief Conjugate projected gradient method
-    StructureOutputBlockVector ConjugateProjectedGradientMethod(BlockFullVector<double> residual_mod, const std::set<Node::eDof>& activeDofSet,const VectorXd& lastConverged_lambda, VectorXd& deltaLambda)
+    //! @brief Solves the global and local problem
+    //!
+    //! Calculates the rigid body modes of the structure.
+    //! Calculates the initial guess for the projected CG/BiCGStab method
+    //! Solves for the Lagrange multipliers at the subdomain interfaces.
+    //! Calculates the increment of the free degrees of freedom
+    //!
+    StructureOutputBlockVector FetiSolve(BlockFullVector<double> residual_mod, const std::set<Node::eDof>& activeDofSet, VectorXd& deltaLambda)
     {
 
         StructureFETI* structure = static_cast<StructureFETI*>(mStructure);
 
         const SparseMatrix& B                    = structure->GetConnectivityMatrix();
         const SparseMatrix& Btrans               = B.transpose();
-        const int& numLagrangeMultipliers       = B.rows();
+        const int& numLagrangeMultipliers        = B.rows();
 
         structure->mNumRigidBodyModes           = mSolver.cols() -  mSolver.rank();
         const int& numRigidBodyModesLocal       = structure->mNumRigidBodyModes;
         int numRigidBodyModesGlobal             = 0;
+
         MPI_Allreduce(&numRigidBodyModesLocal,
                       &numRigidBodyModesGlobal,
                       1,
                       MPI_INT,
                       MPI_SUM,
                       MPI_COMM_WORLD);
-
-
 
 
         MPI_Barrier(MPI_COMM_WORLD);
@@ -522,6 +431,11 @@ public:
                       MPI_COMM_WORLD);
 
         deltaLambda = G * GtransGinv * rigidBodyForceVectorGlobal;
+
+
+        CalculateProjectionMatrixAndInitialGuess(deltaLambda, projection);
+
+
 
         VectorXd rhs    = displacementGap;
         VectorXd x      = deltaLambda;
@@ -593,7 +507,6 @@ public:
     NuTo::eError Solve(double rTimeDelta) override
     {
 
-
         try
         {
             StructureFETI* structure = static_cast<StructureFETI*>(mStructure);
@@ -602,9 +515,10 @@ public:
             structure->AssembleConnectivityMatrix();
             const SparseMatrix& B       = structure->GetConnectivityMatrix();
             const SparseMatrix& Btrans  = B.transpose();
-            VectorXd lambda             = VectorXd::Zero(B.rows());
-            VectorXd deltaLambda             = VectorXd::Zero(B.rows());
-            VectorXd lastConverged_lambda = VectorXd::Zero(B.rows());
+            VectorXd deltaLambda            = VectorXd::Zero(B.rows());
+            VectorXd lambda                 = VectorXd::Zero(B.rows());
+            VectorXd lastConverged_lambda   = VectorXd::Zero(B.rows());
+
             double curTime  = mTime;
             double timeStep = mTimeStep;
             mStructure->SetPrevTime(curTime);
@@ -640,7 +554,6 @@ public:
             StructureOutputBlockMatrix  hessian0(dofStatus, true);
 
             StructureOutputBlockVector  delta_dof_dt0(dofStatus, true);
-            StructureOutputBlockVector  trial_dof_dt0(dofStatus, true); // e.g. disp
 
             StructureOutputBlockVector  dof_dt0(dofStatus, true); // e.g. disp
 
@@ -652,17 +565,14 @@ public:
             StructureOutputBlockVector  intForce(dofStatus, true);
             StructureOutputBlockVector  residual(dofStatus, true);
 
-
-            StructureOutputBlockVector  prevIntForce(dofStatus, true);
-            StructureOutputBlockVector  prevExtForce(dofStatus, true);
             StructureOutputBlockVector  prevResidual(dofStatus, true);
 
 
             // for constraints
             // ---------------
-
-            BlockFullVector<double> residual_mod(dofStatus);
             const auto& cmat = mStructure->GetConstraintMatrix();
+
+            BlockScalar normResidual(dofStatus);
 
             /*---------------------------------*\
             |    Declare and fill Output Maps   |
@@ -702,14 +612,13 @@ public:
 
                 // calculate Delta_BRhs and Delta_ExtForce
                 auto bRHS           = UpdateAndGetAndMergeConstraintRHS(mTime, lastConverged_dof_dt0);
-                auto prevExtForce   = CalculateCurrentExternalLoad(mTime);
 
                 curTime += timeStep;
                 SetTimeAndTimeStep(curTime, timeStep, rTimeDelta);     //check whether harmonic excitation, check whether curTime is too close to the time data
                 mStructure->SetTime(curTime);
 
                 auto deltaBRHS = UpdateAndGetConstraintRHS(curTime) - bRHS;
-                auto extForce = CalculateCurrentExternalLoad(curTime);
+                extForce = CalculateCurrentExternalLoad(curTime);
 
                 for (const auto& activeDofSet : mStepActiveDofs)
                 {
@@ -719,19 +628,17 @@ public:
                     mStructure->Evaluate(inputMap, evalInternalGradientAndHessian0);
                     // ******************************************************
 
-                    residual =  intForce - extForce;
-                    delta_dof_dt0.J.SetZero();
-                    delta_dof_dt0.K = deltaBRHS;
-                    residual += hessian0 * delta_dof_dt0;
-                    residual_mod = residual.J;
-                    residual_mod = BlockFullVector<double>(residual_mod.Export() + Btrans * lastConverged_lambda, dofStatus);
+                    residual    = extForce - intForce;
+                    residual.J -= hessian0.JK * deltaBRHS;
+                    residual.J  = BlockFullVector<double>(residual.J.Export() - Btrans * lambda, dofStatus);
 
                     mSolver.compute(hessian0.JJ.ExportToEigenSparseMatrix());
 
-                    // -1 * residual_mod because it actually represents the rhs of the linear system...
-                    delta_dof_dt0 = ConjugateProjectedGradientMethod(-1*residual_mod, activeDofSet, lastConverged_lambda, deltaLambda);
+                    delta_dof_dt0   = FetiSolve(residual.J, activeDofSet, deltaLambda);
                     delta_dof_dt0.K = deltaBRHS;
+
                     dof_dt0 = lastConverged_dof_dt0 + delta_dof_dt0;
+                    lambda  = lastConverged_lambda + deltaLambda;
 
                     mStructure->NodeMergeDofValues(dof_dt0);
 
@@ -740,17 +647,10 @@ public:
                     // ******************************************************
 
 
-                    residual = intForce - extForce;
-                    residual_mod = residual.J;
+                    residual    = extForce - intForce;
+                    residual.J  = BlockFullVector<double>(residual.J.Export() - Btrans * lambda, dofStatus);
 
-
-                    // WARNING! This function modifies residual_mod. Need to find a better way to
-                    // calculate the norm and calculate the "true" residual_mod. The problem is that
-                    // the internal forces at the interfaces are always nonzero but balance each other out.
-//                    BlockScalar normResidual = CalculateNormResidual(residual_mod, activeDofSet);
-
-                    residual_mod = BlockFullVector<double>(residual_mod.Export() + Btrans * (lastConverged_lambda), dofStatus);
-                    BlockScalar normResidual = residual_mod.CalculateInfNorm();
+                    normResidual = residual.J.CalculateInfNorm();
                     for (const auto& dof : activeDofSet)
                         MPI_Allreduce(MPI_IN_PLACE,  &normResidual[dof], 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
@@ -771,68 +671,30 @@ public:
                         mStructure->Evaluate(inputMap, evalHessian0);
                         // ******************************************************
 
-                        // ******************************************************
-
                         mSolver.compute(hessian0.JJ.ExportToEigenSparseMatrix());
 
-                        // -1 * residual_mod because it actually represents the rhs of the linear system...
-                        delta_dof_dt0 = ConjugateProjectedGradientMethod(-1*residual_mod, activeDofSet,lastConverged_lambda, deltaLambda);
+                        delta_dof_dt0 = FetiSolve(residual.J, activeDofSet, deltaLambda);
                         delta_dof_dt0.K = cmat*delta_dof_dt0.J*(-1.);
 
+
+                        dof_dt0 += delta_dof_dt0;
+                        lambda += deltaLambda;
+                        mStructure->NodeMergeDofValues(dof_dt0);
+
+                        // ******************************************************
+                        mStructure->Evaluate(inputMap, evalInternalGradient);
                         // ******************************************************
 
+                        residual =  extForce - intForce;
+                        residual.J = BlockFullVector<double>(residual.J.Export() - Btrans * lambda, dofStatus);
 
-                        //perform a line search
-                        double alpha = 1;
-                        BlockScalar trialNormResidual(mStructure->GetDofStatus());
-                        do
-                        {
-                            //calculate line search trial state
-                            trial_dof_dt0 = dof_dt0 + delta_dof_dt0 * alpha;
-
-                            mStructure->NodeMergeDofValues(trial_dof_dt0);
-
-                            // ******************************************************
-                            mStructure->Evaluate(inputMap, evalInternalGradient);
-                            // ******************************************************
-
-                            residual = intForce - extForce;
-                            residual_mod = residual.J;
+                        normResidual = residual.J.CalculateInfNorm();
+                        for (const auto& dof : activeDofSet)
+                            MPI_Allreduce(MPI_IN_PLACE,  &normResidual[dof], 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
 
-                            // WARNING! This function modifies residual_mod. Need to find a better way to
-                            // calculate the norm and calculate the "true" residual_mod. The problem is that
-                            // the internal forces at the interfaces are always nonzero but balance each other out.
-//                            trialNormResidual = CalculateNormResidual(residual_mod, activeDofSet);
-
-                            residual_mod = BlockFullVector<double>(residual_mod.Export() + Btrans * (lastConverged_lambda+deltaLambda), dofStatus);
-                            trialNormResidual = residual_mod.CalculateInfNorm();
-                            for (const auto& dof : activeDofSet)
-                                MPI_Allreduce(MPI_IN_PLACE,  &trialNormResidual[dof], 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-
-                            if (structure->mRank == 0)
-                                mStructure->GetLogger() << "[Linesearch a=" << std::to_string(alpha).substr(0, 6) << "] Trial residual: " << trialNormResidual <<  "\n";
-
-                            alpha*=0.5;
-
-                        }
-                        while(mPerformLineSearch && alpha > mMinLineSearchStep && trialNormResidual > (1. - alpha) * normResidual);
-
-                        if (alpha > mMinLineSearchStep || !mPerformLineSearch)
-                        {
-                            //improvement is achieved, go to next Newton step
-                            dof_dt0 = trial_dof_dt0;
-
-                            normResidual = trialNormResidual;
-
-                            PrintInfoIteration(normResidual,iteration);
-                            iteration++;
-                        }
-                        else
-                        {
-                            //and leave
-                            iteration = mMaxNumIterations;
-                        }
+                        PrintInfoIteration(normResidual,iteration);
+                        iteration++;
 
                     } // end of while(normResidual<mToleranceForce && iteration<mMaxNumIterations)
 
@@ -847,7 +709,7 @@ public:
 
                         //store converged step
                         lastConverged_dof_dt0 = dof_dt0;
-                        lastConverged_lambda  = lastConverged_lambda + deltaLambda;
+                        lastConverged_lambda  = lambda;
 
                         prevResidual = residual;
 
@@ -924,6 +786,6 @@ public:
 private:
     Eigen::SparseQR<Eigen::SparseMatrix<double>,Eigen::COLAMDOrdering<int>> mSolver;
     const double    mCpgTolerance     = 1.0e-6;
-    const int       mCpgMaxIterations = 100;
+    const int       mCpgMaxIterations = 500;
 };
 }// namespace NuTo
