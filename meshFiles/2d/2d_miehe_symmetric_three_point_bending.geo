@@ -27,4 +27,5 @@ Rotate {{0, 1, 0}, {factor * 4, 0, 0}, Pi} {
   Duplicata { Surface{1}; }
 }
 
+Recombine Surface {1,7};
 Physical Surface(999) = {1,-7};

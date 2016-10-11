@@ -1,5 +1,6 @@
 #ADD_SUBDIRECTORY(interface)
-ADD_SUBDIRECTORY(dynamic)
+
+ADD_SUBDIRECTORY(feti)
 
 # create symlinks to the necessary mesh files
 execute_process(
@@ -22,14 +23,14 @@ execute_process(
 )
 
 # read_json.cpp
-ADD_EXECUTABLE(read_json read_json.cpp jsoncpp.cpp)
+ADD_EXECUTABLE(read_json read_json.cpp)
 TARGET_LINK_LIBRARIES(read_json NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
-IF (ENABLE_VISUALIZE)
-  TARGET_LINK_LIBRARIES(read_json NuToVisualize)
-ENDIF (ENABLE_VISUALIZE)
-IF(MUMPS_FOUND)
-  TARGET_LINK_LIBRARIES(read_json ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-ENDIF(MUMPS_FOUND)
+TARGET_LINK_LIBRARIES(read_json jsoncpp)
+TARGET_LINK_LIBRARIES(read_json NuToVisualize)
+TARGET_LINK_LIBRARIES(read_json ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+execute_process(
+  COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "${CMAKE_SOURCE_DIR}/myNutoExamples/meshFiles/2d/feti/fine/feti_beam_fine.mesh0" "${CMAKE_CURRENT_BINARY_DIR}/mesh.json"
+)
 
 # 2d_feti_structure_compare_phase_field.cpp
 ADD_EXECUTABLE(2d_feti_structure_compare_phase_field 2d_feti_structure_compare_phase_field.cpp)
@@ -146,18 +147,40 @@ message(status "##########################################")
  # ENDIF(MINGW)
  #
  #
-  # 2d_feti_structure_phase_field
-  ADD_EXECUTABLE(2d_feti_structure_phase_field 2d_feti_structure_phase_field.cpp)
-  target_link_libraries(2d_feti_structure_phase_field ${MPI_LIBRARIES})
-  TARGET_LINK_LIBRARIES(2d_feti_structure_phase_field NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
-  IF (ENABLE_VISUALIZE)
-    TARGET_LINK_LIBRARIES(2d_feti_structure_phase_field NuToVisualize)
-  ENDIF (ENABLE_VISUALIZE)
-  IF(MUMPS_FOUND)
-    TARGET_LINK_LIBRARIES(2d_feti_structure_phase_field ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-  ENDIF(MUMPS_FOUND)
+  ## 2d_feti_structure_phase_field
+  #ADD_EXECUTABLE(2d_feti_structure_phase_field 2d_feti_structure_phase_field.cpp)
+  #target_link_libraries(2d_feti_structure_phase_field ${MPI_LIBRARIES})
+  #TARGET_LINK_LIBRARIES(2d_feti_structure_phase_field NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
+  #IF (ENABLE_VISUALIZE)
+  #  TARGET_LINK_LIBRARIES(2d_feti_structure_phase_field NuToVisualize)
+  #ENDIF (ENABLE_VISUALIZE)
+  #IF(MUMPS_FOUND)
+  #  TARGET_LINK_LIBRARIES(2d_feti_structure_phase_field ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+  #ENDIF(MUMPS_FOUND)
+  #IF(MINGW)
+  #  SET_TARGET_PROPERTIES(2d_feti_structure_phase_field PROPERTIES LINK_FLAGS -Wl,--enable-auto-import)
+  #ENDIF(MINGW)
+
+
+
+  # create symlinks to the necessary mesh files
+  foreach(task RANGE 0 6)
+      message("Task ${task}")
+  execute_process(
+    COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "/home/phuschke/gmshReader_project/build/examples/feti_beam_fine.mesh${task}" "${CMAKE_CURRENT_BINARY_DIR}/feti_json.msh_${task}"
+  )
+    endforeach()
+
+  # 2d_feti_structure_phase_field_json
+  ADD_EXECUTABLE(2d_feti_structure_phase_field_json 2d_feti_structure_phase_field_json.cpp)
+  target_link_libraries(2d_feti_structure_phase_field_json ${MPI_LIBRARIES})
+  TARGET_LINK_LIBRARIES(2d_feti_structure_phase_field_json NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
+    TARGET_LINK_LIBRARIES(2d_feti_structure_phase_field_json NuToVisualize)
+
+    TARGET_LINK_LIBRARIES(2d_feti_structure_phase_field_json ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+
   IF(MINGW)
-    SET_TARGET_PROPERTIES(2d_feti_structure_phase_field PROPERTIES LINK_FLAGS -Wl,--enable-auto-import)
+    SET_TARGET_PROPERTIES(2d_feti_structure_phase_field_json PROPERTIES LINK_FLAGS -Wl,--enable-auto-import)
   ENDIF(MINGW)
 
 

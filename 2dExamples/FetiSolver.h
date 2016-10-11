@@ -188,7 +188,7 @@ public:
 
         const double tol    = mCpgTolerance;
 //        const double tol2   = tol*tol*rhs_sqnorm;
-        const double tol2   = 1.0e-9*rhs_sqnorm; // the phase-field model is worse conditioned it seems. Lower tolerance required?
+        const double tol2   = 1.0e-5*rhs_sqnorm; // the phase-field model is worse conditioned it seems. Lower tolerance required?
 
         //const double eps    = std::numeric_limits<double>::epsilon();
         //const double eps2   = eps*eps;
@@ -433,7 +433,7 @@ public:
         deltaLambda = G * GtransGinv * rigidBodyForceVectorGlobal;
 
 
-        CalculateProjectionMatrixAndInitialGuess(deltaLambda, projection);
+
 
 
 
@@ -785,7 +785,7 @@ public:
 
 private:
     Eigen::SparseQR<Eigen::SparseMatrix<double>,Eigen::COLAMDOrdering<int>> mSolver;
-    const double    mCpgTolerance     = 1.0e-6;
-    const int       mCpgMaxIterations = 500;
+    const double    mCpgTolerance     = 1.0e-4;
+    const int       mCpgMaxIterations = 1000;
 };
 }// namespace NuTo

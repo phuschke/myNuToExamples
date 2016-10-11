@@ -7,7 +7,9 @@
 #include "nuto/mechanics/elements/IpDataEnum.h"
 #include "nuto/mechanics/elements/ElementDataEnum.h"
 #include "nuto/mechanics/integrationtypes/IntegrationTypeEnum.h"
-#include"nuto/base/ErrorEnum.h"
+#include "nuto/base/ErrorEnum.h"
+#include "nuto/mechanics/sections/SectionEnum.h"
+
 
 using std::cout;
 using std::endl;
@@ -21,3 +23,4 @@ using NuTo::IpData::eIpDataType;
 using NuTo::Interpolation::eShapeType;
 using NuTo::eGroupId;
 using NuTo::eVisualizeWhat;
+using NuTo::eSectionType;

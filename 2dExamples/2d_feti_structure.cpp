@@ -78,18 +78,18 @@ void AssignMaterial(NuTo::StructureFETI& rStructure)
     std::cout << "**      Material rank = " << rStructure.mRank << std::endl;
     std::cout << "***********************************" << std::endl;
 
-//    int material00 = rStructure.ConstitutiveLawCreate(eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+    int material00 = rStructure.ConstitutiveLawCreate(eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
 
-//    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
-//    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::POISSONS_RATIO, poissonsRatio);
+    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
+    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::POISSONS_RATIO, poissonsRatio);
 
 
-    int material00 = rStructure.ConstitutiveLawCreate(eConstitutiveType::LOCAL_DAMAGE_MODEL);
-    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::YOUNGS_MODULUS,       youngsModulus);
-    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::POISSONS_RATIO,       poissonsRatio);
-    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::TENSILE_STRENGTH,     tensileStrength);
-    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::COMPRESSIVE_STRENGTH, compressiveStrength);
-    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::FRACTURE_ENERGY,      fractureEnergy);
+//    int material00 = rStructure.ConstitutiveLawCreate(eConstitutiveType::LOCAL_DAMAGE_MODEL);
+//    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::YOUNGS_MODULUS,       youngsModulus);
+//    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::POISSONS_RATIO,       poissonsRatio);
+//    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::TENSILE_STRENGTH,     tensileStrength);
+//    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::COMPRESSIVE_STRENGTH, compressiveStrength);
+//    rStructure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::FRACTURE_ENERGY,      fractureEnergy);
 
     rStructure.ElementTotalSetConstitutiveLaw(material00);
 
@@ -101,16 +101,18 @@ int main(int argc, char* argv[])
     MPI_Init(&argc, &argv);
     const int rank = MPI::COMM_WORLD.Get_rank();
 
-    std::string meshFile = "feti.msh_00000" + std::to_string(rank+1);
+    std::string meshFile = "feti_json.msh_" + std::to_string(rank);
     std::cout << meshFile << std::endl;
 
     NuTo::StructureFETI structure(dim);
+    structure.SetNumTimeDerivatives(0);
 
     const int interpolationTypeId = structure.InterpolationTypeCreate(eShapeType::QUAD2D);
-    structure.InterpolationTypeAdd(interpolationTypeId, eDof::COORDINATES,    eTypeOrder::EQUIDISTANT1);
-    structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS,  eTypeOrder::EQUIDISTANT1);
+    structure.InterpolationTypeAdd(interpolationTypeId, eDof::COORDINATES,     eTypeOrder::EQUIDISTANT1);
+    structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS,   eTypeOrder::EQUIDISTANT1);
 
-    structure.ImportMesh(meshFile, interpolationTypeId);
+
+    structure.ImportMeshJson(meshFile,interpolationTypeId);
 
     structure.SetVerboseLevel(10);
     structure.SetShowTime(false);
@@ -171,7 +173,7 @@ int main(int argc, char* argv[])
     structure.GroupCreate(groupAllElements, eGroupId::Elements);
     structure.GroupAddElementsTotal(groupAllElements);
     structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DISPLACEMENTS);
-    structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DAMAGE);
+//    structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DAMAGE);
 
 
     cout << "**********************************************" << endl;

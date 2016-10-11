@@ -1,4 +1,4 @@
-meshSize       	= 20;
+meshSize       	= 4;
 notchHeight    	= 10;
 notchWidth     	= 2;
 y_origin = 0;
@@ -59,6 +59,6 @@ Plane Surface(3) = {3};
 Plane Surface(11) = {11};
 Plane Surface(12) = {12};
 Plane Surface(13) = {13};
-//Recombine Surface {1,2,3,11,12,13};
+Recombine Surface {1,2,3,11,12,13};
 Transfinite Surface {1,2,3,11,12,13};
 Physical Surface(999) = {1,2,3,11,12,13};
