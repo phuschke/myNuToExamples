@@ -14,7 +14,7 @@
 #include <cstdlib>
 #include <chrono>
 #include "ImportMesh.h"
-#include "FetiSolver.h"
+#include "nuto/mechanics/timeIntegration/NewmarkFeti.h"
 #include "nuto/mechanics/timeIntegration/NewmarkDirect.h"
 #include "../myNutoExamples/EnumsAndTypedefs.h"
 #include "nuto/mechanics/constitutive/laws/PhaseField.h"
@@ -41,7 +41,7 @@ constexpr   double      thickness                   = 1.0;
 // material
 constexpr   double      youngsModulus               = 4.0;                // N/mm^2
 constexpr   double      poissonsRatio               = 0.2;
-constexpr   double      nonlocalRadius              = 1;                   // mm
+constexpr   double      nonlocalRadius              = 0.05;                   // mm
 constexpr   double      fractureEnergy              = 1e-6;                   // N/mm
 constexpr   double      compressiveStrength         = 30.e-4;                  // N/mm
 constexpr   double      tensileStrength             = 3.e-4;                  // N/mm
@@ -186,7 +186,7 @@ int main(int argc, char* argv[])
     cout << "**********************************************" << endl;
 
 
-    NuTo::FetiSolver myIntegrationScheme(&structure);
+    NuTo::NewmarkFeti myIntegrationScheme(&structure);
     boost::filesystem::path resultPath(std::string("/home/phuschke/results/feti/" + std::to_string(structure.mRank)));
 
     myIntegrationScheme.SetTimeStep                 ( timeStep                  );
@@ -223,7 +223,13 @@ int main(int argc, char* argv[])
     cout << "**      Solve                    **" << std::endl;
     cout << "***********************************" << std::endl;
 
+
+    NuTo::Timer timer("Single domain solve");
+
     myIntegrationScheme.Solve(simulationTime);
+
+    ~timer;
+
     std::string command = "paste " +  resultPath.string() + "/myforce.dat " +  resultPath.string() + "/mydisplacements.dat > " +  resultPath.string() + "/forceDisp.dat";
     system(command.c_str());
 

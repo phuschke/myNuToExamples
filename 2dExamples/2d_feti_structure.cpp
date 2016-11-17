@@ -1,5 +1,7 @@
 
 #include <mpi.h>
+#include <boost/mpi.hpp>
+
 #include <iostream>
 #include <string.h>
 #include <vector>
@@ -14,8 +16,7 @@
 #include <cstdlib>
 #include <chrono>
 #include "ImportMesh.h"
-#include "FetiSolver.h"
-#include "nuto/mechanics/timeIntegration/NewmarkDirect.h"
+#include "nuto/mechanics/timeIntegration/NewmarkFeti.h"
 #include "../myNutoExamples/EnumsAndTypedefs.h"
 
 #include "nuto/mechanics/nodes/NodeBase.h"
@@ -98,8 +99,10 @@ void AssignMaterial(NuTo::StructureFETI& rStructure)
 
 int main(int argc, char* argv[])
 {
-    MPI_Init(&argc, &argv);
-    const int rank = MPI::COMM_WORLD.Get_rank();
+    boost::mpi::environment  env(argc, argv);
+    boost::mpi::communicator world;
+
+    const int rank = world.rank();
 
     std::string meshFile = "feti_json.msh_" + std::to_string(rank);
     std::cout << meshFile << std::endl;
@@ -181,7 +184,7 @@ int main(int argc, char* argv[])
     cout << "**********************************************" << endl;
 
 
-    NuTo::FetiSolver myIntegrationScheme(&structure);
+    NuTo::NewmarkFeti myIntegrationScheme(&structure);
     boost::filesystem::path resultPath(std::string("/home/phuschke/results/feti/" + std::to_string(structure.mRank)));
 
     myIntegrationScheme.SetTimeStep                 ( timeStep                  );
@@ -208,5 +211,4 @@ int main(int argc, char* argv[])
 
     myIntegrationScheme.Solve(simulationTime);
 
-    MPI_Finalize();
 }

@@ -2,13 +2,14 @@
 #include "nuto/mechanics/timeIntegration/NewmarkDirect.h"
 #include "nuto/mechanics/nodes/NodeBase.h"
 #include "../../EnumsAndTypedefs.h"
-#include "../FetiSolver.h"
+#include "nuto/mechanics/timeIntegration/NewmarkFeti.h"
 #include <mpi.h>
 #include <boost/filesystem.hpp>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <chrono>
+
 
 using std::cout;
 using std::endl;
@@ -150,7 +151,7 @@ int main(int argc, char* argv[])
     cout << "**********************************************" << endl;
 
 
-    NuTo::FetiSolver myIntegrationScheme(&structure);
+    NuTo::NewmarkFeti myIntegrationScheme(&structure);
     boost::filesystem::path resultPath(std::string("/home/phuschke/results/feti/fourPointBending/" + std::to_string(structure.mRank)));
 
     myIntegrationScheme.SetTimeStep                 ( timeStep                  );
