@@ -224,11 +224,11 @@ int main(int argc, char* argv[])
     cout << "***********************************" << std::endl;
 
 
-    NuTo::Timer timer("Single domain solve");
+
 
     myIntegrationScheme.Solve(simulationTime);
 
-    ~timer;
+
 
     std::string command = "paste " +  resultPath.string() + "/myforce.dat " +  resultPath.string() + "/mydisplacements.dat > " +  resultPath.string() + "/forceDisp.dat";
     system(command.c_str());

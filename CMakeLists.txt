@@ -1,5 +1,7 @@
 
 
+#find_package(MKL REQUIRED)
+message("Pardiso include dir:   " ${PARDISO_INCLUDE_DIR})
 
 
 

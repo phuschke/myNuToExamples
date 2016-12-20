@@ -49,9 +49,9 @@ constexpr   double      fractureEnergy              = 0.1;
 // integration
 constexpr   bool        performLineSearch           = true;
 constexpr   bool        automaticTimeStepping       = true;
-constexpr   double      timeStep                    = 1e-1;
+constexpr   double      timeStep                    = 1e-0;
 constexpr   double      minTimeStep                 = 1e-5;
-constexpr   double      maxTimeStep                 =  1e-1;
+constexpr   double      maxTimeStep                 =  1e-0;
 constexpr   double      toleranceDisp              = 1e-6;
 constexpr   double      simulationTime              = 1.0;
 constexpr   double      loadFactor                  = -0.01;
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
 
     const int rank = world.rank();
 
-    std::string meshFile = "feti_json.msh_" + std::to_string(rank);
+    std::string meshFile = "feti_beam_fine_2_subdomains.mesh" + std::to_string(rank);
     std::cout << meshFile << std::endl;
 
     NuTo::StructureFETI structure(dim);
@@ -125,32 +125,134 @@ int main(int argc, char* argv[])
     AssignSection(structure);
 
     cout << "**********************************************" << endl;
-    cout << "**  constraints                             **" << endl;
-    cout << "**********************************************" << endl;    
+    cout << "**  virtual constraints                     **" << endl;
+    cout << "**********************************************" << endl;
+
     Eigen::VectorXd nodeCoords(2);
+
+
+    // All subdomains are floating in total FETI
+    structure.mNumRigidBodyModes = 3;
+
+    if (structure.mRank == 0)
+    {
+        int groupNodesFakeConstraints00 = structure.GroupCreate(eGroupId::Nodes);
+        int groupNodesFakeConstraints01 = structure.GroupCreate(eGroupId::Nodes);
+
+        nodeCoords[0] = 10;
+        nodeCoords[1] = 0;
+        structure.GroupAddNodeRadiusRange(groupNodesFakeConstraints00, nodeCoords, 0, 1.e-6);
+        structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesFakeConstraints00, directionX, 0);
+
+
+        nodeCoords[0] = 20;
+        nodeCoords[1] = 10;
+        structure.GroupAddNodeRadiusRange(groupNodesFakeConstraints01, nodeCoords, 0, 1.e-6);
+        structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesFakeConstraints01, directionX, 0);
+        structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesFakeConstraints01, directionY, 0);
+
+    }
+
+    if (structure.mRank == 1)
+    {
+        int groupNodesFakeConstraints00 = structure.GroupCreate(eGroupId::Nodes);
+        int groupNodesFakeConstraints01 = structure.GroupCreate(eGroupId::Nodes);
+
+        nodeCoords[0] = 60;
+        nodeCoords[1] = 0;
+        structure.GroupAddNodeRadiusRange(groupNodesFakeConstraints00, nodeCoords, 0, 1.e-6);
+        structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesFakeConstraints00, directionX, 0);
+
+
+        nodeCoords[0] = 40;
+        nodeCoords[1] = 10;
+        structure.GroupAddNodeRadiusRange(groupNodesFakeConstraints01, nodeCoords, 0, 1.e-6);
+        structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesFakeConstraints01, directionX, 0);
+        structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesFakeConstraints01, directionY, 0);
+
+    }
+
+
+    cout << "**********************************************" << endl;
+    cout << "**  real constraints                        **" << endl;
+    cout << "**********************************************" << endl;
+
 
     int groupNodesLeftBoundary = structure.GroupCreate(eGroupId::Nodes);
 
     structure.GroupAddNodeCoordinateRange(groupNodesLeftBoundary,0,-1.e-6,+1.e-6);
+    Eigen::VectorXi boundaryNodes = structure.GroupGetMemberIds(groupNodesLeftBoundary);
 
-//    nodeCoords[0] = 0;
-//    nodeCoords[1] = 0;
-//    structure.GroupAddNodeRadiusRange(groupNodesLeftBoundary, nodeCoords, 0, 1.e-6);
-    structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesLeftBoundary, directionX, 0);
-    structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesLeftBoundary, directionY, 0);
+    for (int i = 0; i < boundaryNodes.rows(); ++i)
+    {
+        const int nodeId = boundaryNodes[i];
+        std::vector<int> dofIds = structure.NodeGetDofIds(nodeId, eDof::DISPLACEMENTS);
+
+        for (const auto& id : dofIds)
+            structure.mBoundaryDofIds.push_back(id);
+    }
+
+    for (const auto& id : structure.mBoundaryDofIds)
+        std::cout << "structure.mBoundaryDofIds \t" << id << std::endl;
+
+    cout << "***************************************************************" << endl;
+    cout << "**  determine the global ids for the constraints             **" << endl;
+    cout << "***************************************************************" << endl;
+
+    const int numProcesses = world.size();
+    // recvCount:
+    // Contais the number of elements that are received from each process.
+    std::vector<int> recvCount;
+    recvCount.resize(numProcesses, 0);
+
+    boost::mpi::all_gather<int>(world,structure.mBoundaryDofIds.size(),recvCount);
+
+    // displs:
+    // Entry i specifies the displacement (relative to recvbuf) at which to place the incoming data from process i.
+    std::vector<int> displs;
+    displs.resize(numProcesses, 0);
+    for (int i = 1; i < numProcesses; ++i)
+        displs[i] = displs[i-1] + recvCount[i-1];
 
 
-    if (structure.GroupGetNumMembers(groupNodesLeftBoundary) > 0)
-        structure.SetIsFloating(false);
+    if (structure.mRank == 0)
+    {
+        for (const auto& i : recvCount)
+            std::cout << "recvCount \t" << i << std::endl;
 
-//    int groupNodesRightBoundary = structure.GroupCreate(eGroupId::Nodes);
-//    structure.GroupAddNodeCoordinateRange(groupNodesRightBoundary,0,60-1.e-6,60+1.e-6);
+        for (const auto& i : displs)
+            std::cout << "displs \t" << i << std::endl;
+    }
 
-//    nodeCoords[0] = 60;
-//    nodeCoords[1] = 0;
-//    structure.GroupAddNodeRadiusRange(groupNodesRightBoundary, nodeCoords, 0, 1.e-6);
-//    structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, directionX, 0);
-//    structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, directionY, 0);
+    const int numLocalBoundaryDofIds = structure.mBoundaryDofIds.size();
+    MPI_Allreduce(&numLocalBoundaryDofIds,
+                  &structure.mNumTotalBoundaryDofIds,
+                  1,
+                  MPI_INT,
+                  MPI_SUM,
+                  MPI_COMM_WORLD);
+
+
+    std::cout << "structure.mBoundaryDofIds.size() \t" << structure.mBoundaryDofIds.size() << std::endl;
+    std::cout << "structure.mNumTotalBoundaryDofIds \t" << structure.mNumTotalBoundaryDofIds << std::endl;
+
+
+    structure.mGlobalBoundaryDofIds.resize(structure.mNumTotalBoundaryDofIds,0);
+    MPI_Allgatherv(structure.mBoundaryDofIds.data(),
+                   structure.mBoundaryDofIds.size(),
+                   MPI_INT,
+                   structure.mGlobalBoundaryDofIds.data(),
+                   recvCount.data(),
+                   displs.data(),
+                   MPI_INT, MPI_COMM_WORLD);
+
+    if (structure.mRank == 0)
+    {
+        for (const auto& id : structure.mGlobalBoundaryDofIds)
+            std::cout << "structure.mGlobalBoundaryDofIds \t" << id << std::endl;
+    }
+
+    structure.mGlobalStartIndexBoundaryDofIds = displs[structure.mRank];
 
     cout << "**********************************************" << endl;
     cout << "**  load                                    **" << endl;
@@ -160,17 +262,12 @@ int main(int argc, char* argv[])
 
     int loadNodeGroup = structure.GroupCreate(eGroupId::Nodes);
 
-    nodeCoords[0] = 5;
+    nodeCoords[0] = 10;
     nodeCoords[1] = 10;
     structure.GroupAddNodeRadiusRange(loadNodeGroup, nodeCoords, 0, 1.e-6);
 
-//    nodeCoords[0] = 29;
-//    nodeCoords[1] = 10;
-//    structure.GroupAddNodeRadiusRange(loadNodeGroup, nodeCoords, 0, 1.e-6);
-
-
-    int loadId = structure.ConstraintLinearSetDisplacementNodeGroup(loadNodeGroup, directionY, 0);
-//    int loadId = structure.LoadCreateNodeGroupForce(0, loadNodeGroup, directionY, 1);
+//    int loadId = structure.ConstraintLinearSetDisplacementNodeGroup(loadNodeGroup, directionY, 0);
+    int loadId = structure.LoadCreateNodeGroupForce(0, loadNodeGroup, directionY, 1000);
 
 
     std::cout << "***********************************" << std::endl;
@@ -180,6 +277,8 @@ int main(int argc, char* argv[])
     structure.GroupCreate(groupAllElements, eGroupId::Elements);
     structure.GroupAddElementsTotal(groupAllElements);
     structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DISPLACEMENTS);
+    structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::ENGINEERING_STRAIN);
+    structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::ENGINEERING_STRESS);
 //    structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DAMAGE);
 
 
@@ -206,8 +305,8 @@ int main(int argc, char* argv[])
     dispRHS(0, 1) = 0;
     dispRHS(1, 1) = loadFactor;
 
-    myIntegrationScheme.AddTimeDependentConstraint(loadId, dispRHS);
-//    myIntegrationScheme.SetTimeDependentLoadCase(loadId, dispRHS);
+//    myIntegrationScheme.AddTimeDependentConstraint(loadId, dispRHS);
+    myIntegrationScheme.SetTimeDependentLoadCase(loadId, dispRHS);
 
     cout << "***********************************" << std::endl;
     cout << "**      Solve                    **" << std::endl;

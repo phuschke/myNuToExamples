@@ -16,6 +16,7 @@
 #include <chrono>
 
 #include "nuto/mechanics/timeIntegration/NewmarkFeti.h"
+#include "nuto/mechanics/timeIntegration/NewmarkDirect.h"
 #include "../myNutoExamples/EnumsAndTypedefs.h"
 #include "nuto/mechanics/constitutive/laws/PhaseField.h"
 #include "nuto/mechanics/nodes/NodeBase.h"
@@ -53,9 +54,8 @@ constexpr   double      toleranceDisp               = 1e-6;
 constexpr   double      simulationTime              = 1.0;
 constexpr   double      loadFactor                  = 1.0;
 
-
-const NuTo::FullVector<double, dimension> directionX    = NuTo::FullVector<double, dimension>::UnitX();
-const NuTo::FullVector<double, dimension> directionY    = NuTo::FullVector<double, dimension>::UnitY();
+const Eigen::Vector2d directionX = Eigen::Vector2d::UnitX();
+const Eigen::Vector2d directionY = Eigen::Vector2d::UnitY();
 
 void Feti();
 
@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
     boost::mpi::environment     env;
     boost::mpi::communicator    world;
 
-//    Feti();
+    Feti();
 
 
     if(world.rank() == 0)
@@ -84,7 +84,7 @@ void Feti()
     NuTo::StructureFETI structure(dimension);
     structure.SetShowTime(false);
 
-    std::string meshFile = "feti_beam_fine_tri.msh_" + std::to_string(rank);
+    std::string meshFile = "linear_benchmark.msh_" + std::to_string(rank);
 
     const int interpolationTypeId = structure.InterpolationTypeCreate(eShapeType::TRIANGLE2D);
     structure.InterpolationTypeAdd(interpolationTypeId, eDof::COORDINATES,     eTypeOrder::EQUIDISTANT1);
@@ -149,7 +149,9 @@ void Feti()
     dispRHS(0, 1) = 0;
     dispRHS(1, 1) = loadFactor;
 
+
     timeIntegration.AddTimeDependentConstraint(loadId, dispRHS);
+    std::cout << "Start solve" << std::endl;
     timeIntegration.Solve(simulationTime);
 }
 
