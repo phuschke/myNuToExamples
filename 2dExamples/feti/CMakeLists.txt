@@ -1,4 +1,4 @@
-
+add_subdirectory(virtual_constraints)
 
 
 # create symlinks to the necessary mesh files

@@ -30,10 +30,10 @@ execute_process(
 
 
   # create symlinks to the necessary mesh files
-  foreach(task RANGE 0 6)
+  foreach(task RANGE 0 1)
       message("Task ${task}")
   execute_process(
-    COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "/home/phuschke/gmshReader_project/build/examples/feti_beam_fine.mesh${task}" "${CMAKE_CURRENT_BINARY_DIR}/feti_json.msh_${task}"
+    COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "/home/phuschke/gmshReader_project/build/examples/feti_beam_fine_2_subdomains.mesh${task}" "${CMAKE_CURRENT_BINARY_DIR}/feti_beam_fine_2_subdomains.mesh${task}"
   )
     endforeach()
 

@@ -1,13 +1,13 @@
-#include "nuto/mechanics/nodes/NodeEnum.h"
-#include "nuto/mechanics/groups/GroupEnum.h"
-#include "nuto/mechanics/sections/SectionEnum.h"
-#include "nuto/mechanics/constitutive/ConstitutiveEnum.h"
-#include "nuto/visualize/VisualizeEnum.h"
-#include "nuto/mechanics/interpolationtypes/InterpolationTypeEnum.h"
-#include "nuto/mechanics/elements/IpDataEnum.h"
-#include "nuto/mechanics/integrationtypes/IntegrationTypeEnum.h"
-#include "nuto/base/ErrorEnum.h"
-#include "nuto/mechanics/sections/SectionEnum.h"
+#include "mechanics/nodes/NodeEnum.h"
+#include "mechanics/groups/GroupEnum.h"
+#include "mechanics/sections/SectionEnum.h"
+#include "mechanics/constitutive/ConstitutiveEnum.h"
+#include "visualize/VisualizeEnum.h"
+#include "mechanics/interpolationtypes/InterpolationTypeEnum.h"
+#include "mechanics/elements/IpDataEnum.h"
+#include "mechanics/integrationtypes/IntegrationTypeEnum.h"
+#include "base/ErrorEnum.h"
+#include "mechanics/sections/SectionEnum.h"
 
 
 using std::cout;
