@@ -41,7 +41,7 @@ execute_process(
   # 2d_feti_structure
   foreach(file
           #2d_feti_structure
-          2d_feti_structure_lu_solver
+          #2d_feti_structure_lu_solver
           )
     add_executable        (${file} ${file}.cpp)
     target_link_libraries (${file} ${MPI_LIBRARIES})

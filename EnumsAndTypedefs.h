@@ -6,7 +6,6 @@
 #include "mechanics/interpolationtypes/InterpolationTypeEnum.h"
 #include "mechanics/elements/IpDataEnum.h"
 #include "mechanics/integrationtypes/IntegrationTypeEnum.h"
-#include "base/ErrorEnum.h"
 #include "mechanics/sections/SectionEnum.h"
 
 

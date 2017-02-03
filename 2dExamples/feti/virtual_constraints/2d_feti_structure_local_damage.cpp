@@ -46,12 +46,12 @@ constexpr   double      fractureEnergy              = 0.1;
 constexpr   bool        performLineSearch           = true;
 constexpr   bool        automaticTimeStepping       = true;
 constexpr   double      timeStep                    = 1e-0;
-constexpr   double      minTimeStep                 = 1e-1;
+constexpr   double      minTimeStep                 = 1e-3;
 constexpr   double      maxTimeStep                 =  1e-0;
 constexpr   double      toleranceDisp              = 1e-6;
-constexpr   double      simulationTime              = 3.0;
-constexpr   double      loadFactor                  = 30.0;
-constexpr   double      maxInterations              = 1;
+constexpr   double      simulationTime              = 1.0;
+constexpr   double      loadFactor                  = -2e-2;
+constexpr   double      maxInterations              = 10;
 
 
 const Eigen::Vector2d directionX    = Eigen::Vector2d::UnitX();
@@ -208,11 +208,31 @@ int main(int argc, char* argv[])
     structure.GetLogger() << "**********************************************" << "\n\n";
 
 
-    int groupNodesLeftBoundary = structure.GroupCreate(eGroupId::Nodes);
+    if (rank == 1)
+    {
+        nodeCoords[0] = 0;
+        nodeCoords[1] = 0;
 
-    structure.GroupAddNodeCoordinateRange(groupNodesLeftBoundary,0,-1.e-6,+1.e-6);
+        int groupNodesLeftBoundary = structure.GroupCreate(eGroupId::Nodes);
 
-    structure.ApplyConstraintsTotalFeti(groupNodesLeftBoundary);
+        structure.GroupAddNodeRadiusRange(groupNodesLeftBoundary, nodeCoords, 0, 1.e-6);
+        structure.ApplyConstraintsTotalFeti(groupNodesLeftBoundary);
+    }
+
+
+    if (rank == 0)
+    {
+
+        nodeCoords[0] = 60;
+        nodeCoords[1] = 0;
+
+        int groupNodesRightBoundary = structure.GroupCreate(eGroupId::Nodes);
+
+        structure.GroupAddNodeRadiusRange(groupNodesRightBoundary, nodeCoords, 0, 1.e-6);
+        structure.ApplyConstraintsTotalFeti(groupNodesRightBoundary);
+
+
+    }
 
     structure.GetLogger() << "**********************************************" << "\n";
     structure.GetLogger() << "**  load                                    **" << "\n";
@@ -222,8 +242,8 @@ int main(int argc, char* argv[])
 
     int loadNodeGroup = structure.GroupCreate(eGroupId::Nodes);
 
-    nodeCoords[0] = 60;
-    nodeCoords[1] = 0;
+    nodeCoords[0] = 20;
+    nodeCoords[1] = 10;
     structure.GroupAddNodeRadiusRange(loadNodeGroup, nodeCoords, 0, 1.e-6);
 
     structure.NodeInfo(10);
@@ -252,9 +272,9 @@ int main(int argc, char* argv[])
     structure.GroupCreate(groupAllElements, eGroupId::Elements);
     structure.GroupAddElementsTotal(groupAllElements);
     structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DISPLACEMENTS);
-    structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::ENGINEERING_STRAIN);
-    structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::ENGINEERING_STRESS);
-//    structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DAMAGE);
+//    structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::ENGINEERING_STRAIN);
+//    structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::ENGINEERING_STRESS);
+    structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DAMAGE);
 
 
     structure.GetLogger() << "**********************************************" << "\n";
@@ -279,6 +299,19 @@ int main(int argc, char* argv[])
     dispRHS(1, 0) = simulationTime;
     dispRHS(0, 1) = 0;
     dispRHS(1, 1) = loadFactor;
+
+
+    if (rank == 1)
+    {
+        myIntegrationScheme.AddResultGroupNodeForce("myforcebla", loadNodeGroup);
+
+        nodeCoords[0] = 20;
+        nodeCoords[1] = 10;
+        int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
+        structure.GroupAddNodeRadiusRange(grpNodes_output_disp, nodeCoords, 0, 1.e-6);
+        myIntegrationScheme.AddResultNodeDisplacements("mydisplacements", structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
+    }
+
 
 //    myIntegrationScheme.AddTimeDependentConstraint(loadId, dispRHS);
     myIntegrationScheme.SetTimeDependentLoadCase(loadId, dispRHS);
@@ -313,10 +346,20 @@ void AssignMaterial(NuTo::StructureFETI& structure)
     structure.GetLogger() << "**      Material                 **" << "\n";
     structure.GetLogger() << "***********************************" << "\n\n";
 
-    int material00 = structure.ConstitutiveLawCreate(eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+    int material00 = structure.ConstitutiveLawCreate(eConstitutiveType::LOCAL_DAMAGE_MODEL);
 
     structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
     structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::POISSONS_RATIO, poissonsRatio);
+    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::TENSILE_STRENGTH, tensileStrength);
+    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::FRACTURE_ENERGY, fractureEnergy);
+    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::COMPRESSIVE_STRENGTH, compressiveStrength);
+
+
+
+//    int material00 = structure.ConstitutiveLawCreate(eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+
+//    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
+//    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::POISSONS_RATIO, poissonsRatio);
 
     structure.ElementTotalSetConstitutiveLaw(material00);
 

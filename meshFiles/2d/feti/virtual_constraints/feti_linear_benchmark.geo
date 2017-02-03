@@ -12,8 +12,8 @@ Function CreateRectangle
   l3  = newreg; Line(l3)  = {p3,p4};
   l4  = newreg; Line(l4)  = {p4,p1};
 
-  Transfinite Line {l1,l3} = 3000+1;
-  Transfinite Line {l2,l4} = 500+1;
+  Transfinite Line {l1,l3} = 6+1;
+  Transfinite Line {l2,l4} = 1+1;
 
   loop1 = newll; Line Loop(loop1) = {l1,l2,l3,l4};
 
