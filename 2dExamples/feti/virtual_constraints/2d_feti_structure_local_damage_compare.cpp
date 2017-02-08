@@ -1,26 +1,17 @@
 
 
 #include <iostream>
-#include <string.h>
 #include <vector>
-#include "mechanics/structures/unstructured/StructureFETI.h"
-#include "mechanics/structures/unstructured/Structure.h"
-#include <eigen3/Eigen/Core>
-#include <eigen3/Eigen/Dense>
-#include <eigen3/Eigen/Sparse>
-#include <eigen3/Eigen/SparseQR>
+#include "mechanics/feti/StructureFeti.h"
 #include <ctime>
-#include <cstdlib>
 #include <chrono>
 #include "mechanics/timeIntegration/NewmarkDirect.h"
-#include "../myNutoExamples/EnumsAndTypedefs.h"
+#include "../../../EnumsAndTypedefs.h"
 
 #include "mechanics/nodes/NodeBase.h"
 
 #include "math/SparseMatrixCSR.h"
 #include "math/SparseMatrixCSRGeneral.h"
-#include "mechanics/dofSubMatrixStorage/BlockSparseMatrix.h"
-#include "mechanics/structures/StructureOutputBlockMatrix.h"
 #include "boost/filesystem.hpp"
 
 constexpr int dim = 2;

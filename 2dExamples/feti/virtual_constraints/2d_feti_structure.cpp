@@ -2,27 +2,14 @@
 #include <mpi.h>
 #include <boost/mpi.hpp>
 
-#include <iostream>
-#include <string.h>
-#include <vector>
-#include "mechanics/structures/unstructured/StructureFETI.h"
-#include "mechanics/structures/unstructured/Structure.h"
-#include <eigen3/Eigen/Core>
-#include <eigen3/Eigen/Dense>
-#include <eigen3/Eigen/Sparse>
-#include <eigen3/Eigen/SparseQR>
+#include "mechanics/feti/StructureFeti.h"
 #include <ctime>
-#include <cstdlib>
 #include <chrono>
-#include "mechanics/timeIntegration/NewmarkFeti.h"
-#include "../myNutoExamples/EnumsAndTypedefs.h"
+#include "mechanics/feti/NewmarkFeti.h"
+#include "../../../EnumsAndTypedefs.h"
 
 #include "mechanics/nodes/NodeBase.h"
 
-#include "math/SparseMatrixCSR.h"
-#include "math/SparseMatrixCSRGeneral.h"
-#include "mechanics/dofSubMatrixStorage/BlockSparseMatrix.h"
-#include "mechanics/structures/StructureOutputBlockMatrix.h"
 #include "boost/filesystem.hpp"
 
 constexpr int dim = 2;
@@ -262,6 +249,7 @@ int main(int argc, char* argv[])
     structure.GetLogger() << "**********************************************" << "\n\n";
 
 
+
     NuTo::NewmarkFeti myIntegrationScheme(&structure);
     boost::filesystem::path resultPath(std::string("/home/phuschke/results/feti/" + std::to_string(structure.mRank)));
 
@@ -290,7 +278,7 @@ int main(int argc, char* argv[])
     structure.GetLogger()   << "Total number of Dofs: \t"
                             << structure.GetNumTotalDofs() << "\n\n";
 
-    myIntegrationScheme.Solve(simulationTime);
+//    myIntegrationScheme.Solve(simulationTime);
 
 }
 

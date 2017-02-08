@@ -1,26 +1,17 @@
 
 
 #include <iostream>
-#include <string.h>
 #include <vector>
-#include "mechanics/structures/unstructured/StructureFETI.h"
-#include "mechanics/structures/unstructured/Structure.h"
-#include <eigen3/Eigen/Core>
-#include <eigen3/Eigen/Dense>
-#include <eigen3/Eigen/Sparse>
-#include <eigen3/Eigen/SparseQR>
+#include "mechanics/feti/StructureFeti.h"
 #include <ctime>
-#include <cstdlib>
 #include <chrono>
 #include "mechanics/timeIntegration/NewmarkDirect.h"
-#include "../myNutoExamples/EnumsAndTypedefs.h"
+#include "../../../EnumsAndTypedefs.h"
 
 #include "mechanics/nodes/NodeBase.h"
 
 #include "math/SparseMatrixCSR.h"
 #include "math/SparseMatrixCSRGeneral.h"
-#include "mechanics/dofSubMatrixStorage/BlockSparseMatrix.h"
-#include "mechanics/structures/StructureOutputBlockMatrix.h"
 #include "boost/filesystem.hpp"
 
 constexpr int dim = 2;
@@ -33,19 +24,19 @@ constexpr   int         dimension                   = 2;
 constexpr   double      thickness                   = 1.0;
 
 // material
-constexpr   double      youngsModulus               = 4.0e4;
+constexpr   double      youngsModulus               = 4.0;                // N/mm^2
 constexpr   double      poissonsRatio               = 0.2;
-constexpr   double      tensileStrength             = 3;
-constexpr   double      compressiveStrength         = 30;
-constexpr   double      fractureEnergy              = 0.1;
-constexpr   double      nonlocalRadius              = 10;
+constexpr   double      nonlocalRadius              = 5;                   // mm
+constexpr   double      fractureEnergy              = 1e-6;                   // N/mm
+constexpr   double      compressiveStrength         = 30.e-4;                  // N/mm
+constexpr   double      tensileStrength             = 3.e-4;                  // N/mm
 
 // integration
 constexpr   bool        performLineSearch           = true;
 constexpr   bool        automaticTimeStepping       = true;
 constexpr   double      timeStep                    = 1e-2;
 constexpr   double      minTimeStep                 = 1e-3;
-constexpr   double      maxTimeStep                 =  1e-0;
+constexpr   double      maxTimeStep                 =  1e-2;
 
 constexpr   double      toleranceDisp              = 1e-6;
 constexpr   double      toleranceNlEqStrain        = 1e-6;
@@ -136,7 +127,7 @@ Eigen::VectorXd nodeCoords(2);
 
     int loadNodeGroup = structure.GroupCreate(eGroupId::Nodes);
 
-    nodeCoords[0] = 20;
+    nodeCoords[0] = 14;
     nodeCoords[1] = 10;
     structure.GroupAddNodeRadiusRange(loadNodeGroup, nodeCoords, 0, 1.e-6);
     int loadId = structure.ConstraintLinearSetDisplacementNodeGroup(loadNodeGroup, directionY, 1);

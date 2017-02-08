@@ -1,4 +1,4 @@
-set(MESH_DIR "/home/phuschke/nuto_project/nuto/myNutoExamples/meshFiles")
+set(MESH_DIR "/home/phuschke/nuto_project/nuto/applications/custom/myNutoExamples/meshFiles")
 
 
 
@@ -57,13 +57,14 @@ foreach(file
     target_link_libraries(${file} ${MPI_LIBRARIES})
     target_link_libraries(${file} NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
     target_link_libraries(${file} NuToVisualize)
+    target_link_libraries(${file} NuToFeti)
     target_link_libraries(${file} ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 endforeach()
 
 
 foreach(file
-        2d_feti_structure_local_damage_compare
-        2d_feti_structure_gradient_damage_compare
+#        2d_feti_structure_local_damage_compare
+#        2d_feti_structure_gradient_damage_compare
         )
 
     add_executable(${file} ${file}.cpp)

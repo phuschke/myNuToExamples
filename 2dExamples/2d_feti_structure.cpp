@@ -16,7 +16,7 @@
 #include <cstdlib>
 #include <chrono>
 #include "ImportMesh.h"
-#include "nuto/mechanics/timeIntegration/NewmarkFeti.h"
+#include "mechanics/feti/NewmarkFeti.h"
 #include "../myNutoExamples/EnumsAndTypedefs.h"
 
 #include "nuto/mechanics/nodes/NodeBase.h"

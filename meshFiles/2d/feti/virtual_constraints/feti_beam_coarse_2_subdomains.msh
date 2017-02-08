@@ -1,10 +1,6 @@
 $MeshFormat
 2.2 0 8
 $EndMeshFormat
-$PhysicalNames
-1
-2 1 "Domain"
-$EndPhysicalNames
 $Nodes
 186
 1 0 0 0

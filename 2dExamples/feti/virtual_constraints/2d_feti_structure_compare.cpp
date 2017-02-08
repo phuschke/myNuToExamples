@@ -5,7 +5,7 @@
 #include <iostream>
 #include <string.h>
 #include <vector>
-#include "mechanics/structures/unstructured/StructureFETI.h"
+#include "mechanics/feti/StructureFeti.h"
 #include "mechanics/structures/unstructured/Structure.h"
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
@@ -17,7 +17,7 @@
 #include <chrono>
 #include "ImportMesh.h"
 #include "mechanics/timeIntegration/NewmarkFeti.h"
-#include "../myNutoExamples/EnumsAndTypedefs.h"
+#include "../../../EnumsAndTypedefs.h"
 
 #include "mechanics/nodes/NodeBase.h"
 

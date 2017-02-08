@@ -2,27 +2,14 @@
 #include <mpi.h>
 #include <boost/mpi.hpp>
 
-#include <iostream>
-#include <string.h>
-#include <vector>
-#include "mechanics/structures/unstructured/StructureFETI.h"
-#include "mechanics/structures/unstructured/Structure.h"
-#include <eigen3/Eigen/Core>
-#include <eigen3/Eigen/Dense>
-#include <eigen3/Eigen/Sparse>
-#include <eigen3/Eigen/SparseQR>
+#include "mechanics/feti/StructureFeti.h"
 #include <ctime>
-#include <cstdlib>
 #include <chrono>
-#include "mechanics/timeIntegration/NewmarkFeti.h"
-#include "../myNutoExamples/EnumsAndTypedefs.h"
+#include "mechanics/feti/NewmarkFeti.h"
+#include "../../../EnumsAndTypedefs.h"
 
 #include "mechanics/nodes/NodeBase.h"
 
-#include "math/SparseMatrixCSR.h"
-#include "math/SparseMatrixCSRGeneral.h"
-#include "mechanics/dofSubMatrixStorage/BlockSparseMatrix.h"
-#include "mechanics/structures/StructureOutputBlockMatrix.h"
 #include "boost/filesystem.hpp"
 
 constexpr int dim = 2;
@@ -246,7 +233,6 @@ int main(int argc, char* argv[])
     nodeCoords[1] = 10;
     structure.GroupAddNodeRadiusRange(loadNodeGroup, nodeCoords, 0, 1.e-6);
 
-    structure.NodeInfo(10);
     // prescribe displacement of loadNodeGroup in Y direction
     std::map<int, double> dofIdAndPrescribedDisplacementMap;
     std::vector<int> nodeIds = structure.GroupGetMemberIds(loadNodeGroup);
