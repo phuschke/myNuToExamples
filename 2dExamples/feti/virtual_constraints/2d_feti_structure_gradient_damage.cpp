@@ -56,8 +56,8 @@ constexpr   double      maxInterations              = 10;
 const Eigen::Vector2d directionX    = Eigen::Vector2d::UnitX();
 const Eigen::Vector2d directionY    = Eigen::Vector2d::UnitY();
 
-void AssignSection(NuTo::StructureFETI& structure);
-void AssignMaterial(NuTo::StructureFETI& structure);
+void AssignSection(NuTo::StructureFeti& structure);
+void AssignMaterial(NuTo::StructureFeti& structure);
 
 
 
@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
 
     const int rank = world.rank();
 
-    NuTo::StructureFETI structure(dim);
+    NuTo::StructureFeti structure(dim);
     structure.SetNumTimeDerivatives(0);
     structure.SetVerboseLevel(10);
     structure.SetShowTime(false);
@@ -330,7 +330,7 @@ int main(int argc, char* argv[])
 }
 
 
-void AssignSection(NuTo::StructureFETI& structure)
+void AssignSection(NuTo::StructureFeti& structure)
 {
     structure.GetLogger() << "***********************************" << "\n";
     structure.GetLogger() << "**      Section                  **" << "\n";
@@ -342,7 +342,7 @@ void AssignSection(NuTo::StructureFETI& structure)
     structure.ElementTotalSetSection(section00);
 }
 
-void AssignMaterial(NuTo::StructureFETI& structure)
+void AssignMaterial(NuTo::StructureFeti& structure)
 {
     structure.GetLogger() << "***********************************" << "\n";
     structure.GetLogger() << "**      Material                 **" << "\n";
