@@ -1,6 +1,6 @@
 
 #include <mpi.h>
-#include <boost/mpi.hpp>
+
 
 #include "mechanics/feti/StructureFeti.h"
 
@@ -17,7 +17,10 @@ constexpr int dim = 2;
 using Eigen::VectorXd;
 using Eigen::MatrixXd;
 
-
+//using EigenSolver = Eigen::SparseQR<Eigen::SparseMatrix<double>,Eigen::COLAMDOrdering<int>>;
+//using EigenSolver = Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>>;
+//using EigenSolver = Eigen::PardisoLU<Eigen::SparseMatrix<double>>;
+using EigenSolver = Eigen::SparseLU<Eigen::SparseMatrix<double>,Eigen::COLAMDOrdering<int>>;
 
 
 constexpr   int         dimension                   = 2;
@@ -63,10 +66,10 @@ void AssignMaterial(NuTo::StructureFeti& structure);
 
 int main(int argc, char* argv[])
 {
-    boost::mpi::environment  env(argc, argv);
-    boost::mpi::communicator world;
+    MPI_Init(&argc, &argv);
 
-    const int rank = world.rank();
+    int rank = 0;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     NuTo::StructureFeti structure(dim);
     structure.SetNumTimeDerivatives(0);
@@ -283,7 +286,8 @@ int main(int argc, char* argv[])
     structure.GetLogger() << "**********************************************" << "\n\n";
 
 
-    NuTo::NewmarkFeti myIntegrationScheme(&structure);
+
+    NuTo::NewmarkFeti<EigenSolver> myIntegrationScheme(&structure);
     boost::filesystem::path resultPath(std::string("/home/phuschke/results/feti/" + std::to_string(structure.mRank)));
 
     myIntegrationScheme.SetTimeStep                 ( timeStep                  );
@@ -327,6 +331,8 @@ int main(int argc, char* argv[])
 
     myIntegrationScheme.Solve(simulationTime);
 
+
+    MPI_Finalize();
 }
 
 
@@ -357,5 +363,7 @@ void AssignMaterial(NuTo::StructureFeti& structure)
     structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::FRACTURE_ENERGY, fractureEnergy);
 
     structure.ElementTotalSetConstitutiveLaw(material00);
+
+
 
 }

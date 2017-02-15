@@ -1,6 +1,6 @@
 
 
-
+add_subdirectory(3_point_bending_2017)
 
 
 

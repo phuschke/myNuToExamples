@@ -47,9 +47,10 @@ execute_process(
   COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "${MESH_DIR}/2d/feti/virtual_constraints/feti_beam_coarse_2_subdomains_compare_6_ele.msh" "${CMAKE_CURRENT_BINARY_DIR}/feti_beam_coarse_2_subdomains_compare_6_ele.msh"
 )
 
+if (ENABLE_MPI)
 foreach(file
-        2d_feti_structure
-        2d_feti_structure_local_damage
+        #2d_feti_structure
+        #2d_feti_structure_local_damage
         2d_feti_structure_gradient_damage
         )
 
@@ -61,6 +62,7 @@ foreach(file
     target_link_libraries(${file} ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 endforeach()
 
+endif ()
 
 foreach(file
 #        2d_feti_structure_local_damage_compare
