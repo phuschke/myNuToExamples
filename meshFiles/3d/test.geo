@@ -1,10 +1,10 @@
-meshSize       = 20;
+meshSize       = 10;
 notchHeight    = 20;
 notchWidth     = 20;
 length = 0;
 height = 0;
 depth  = 0;
-factor = 5;
+factor = 20;
 //*********************************************************************************************
 Function CreateRectangle
 // create points

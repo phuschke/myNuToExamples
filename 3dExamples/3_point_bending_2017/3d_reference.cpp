@@ -39,15 +39,19 @@ constexpr   double      thickness                   = 1.0;
 constexpr   double      youngsModulus               = 4.0e4;
 constexpr   double      poissonsRatio               = 0.2;
 constexpr   double      tensileStrength             = 3;
-constexpr   double      compressiveStrength         = 30;
-constexpr   double      fractureEnergy              = 0.1;
-constexpr   double      nonlocalRadius              = 1;
+constexpr   double      compressiveStrength         = 200;
+constexpr   double      fractureEnergy              = 0.005;
+constexpr   double      nonlocalRadius              = 0.5;
 
 // integration
-constexpr   double      timeStep                    = 1.e-1;
+constexpr   double      timeStep                    = 1.e-2;
+constexpr   double      minTimeStep                 = 1.e-4;
+constexpr   double      maxTimeStep                 = 1.e-1;
+constexpr   double      automaticTimeStepping       = true;
+
 constexpr   double      toleranceDisp               = 1e-6;
 constexpr   double      simulationTime              = 1.0;
-constexpr   double      loadFactor                  = -0.05;
+constexpr   double      loadFactor                  = -0.5;
 constexpr   double      maxInterations              = 10;
 
 const auto directionX = Eigen::Matrix<double, dimension, 1>::UnitX();
@@ -106,6 +110,7 @@ int main(int argc, char* argv[]) {
     structure.GroupAddElementsTotal(groupAllElements);
     structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DISPLACEMENTS);
     structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DAMAGE);
+    structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::NONLOCAL_EQ_STRAIN);
 
 
     // constraints
@@ -141,6 +146,9 @@ int main(int argc, char* argv[]) {
     boost::filesystem::path resultPath(boost::filesystem::initial_path().string() + std::string("/results_3_point_bending_reference"));
 
     timeIntegration.SetTimeStep                 ( timeStep                  );
+    timeIntegration.SetMinTimeStep              ( minTimeStep                  );
+    timeIntegration.SetMaxTimeStep              ( maxTimeStep                  );
+    timeIntegration.SetAutomaticTimeStepping    ( automaticTimeStepping                );
     timeIntegration.SetMaxNumIterations         ( maxInterations            );
     timeIntegration.SetResultDirectory          ( resultPath.string(), true );
     timeIntegration.SetToleranceResidual        ( eDof::DISPLACEMENTS, toleranceDisp );

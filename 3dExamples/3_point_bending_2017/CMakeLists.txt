@@ -16,7 +16,6 @@ endforeach()
 foreach(file
         3d_linear_constraints
         3d_reference
-        3d_singular_matrix
         )
 
     add_executable(${file} ${file}.cpp)
