@@ -1,4 +1,4 @@
-meshSize       = 20;
+meshSize       = 10;
 notchHeight    = 20;
 notchWidth     = 20;
 length = 0;
@@ -49,7 +49,7 @@ z_end     =  40;
 index     =   0;
 Call CreateCuboid;
 
-Rotate {{0, 1, 0}, {x_end/2. +20, 0, 0}, Pi} {
+Rotate {{0, 1, 0}, {x_end/2.+20, 0, 0}, Pi} {
   Duplicata { Surface{plane1:plane2}; }
 }
 
@@ -64,7 +64,9 @@ Layers{2};
 Physical Volume(777) = {1:4};
 
 
-// first rectangle
+
+// second rectangle
+meshSize  =  10;
 x_origin  =  70;
 y_origin  =  0;
 x_end     =  160;

@@ -40,7 +40,7 @@ constexpr   double      youngsModulus               = 4.0e4;
 constexpr   double      poissonsRatio               = 0.2;
 constexpr   double      tensileStrength             = 3;
 constexpr   double      compressiveStrength         = 30;
-constexpr   double      fractureEnergy              = 0.01;
+constexpr   double      fractureEnergy              = 0.1;
 constexpr   double      nonlocalRadius              = 1;
 
 // integration
@@ -68,21 +68,17 @@ int main(int argc, char* argv[]) {
     std::string meshFile = argv[1];
 
 
-    structure.ImportFromGmsh(meshFile);
+    auto bla = structure.ImportFromGmsh(meshFile);
 
 
-    const int interpolationTypeId = structure.InterpolationTypeCreate(eShapeType::TETRAHEDRON3D);
-    structure.InterpolationTypeAdd(interpolationTypeId, eDof::COORDINATES, eTypeOrder::EQUIDISTANT1);
-    structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT1);
+    const int interpolationTypeId = bla[0].second;
+    structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS,    eTypeOrder::EQUIDISTANT2);
     structure.InterpolationTypeAdd(interpolationTypeId, eDof::NONLOCALEQSTRAIN, eTypeOrder::EQUIDISTANT1);
-    structure.ElementTotalSetInterpolationType(interpolationTypeId);
 
-    structure.ElementTotalSetInterpolationType(interpolationTypeId);
     structure.ElementTotalConvertToInterpolationType(1.e-6, 10);
 
     structure.SetVerboseLevel(10);
 
-    structure.ElementTotalConvertToInterpolationType();
 
     // section
     int sectionId = structure.SectionCreate(eSectionType::VOLUME);
@@ -98,6 +94,10 @@ int main(int argc, char* argv[]) {
                                                 compressiveStrength);
     structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::NONLOCAL_RADIUS, nonlocalRadius);
     structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::FRACTURE_ENERGY, fractureEnergy);
+
+
+
+
     structure.ElementTotalSetConstitutiveLaw(materialId);
 
     // visualization
@@ -127,45 +127,7 @@ int main(int argc, char* argv[]) {
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, directionZ, 0);
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, directionX, 0);
 
-
-
-
-    int groupNodesLeftInterface = structure.GroupCreate(eGroupId::Nodes);
-    structure.GroupAddNodeCoordinateRange(groupNodesLeftInterface, 0, 70 - 1.e-3, 70 + 1.e-3);
-    int groupNodesTmp = structure.GroupCreate(eGroupId::Nodes);
-    structure.GroupAddNodeCoordinateRange(groupNodesTmp, 0, 60 - 1.e-3, 60 + 1.e-3);
-    int groupElementsTmp = structure.GroupCreate(eGroupId::Elements);
-    structure.GroupAddElementsFromNodes(groupElementsTmp, groupNodesTmp, false);
-
-    Eigen::Vector3d nodeCoordOffset;
-    nodeCoordOffset << -10,0,0;
-
-    for (const auto& nodeId : structure.GroupGetMemberIds(groupNodesLeftInterface))
-    {
-        structure.ConstraintLinearEquationNodeToElementCreate(nodeId, groupElementsTmp, eDof::DISPLACEMENTS, 1.e-6, nodeCoordOffset);
-
-    }
-
-
-
-    int groupNodesRightInterface = structure.GroupCreate(eGroupId::Nodes);
-    structure.GroupAddNodeCoordinateRange(groupNodesRightInterface, 0, 90 - 1.e-3, 90 + 1.e-3);
-
-    groupNodesTmp = structure.GroupCreate(eGroupId::Nodes);
-    structure.GroupAddNodeCoordinateRange(groupNodesTmp, 0, 100 - 1.e-3, 100 + 1.e-3);
-    groupElementsTmp = structure.GroupCreate(eGroupId::Elements);
-    structure.GroupAddElementsFromNodes(groupElementsTmp, groupNodesTmp, false);
-
-    nodeCoordOffset << 10,0,0;
-    std::cout << "groupNodesLeftInterface: \t" << groupNodesLeftInterface << std::endl;
-    std::cout << "groupNodesRightInterface: \t" << groupNodesRightInterface << std::endl;
-    structure.GroupInfo(10);
-    for (const auto& nodeId : structure.GroupGetMemberIds(groupNodesRightInterface))
-    {
-        structure.ConstraintLinearEquationNodeToElementCreate(nodeId, groupElementsTmp, eDof::DISPLACEMENTS, 1.e-6, nodeCoordOffset);
-
-
-    }
+    structure.ConstraintInfo(1);
 
     // loads
     nodeCoordsCenter << 80,40,0;
@@ -176,7 +138,7 @@ int main(int argc, char* argv[]) {
 
     // time integration
     NuTo::NewmarkDirect timeIntegration(&structure);
-    boost::filesystem::path resultPath(boost::filesystem::initial_path().string() + std::string("/results_3_point_bending"));
+    boost::filesystem::path resultPath(boost::filesystem::initial_path().string() + std::string("/results_3_point_bending_reference"));
 
     timeIntegration.SetTimeStep                 ( timeStep                  );
     timeIntegration.SetMaxNumIterations         ( maxInterations            );
@@ -199,8 +161,15 @@ int main(int argc, char* argv[]) {
     timeIntegration.AddResultNodeDisplacements("displacements", structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
 
     timeIntegration.AddTimeDependentConstraint(loadId, dispRHS);
-    timeIntegration.Solve(simulationTime);
 
+    timeIntegration.Solve(simulationTime);
+    try{
+
+    }
+    catch(...)
+    {
+        std::cout << "structure.GetNumTotalDofs(): \t" << structure.GetNumTotalDofs() << std::endl;
+    }
 
 
 }
