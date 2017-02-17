@@ -1,5 +1,5 @@
 
-set(MESH_DIR "/home/phuschke/nuto_project/nuto/applications/custom/myNutoExamples/meshFiles")
+set(MESH_DIR "${CMAKE_SOURCE_DIR}/applications/custom/myNutoExamples/meshFiles")
 
 execute_process(COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "${MESH_DIR}/3d/3d_3_point_bending.msh" "${CMAKE_CURRENT_BINARY_DIR}/3d_3_point_bending.msh")
 
