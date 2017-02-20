@@ -39,8 +39,8 @@ constexpr   double      thickness                   = 1.0;
 constexpr   double      youngsModulus               = 4.0e4;
 constexpr   double      poissonsRatio               = 0.2;
 constexpr   double      tensileStrength             = 3;
-constexpr   double      compressiveStrength         = 200;
-constexpr   double      fractureEnergy              = 0.005;
+constexpr   double      compressiveStrength         = 300;
+constexpr   double      fractureEnergy              = 0.02;
 constexpr   double      nonlocalRadius              = 0.5;
 
 // integration
@@ -75,10 +75,15 @@ int main(int argc, char* argv[]) {
     auto bla = structure.ImportFromGmsh(meshFile);
 
 
-    const int interpolationTypeId = bla[0].second;
-    structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS,    eTypeOrder::EQUIDISTANT2);
-    structure.InterpolationTypeAdd(interpolationTypeId, eDof::NONLOCALEQSTRAIN, eTypeOrder::EQUIDISTANT1);
+    const int groupEleDamage = bla[0].first;
+    const int interpolationTypeIdDamage = bla[0].second;
+    structure.InterpolationTypeAdd(interpolationTypeIdDamage, eDof::DISPLACEMENTS,    eTypeOrder::EQUIDISTANT2);
+    structure.InterpolationTypeAdd(interpolationTypeIdDamage, eDof::NONLOCALEQSTRAIN, eTypeOrder::EQUIDISTANT1);
 
+    const int groupEleLinear = bla[1].first;
+    const int interpolationTypeIdLinear = bla[1].second;
+    structure.InterpolationTypeAdd(interpolationTypeIdLinear, eDof::DISPLACEMENTS,    eTypeOrder::EQUIDISTANT2);
+//    structure.InterpolationTypeAdd(interpolationTypeIdLinear, eDof::NONLOCALEQSTRAIN, eTypeOrder::EQUIDISTANT1);
     structure.ElementTotalConvertToInterpolationType(1.e-6, 10);
 
     structure.SetVerboseLevel(10);
@@ -89,30 +94,31 @@ int main(int argc, char* argv[]) {
     structure.ElementTotalSetSection(sectionId);
 
     // material
-
-    int materialId = structure.ConstitutiveLawCreate(eConstitutiveType::GRADIENT_DAMAGE_ENGINEERING_STRESS);
-    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
-    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::POISSONS_RATIO, poissonsRatio);
-    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::TENSILE_STRENGTH, tensileStrength);
-    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::COMPRESSIVE_STRENGTH,
-                                                compressiveStrength);
-    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::NONLOCAL_RADIUS, nonlocalRadius);
-    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::FRACTURE_ENERGY, fractureEnergy);
-
+    const int materialIdDamage = structure.ConstitutiveLawCreate(eConstitutiveType::GRADIENT_DAMAGE_ENGINEERING_STRESS);
+    structure.ConstitutiveLawSetParameterDouble(materialIdDamage, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
+    structure.ConstitutiveLawSetParameterDouble(materialIdDamage, eConstitutiveParameter::POISSONS_RATIO, poissonsRatio);
+    structure.ConstitutiveLawSetParameterDouble(materialIdDamage, eConstitutiveParameter::TENSILE_STRENGTH, tensileStrength);
+    structure.ConstitutiveLawSetParameterDouble(materialIdDamage, eConstitutiveParameter::COMPRESSIVE_STRENGTH, compressiveStrength);
+    structure.ConstitutiveLawSetParameterDouble(materialIdDamage, eConstitutiveParameter::NONLOCAL_RADIUS, nonlocalRadius);
+    structure.ConstitutiveLawSetParameterDouble(materialIdDamage, eConstitutiveParameter::FRACTURE_ENERGY, fractureEnergy);
+    structure.ElementGroupSetConstitutiveLaw(groupEleDamage, materialIdDamage);
 
 
+    const int materialIdLinear = structure.ConstitutiveLawCreate(eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+    structure.ConstitutiveLawSetParameterDouble(materialIdLinear, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
+    structure.ConstitutiveLawSetParameterDouble(materialIdLinear, eConstitutiveParameter::POISSONS_RATIO, poissonsRatio);
 
-    structure.ElementTotalSetConstitutiveLaw(materialId);
+
+    structure.ElementGroupSetConstitutiveLaw(groupEleLinear, materialIdLinear);
+
 
     // visualization
-    int groupAllElements = 9999;
-    structure.GroupCreate(groupAllElements, eGroupId::Elements);
-    structure.GroupAddElementsTotal(groupAllElements);
-    structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DISPLACEMENTS);
-    structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DAMAGE);
-    structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::NONLOCAL_EQ_STRAIN);
+    structure.AddVisualizationComponent(groupEleDamage, eVisualizeWhat::DISPLACEMENTS);
+    structure.AddVisualizationComponent(groupEleDamage, eVisualizeWhat::DAMAGE);
+    structure.AddVisualizationComponent(groupEleDamage, eVisualizeWhat::NONLOCAL_EQ_STRAIN);
 
-
+    structure.AddVisualizationComponent(groupEleLinear, eVisualizeWhat::DISPLACEMENTS);
+//    structure.AddVisualizationComponent(groupEleLinear, eVisualizeWhat::DAMAGE);
     // constraints
     Eigen::VectorXd nodeCoords(dimension);
 
@@ -130,7 +136,7 @@ int main(int argc, char* argv[]) {
     structure.GroupAddNodeCylinderRadiusRange(groupNodesRightBoundary, nodeCoordsCenter, directionZ, 0, 1.e-3);
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, directionY, 0);
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, directionZ, 0);
-    structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, directionX, 0);
+//    structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, directionX, 0);
 
     structure.ConstraintInfo(1);
 
@@ -163,21 +169,25 @@ int main(int argc, char* argv[]) {
 
     timeIntegration.AddResultGroupNodeForce("force", loadNodeGroup);
 
-    nodeCoordsCenter << 80,40,0;
+    nodeCoordsCenter << 80,40,10;
     int grpNodes_output_disp = structure.GroupCreate(eGroupId ::Nodes);
     structure.GroupAddNodeRadiusRange(grpNodes_output_disp, nodeCoordsCenter, 0, 7e-1);
     timeIntegration.AddResultNodeDisplacements("displacements", structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
 
     timeIntegration.AddTimeDependentConstraint(loadId, dispRHS);
 
+
     timeIntegration.Solve(simulationTime);
+
     try{
 
     }
     catch(...)
     {
+
         std::cout << "structure.GetNumTotalDofs(): \t" << structure.GetNumTotalDofs() << std::endl;
     }
 
+    std::cout << "structure.GetNumTotalDofs(): \t" << structure.GetNumTotalDofs() << std::endl;
 
 }

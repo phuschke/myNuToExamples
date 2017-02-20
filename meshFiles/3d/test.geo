@@ -4,7 +4,7 @@ notchWidth     = 20;
 length = 0;
 height = 0;
 depth  = 0;
-factor = 20;
+factor = 10;
 //*********************************************************************************************
 Function CreateRectangle
 // create points
