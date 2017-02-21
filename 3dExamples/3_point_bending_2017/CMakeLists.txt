@@ -8,10 +8,13 @@ foreach(file
         3d_3_point_bending
         3d_3_point_bending_test
         3d_3_point_bending_cuboid
+        trusses
         )
 
     execute_process(COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "${MESH_DIR}/3d/${file}.msh" "${CMAKE_CURRENT_BINARY_DIR}/${file}.msh")
 endforeach()
+
+execute_process(COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "${CMAKE_CURRENT_SOURCE_DIR}/run_3d_reference.py" "${CMAKE_CURRENT_BINARY_DIR}/run_3d_reference.py")
 
 foreach(file
         3d_linear_constraints
