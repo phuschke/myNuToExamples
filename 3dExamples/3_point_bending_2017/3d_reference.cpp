@@ -1,7 +1,5 @@
 
 #include <boost/filesystem.hpp>
-#include <python3.5m/Python.h>
-
 
 #include "mechanics/structures/unstructured/Structure.h"
 
