@@ -1,5 +1,4 @@
 import subprocess
-import matplotlib.pyplot as plt
 
 matrixMeshFile              =   "3d_3_point_bending_cuboid.msh"
 fiberMeshFile               =   "trusses.msh"
@@ -25,32 +24,6 @@ output = popen.stdout.read()
 print output
 
 
-path = "/home/phuschke/results/results_3_point_bending_reference/" + subDirectory
-with open(path + '/displacements.dat') as f:
-    content = f.readlines()
-
-content = [x.strip() for x in content]
-content = [x.split() for x in content]
-disp = [x[1] for x in content]
-
-
-with open(path + '/force.dat') as f:
-    content = f.readlines()
-
-content = [x.strip() for x in content]
-content = [x.split() for x in content]
-force = [x[1] for x in content]
-
-print(content[1][0])
-
-fig = plt.figure()
-ax1 = fig.add_subplot(111)
-ax1.plot(disp, force,'-bo')
-plt.xlabel('displacement')
-plt.ylabel('force')
-#plt.show()
-plt.savefig(path + '/forceDisp.png')
-
 
 
 ########################################################################################################################
@@ -65,32 +38,6 @@ output = popen.stdout.read()
 print output
 
 
-path = "/home/phuschke/results/results_3_point_bending_reference/" + subDirectory
-with open(path + '/displacements.dat') as f:
-    content = f.readlines()
-
-content = [x.strip() for x in content]
-content = [x.split() for x in content]
-disp = [x[1] for x in content]
-
-
-with open(path + '/force.dat') as f:
-    content = f.readlines()
-
-content = [x.strip() for x in content]
-content = [x.split() for x in content]
-force = [x[1] for x in content]
-
-print(content[1][0])
-
-fig = plt.figure()
-ax1 = fig.add_subplot(111)
-ax1.plot(disp, force,'-bo')
-plt.xlabel('displacement')
-plt.ylabel('force')
-#plt.show()
-plt.savefig(path + '/forceDisp.png')
-
 ########################################################################################################################
 
 youngsModulusFiber          =   "1.5e4"
@@ -102,29 +49,3 @@ popen.wait()
 output = popen.stdout.read()
 print output
 
-
-path = "/home/phuschke/results/results_3_point_bending_reference/" + subDirectory
-with open(path + '/displacements.dat') as f:
-    content = f.readlines()
-
-content = [x.strip() for x in content]
-content = [x.split() for x in content]
-disp = [x[1] for x in content]
-
-
-with open(path + '/force.dat') as f:
-    content = f.readlines()
-
-content = [x.strip() for x in content]
-content = [x.split() for x in content]
-force = [x[1] for x in content]
-
-print(content[1][0])
-
-fig = plt.figure()
-ax1 = fig.add_subplot(111)
-ax1.plot(disp, force,'-bo')
-plt.xlabel('displacement')
-plt.ylabel('force')
-#plt.show()
-plt.savefig(path + '/forceDisp.png')
