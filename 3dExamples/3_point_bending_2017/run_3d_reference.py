@@ -2,11 +2,11 @@ import subprocess
 
 matrixMeshFile              =   "3d_3_point_bending_cuboid.msh"
 fiberMeshFile               =   "trusses.msh"
-tensileStrength             =   "3"
+tensileStrength             =   "1.2"
 compressiveStrength         =   "300"
 fractureEnergy              =   "0.01"
 nonlocalRadius              =   "0.2"
-youngsModulusFiber          =   "1.75e4"
+youngsModulusFiber          =   "1.75e1"
 crossSectionFiber           =   "1.0"
 circumferenceFiber          =   "0.628"
 interfaceNormalStiffness    =   "1e6"
@@ -18,34 +18,8 @@ slipAtResidualBondStress    =   "1"
 subDirectory                =   "1337"
 args = ("./3d_reference", matrixMeshFile, fiberMeshFile, tensileStrength, compressiveStrength, fractureEnergy, nonlocalRadius, youngsModulusFiber, crossSectionFiber, circumferenceFiber, interfaceNormalStiffness, alpha, maxBondStress, residualBondStress, slipAtMaxBondStress, slipAtResidualBondStress, subDirectory)
 
-popen = subprocess.Popen(args, stdout=subprocess.PIPE)
-popen.wait()
-output = popen.stdout.read()
-print output
+proc = subprocess.Popen([args], shell=True,stdin=None, stdout=None, stderr=None, close_fds=True)
 
 
 
-
-########################################################################################################################
-
-youngsModulusFiber          =   "2.0e4"
-subDirectory                =   "1"
-args = ("./3d_reference", matrixMeshFile, fiberMeshFile, tensileStrength, compressiveStrength, fractureEnergy, nonlocalRadius, youngsModulusFiber, crossSectionFiber, circumferenceFiber, interfaceNormalStiffness, alpha, maxBondStress, residualBondStress, slipAtMaxBondStress, slipAtResidualBondStress, subDirectory)
-
-popen = subprocess.Popen(args, stdout=subprocess.PIPE)
-popen.wait()
-output = popen.stdout.read()
-print output
-
-
-########################################################################################################################
-
-youngsModulusFiber          =   "1.5e4"
-subDirectory                =   "2"
-args = ("./3d_reference", matrixMeshFile, fiberMeshFile, tensileStrength, compressiveStrength, fractureEnergy, nonlocalRadius, youngsModulusFiber, crossSectionFiber, circumferenceFiber, interfaceNormalStiffness, alpha, maxBondStress, residualBondStress, slipAtMaxBondStress, slipAtResidualBondStress, subDirectory)
-
-popen = subprocess.Popen(args, stdout=subprocess.PIPE)
-popen.wait()
-output = popen.stdout.read()
-print output
 

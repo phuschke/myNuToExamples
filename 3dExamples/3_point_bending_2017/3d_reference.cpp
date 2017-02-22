@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
     const   int         dimension                   = 3;
 
     // material
-    const   double      youngsModulusMatrix         = 4.0e4;
+    const   double      youngsModulusMatrix         = 6.5e3;
     const   double      poissonsRatioMatrix         = 0.2;
     const   double      tensileStrength             = std::stod(argv[3]);
     const   double      compressiveStrength         = std::stod(argv[4]);
@@ -197,34 +197,34 @@ int main(int argc, char* argv[]) {
     // Interface
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    const int materialIdBond = structure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::FIBRE_MATRIX_BOND_STRESS_SLIP);
-    structure.ConstitutiveLawSetParameterDouble(materialIdBond, NuTo::Constitutive::eConstitutiveParameter::NORMAL_STIFFNESS, interfaceNormalStiffness);
-    structure.ConstitutiveLawSetParameterDouble(materialIdBond, NuTo::Constitutive::eConstitutiveParameter::ALPHA, alpha);
-    structure.ConstitutiveLawSetParameterDouble(materialIdBond, NuTo::Constitutive::eConstitutiveParameter::MAX_BOND_STRESS, maxBondStress);
-    structure.ConstitutiveLawSetParameterDouble(materialIdBond, NuTo::Constitutive::eConstitutiveParameter::RESIDUAL_BOND_STRESS, residualBondStress);
-    structure.ConstitutiveLawSetParameterDouble(materialIdBond, NuTo::Constitutive::eConstitutiveParameter::SLIP_AT_MAX_BOND_STRESS, slipAtMaxBondStress);
-    structure.ConstitutiveLawSetParameterDouble(materialIdBond, NuTo::Constitutive::eConstitutiveParameter::SLIP_AT_RESIDUAL_BOND_STRESS, slipAtResidualBondStress);
-
-    const int sectionIdBond = structure.SectionCreate(eSectionType::FIBRE_MATRIX_BOND);
-    structure.SectionSetCircumference(sectionIdBond, circumferenceFiber);
-
-    const int interpolationTypeIdInterface = structure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::INTERFACE);
-    structure.InterpolationTypeAdd(interpolationTypeIdInterface, eDof::COORDINATES,   eTypeOrder::EQUIDISTANT1);
-    structure.InterpolationTypeAdd(interpolationTypeIdInterface, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT1);
-
-    auto pairGroupFiberGroupBond = structure.InterfaceElementsCreate(groupEleFibers, interpolationTypeIdInterface, interpolationTypeIdFibers);
-
-    const int groupEleFiber = pairGroupFiberGroupBond.first;
-    const int groupEleBond = pairGroupFiberGroupBond.second;
-
-    structure.ElementGroupSetSection(groupEleFiber,   sectionIdFiber);
-    structure.ElementGroupSetSection(groupEleBond,    sectionIdBond);
-
-    structure.ElementGroupSetConstitutiveLaw(groupEleFiber,   materialIdFiber);
-    structure.ElementGroupSetConstitutiveLaw(groupEleBond,    materialIdBond);
-
-    structure.AddVisualizationComponent(groupEleFiber, eVisualizeWhat::DISPLACEMENTS);
-    structure.AddVisualizationComponent(groupEleFiber, eVisualizeWhat::CONSTITUTIVE);
+//    const int materialIdBond = structure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::FIBRE_MATRIX_BOND_STRESS_SLIP);
+//    structure.ConstitutiveLawSetParameterDouble(materialIdBond, NuTo::Constitutive::eConstitutiveParameter::NORMAL_STIFFNESS, interfaceNormalStiffness);
+//    structure.ConstitutiveLawSetParameterDouble(materialIdBond, NuTo::Constitutive::eConstitutiveParameter::ALPHA, alpha);
+//    structure.ConstitutiveLawSetParameterDouble(materialIdBond, NuTo::Constitutive::eConstitutiveParameter::MAX_BOND_STRESS, maxBondStress);
+//    structure.ConstitutiveLawSetParameterDouble(materialIdBond, NuTo::Constitutive::eConstitutiveParameter::RESIDUAL_BOND_STRESS, residualBondStress);
+//    structure.ConstitutiveLawSetParameterDouble(materialIdBond, NuTo::Constitutive::eConstitutiveParameter::SLIP_AT_MAX_BOND_STRESS, slipAtMaxBondStress);
+//    structure.ConstitutiveLawSetParameterDouble(materialIdBond, NuTo::Constitutive::eConstitutiveParameter::SLIP_AT_RESIDUAL_BOND_STRESS, slipAtResidualBondStress);
+//
+//    const int sectionIdBond = structure.SectionCreate(eSectionType::FIBRE_MATRIX_BOND);
+//    structure.SectionSetCircumference(sectionIdBond, circumferenceFiber);
+//
+//    const int interpolationTypeIdInterface = structure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::INTERFACE);
+//    structure.InterpolationTypeAdd(interpolationTypeIdInterface, eDof::COORDINATES,   eTypeOrder::EQUIDISTANT1);
+//    structure.InterpolationTypeAdd(interpolationTypeIdInterface, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT1);
+//
+//    auto pairGroupFiberGroupBond = structure.InterfaceElementsCreate(groupEleFibers, interpolationTypeIdInterface, interpolationTypeIdFibers);
+//
+//    const int groupEleFiber = pairGroupFiberGroupBond.first;
+//    const int groupEleBond = pairGroupFiberGroupBond.second;
+//
+//    structure.ElementGroupSetSection(groupEleFiber,   sectionIdFiber);
+//    structure.ElementGroupSetSection(groupEleBond,    sectionIdBond);
+//
+//    structure.ElementGroupSetConstitutiveLaw(groupEleFiber,   materialIdFiber);
+//    structure.ElementGroupSetConstitutiveLaw(groupEleBond,    materialIdBond);
+//
+//    structure.AddVisualizationComponent(groupEleFiber, eVisualizeWhat::DISPLACEMENTS);
+//    structure.AddVisualizationComponent(groupEleFiber, eVisualizeWhat::CONSTITUTIVE);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // boundary conditions
@@ -238,14 +238,18 @@ int main(int argc, char* argv[]) {
     structure.GroupAddNodeCylinderRadiusRange(groupNodesLeftBoundary, nodeCoordsCenter, directionZ, 0, 1.e-3);
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesLeftBoundary, directionX, 0);
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesLeftBoundary, directionY, 0);
-    structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesLeftBoundary, directionZ, 0);
+
 
     nodeCoordsCenter << 130, 0, 0;
     int groupNodesRightBoundary = structure.GroupCreate(eGroupId::Nodes);
     structure.GroupAddNodeCylinderRadiusRange(groupNodesRightBoundary, nodeCoordsCenter, directionZ, 0, 1.e-3);
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, directionY, 0);
-    structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, directionZ, 0);
-//    structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, directionX, 0);
+
+    int groupNodesSymmetryInZ = structure.GroupCreate(eGroupId::Nodes);
+    structure.GroupAddNodeCoordinateRange(groupNodesSymmetryInZ, z_component, 20 -1.e-3, 20 +1.e-3);
+
+    structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesSymmetryInZ, directionZ, 0);
+
 
     structure.ConstraintInfo(1);
 
@@ -292,9 +296,11 @@ int main(int argc, char* argv[]) {
     timeIntegration.AddTimeDependentConstraint(loadId, dispRHS);
 
 
+    timeIntegration.Solve(simulationTime);
+
     try{
 
-        timeIntegration.Solve(simulationTime);
+
     }
     catch(NuTo::MechanicsException e)
     {

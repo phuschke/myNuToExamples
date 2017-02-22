@@ -15,6 +15,7 @@ foreach(file
 endforeach()
 
 execute_process(COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "${CMAKE_CURRENT_SOURCE_DIR}/run_3d_reference.py" "${CMAKE_CURRENT_BINARY_DIR}/run_3d_reference.py")
+execute_process(COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "${CMAKE_CURRENT_SOURCE_DIR}/run.sh" "${CMAKE_CURRENT_BINARY_DIR}/run.sh")
 
 foreach(file
         3d_linear_constraints
