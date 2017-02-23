@@ -29,73 +29,50 @@ Return
 x_origin  =  0;
 x_length  =  30;
 y_origin  =  0;
-y_length  =  35;
+y_length  =  40;
 z_end     =  20;
 Call CreateRectangle;
 surfaceId[0]     =   plane1;
 
-// rectangle 4
-y_origin  =  35;
-y_length  =  5;
-Call CreateRectangle;
-surfaceId[4]     =   plane1;
 
 
 // rectangle 1
 x_origin  =  30;
 y_origin  =  0;
 x_length  =  20;
-y_length  =  35;
 index     =   0;
 Call CreateRectangle;
 surfaceId[1]     =   plane1;
 
-// rectangle 5
-y_origin  =  35;
-y_length  =  5;
-Call CreateRectangle;
-surfaceId[5]     =   plane1;
 
 // rectangle 3
-meshSize  /= 5;
-x_origin  =  60;
+meshSize  /= 10;
+x_origin  =  70;
 y_origin  =  0;
-x_length  =  20;
-y_length  =  35;
+x_length  =  10;
 index     =   0;
 Call CreateRectangle;
 surfaceId[3]     =   plane1;
 
-// rectangle 6
-y_origin  =  35;
-y_length  =  5;
-Call CreateRectangle;
-surfaceId[6]     =   plane1;
 
-
-meshSize  *= 5;
+meshSize  *= 10;
 // rectangle 2
 x_origin  =  50;
 y_origin  =  0;
-x_length  =  10;
-y_length  =  35;
+x_length  =  20;
 index     =   0;
 Call CreateRectangle;
 surfaceId[2]     =   plane1;
 
-// rectangle 7
-y_origin  =  35;
-y_length  =  5;
-Call CreateRectangle;
-surfaceId[7]     =   plane1;
+
 
 
 listFine[] = Rotate {{0, 1, 0}, {80, 0, 0}, Pi} {
-  Duplicata { Surface{surfaceId[3],surfaceId[6]}; }
+  Duplicata { Surface{surfaceId[3]}; }
 };
 
 list[] = Rotate {{0, 1, 0}, {80, 0, 0}, Pi} {
-  Duplicata { Surface{surfaceId[0],surfaceId[0],surfaceId[1],surfaceId[2],surfaceId[4],surfaceId[5],surfaceId[7]}; }
+  Duplicata { Surface{surfaceId[0],surfaceId[1],surfaceId[2]}; }
 };
 
 Printf("surface = %g", list[0]);
@@ -108,5 +85,5 @@ Surface{list[],surfaceId[],listFine[]};
 
 //Physical Volume(999) = {volumeIds[]};
 
-Physical Volume(999) = {1:9,11:12,14};
-Physical Volume(777) = {10,13,16,15};
+Physical Volume(999) = {1:6};
+Physical Volume(777) = {7:8};

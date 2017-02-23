@@ -1,0 +1,280 @@
+#include "nuto/mechanics/structures/unstructured/Structure.h"
+#include "nuto/mechanics/timeIntegration/NewmarkDirect.h"
+
+#include <boost/filesystem.hpp>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <chrono>
+
+using std::cout;
+using std::endl;
+
+constexpr unsigned int dimension = 2;
+class Parameters
+{
+public:
+
+    static const int mDimension = dimension;
+
+    static const bool mPerformLineSearch = true;
+    static const bool mAutomaticTimeStepping = true;
+
+    static constexpr double mMatrixYoungsModulus = 4.0e4;   // concrete
+    static constexpr double mMatrixPoissonsRatio = 0.2;
+    static constexpr double mMatrixThickness = 50;
+    static constexpr double mMatrixNonlocalRadius = 4;
+    static constexpr double mMatrixTensileStrength = 3;
+    static constexpr double mMatrixCompressiveStrength = 30;
+    static constexpr double mMatrixFractureEnergy = 0.01;
+
+
+    static constexpr double mTimeStep = 1e-2;
+    static constexpr double mMinTimeStep = 1e-5;
+    static constexpr double mMaxTimeStep = 1e-1;
+    static constexpr double mToleranceForce = 1e-6;
+    static constexpr double mSimulationTime = 1.0;
+    static constexpr double mLoad = 0.01;
+
+    static boost::filesystem::path mOutputPath;
+    static const boost::filesystem::path mMeshFilePathMatrix;
+
+    static const NuTo::FullVector<double, dimension> mDirectionX;
+    static const NuTo::FullVector<double, dimension> mDirectionY;
+};
+
+boost::filesystem::path Parameters::mOutputPath;
+
+
+const NuTo::FullVector<double, dimension> Parameters::mDirectionX = NuTo::FullVector<double, dimension>::UnitX();
+const NuTo::FullVector<double, dimension> Parameters::mDirectionY = NuTo::FullVector<double, dimension>::UnitY();
+
+
+int main(int argc, char* argv[])
+{
+
+    if (argc != 5)
+    {
+        std::cout << "input arguments: displacement order, damage order, integration order, mesh size" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    // material
+    const int           dispOrder   = std::stoi(argv[1]);
+    const int           nlOrder     = std::stoi(argv[2]);
+    const int           ipOrder     = std::stoi(argv[3]);
+    const int           meshSize    = std::stoi(argv[4]);
+
+
+    cout << "**********************************************" << endl;
+    cout << "**  strucutre                               **" << endl;
+    cout << "**********************************************" << endl;
+
+    NuTo::Structure myStructure(dimension);
+    myStructure.SetShowTime(false);
+    char resultDirectoryName[200];
+    sprintf(resultDirectoryName, "/home/phuschke/2d_phase_field_4_point_bending/dispOrder_%02d_damageOrder_%02d_ip_%02d_meshSize_%02d/", dispOrder, nlOrder, ipOrder, meshSize);
+    boost::filesystem::path resultDirectory(resultDirectoryName);
+    boost::filesystem::remove_all(resultDirectory);
+    boost::filesystem::create_directory(resultDirectory);
+    Parameters::mOutputPath = resultDirectory;
+
+    cout << "**********************************************" << endl;
+    cout << "**  integration sheme                       **" << endl;
+    cout << "**********************************************" << endl;
+
+    NuTo::NewmarkDirect myIntegrationScheme(&myStructure);
+    myIntegrationScheme.SetTimeStep(Parameters::mTimeStep);
+    myIntegrationScheme.SetMinTimeStep(Parameters::mMinTimeStep);
+    myIntegrationScheme.SetMaxTimeStep(Parameters::mMaxTimeStep);
+    myIntegrationScheme.SetToleranceForce(Parameters::mToleranceForce);
+    myIntegrationScheme.SetAutomaticTimeStepping(Parameters::mAutomaticTimeStepping);
+    myIntegrationScheme.SetPerformLineSearch(Parameters::mPerformLineSearch);
+    myIntegrationScheme.SetResultDirectory(Parameters::mOutputPath.string(), true);
+
+
+    cout << "**********************************************" << endl;
+    cout << "**  section                                 **" << endl;
+    cout << "**********************************************" << endl;
+
+    int mySection = myStructure.SectionCreate(NuTo::Section::PLANE_STRESS);
+    myStructure.SectionSetThickness(mySection, Parameters::mMatrixThickness);
+
+    cout << "**********************************************" << endl;
+    cout << "**  material                                **" << endl;
+    cout << "**********************************************" << endl;
+
+    int matrixMaterial = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::PHASE_FIELD);
+    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::YOUNGS_MODULUS, Parameters::mMatrixYoungsModulus);
+    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::POISSONS_RATIO, Parameters::mMatrixPoissonsRatio);
+    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::LENGTH_SCALE_PARAMETER, 1);
+    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::FRACTURE_ENERGY, 1);
+
+    cout << "**********************************************" << endl;
+    cout << "**  geometry                                **" << endl;
+    cout << "**********************************************" << endl;
+
+    NuTo::FullVector<int,-1> nodeIds(3);
+    NuTo::FullVector<double,-1> nodeCoords(2);
+
+
+    nodeCoords[0] = 0.0;
+    nodeCoords[1] = 0.0;
+    nodeIds[0] = myStructure.NodeCreate(nodeCoords);
+
+    nodeCoords[0] = 2.0;
+    nodeCoords[1] = 0.0;
+    nodeIds[1] = myStructure.NodeCreate(nodeCoords);
+
+    nodeCoords[0] = 1.0;
+    nodeCoords[1] = 1.0;
+    nodeIds[2] = myStructure.NodeCreate(nodeCoords);
+
+
+
+
+
+    int myInterpolationType = myStructure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::TRIANGLE2D);
+    myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::COORDINATES, NuTo::Interpolation::EQUIDISTANT1);
+
+    int eleId = myStructure.ElementCreate(myInterpolationType,nodeIds);
+
+    switch (dispOrder)
+    {
+    case 1:
+        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT1);
+        break;
+    case 2:
+        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT2);
+        break;
+    case 3:
+        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT3);
+        break;
+    case 4:
+        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT4);
+        break;
+    default:
+        std::cout << "dispOrder either 2,3 or 4." << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    switch (nlOrder)
+    {
+    case 1:
+        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DAMAGE, NuTo::Interpolation::EQUIDISTANT1);
+        break;
+    default:
+        std::cout << "nlOrder either 1,2 or 3." << std::endl;
+        return EXIT_FAILURE;
+    }
+
+
+
+    myStructure.ElementSetInterpolationType(eleId, myInterpolationType);
+
+    switch (ipOrder)
+    {
+    case 1:
+        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::IntegrationType::IntegrationType2D3NGauss1Ip, NuTo::IpData::STATICDATA);
+        break;
+    case 2:
+        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::IntegrationType::IntegrationType2D3NGauss3Ip, NuTo::IpData::STATICDATA);
+        break;
+    case 3:
+        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::IntegrationType::IntegrationType2D3NGauss6Ip, NuTo::IpData::STATICDATA);
+        break;
+    case 4:
+        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::IntegrationType::IntegrationType2D3NGauss12Ip, NuTo::IpData::STATICDATA);
+        break;
+    default:
+        std::cout << "ipOrder either 2, 3 or 4." << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    myStructure.InterpolationTypeInfo(myInterpolationType);
+
+    myStructure.ElementTotalConvertToInterpolationType(1.e-6, 10);
+
+    myStructure.ElementTotalSetSection(mySection);
+    myStructure.ElementTotalSetConstitutiveLaw(matrixMaterial);
+
+
+    cout << "**********************************************" << endl;
+    cout << "**  bc                                      **" << endl;
+    cout << "**********************************************" << endl;
+    NuTo::FullVector<double, 2> center;
+    constexpr double tol = 1.0e-6;
+    // bottom left boundary
+    center[0] = 0;
+    center[1] = 0;
+    int grpNodes_bottom_left = myStructure.GroupCreate(NuTo::Groups::Nodes);
+    myStructure.GroupAddNodeRadiusRange(grpNodes_bottom_left, center, 0, tol);
+    myStructure.ConstraintLinearSetDisplacementNodeGroup(grpNodes_bottom_left, Parameters::mDirectionX, 0);
+
+
+    // bottom right boundary
+    int grpNodes_bottom_right = myStructure.GroupCreate(NuTo::Groups::Nodes);
+    myStructure.GroupAddNodeCoordinateRange(grpNodes_bottom_right, 1, -1.e-6,1.e-6);
+    myStructure.ConstraintLinearSetDisplacementNodeGroup(grpNodes_bottom_right, Parameters::mDirectionY, 0);
+
+    cout << "**********************************************" << endl;
+    cout << "**  load                                    **" << endl;
+    cout << "**********************************************" << endl;
+
+    // middle top load
+    center[0] = 1;
+    center[1] = 1;
+    int grpNodes_load = myStructure.GroupCreate(NuTo::Groups::Nodes);
+
+    myStructure.GroupAddNodeRadiusRange(grpNodes_load, center, 0, 1e-6);
+
+
+    int load = myStructure.ConstraintLinearSetDisplacementNodeGroup(grpNodes_load, Parameters::mDirectionY, 0);
+
+    cout << "**********************************************" << endl;
+    cout << "**  visualization                           **" << endl;
+    cout << "**********************************************" << endl;
+
+    int groupId = myStructure.GroupGetElementsTotal();
+    myStructure.AddVisualizationComponent(groupId, NuTo::VisualizeBase::DISPLACEMENTS);
+    myStructure.AddVisualizationComponent(groupId, NuTo::VisualizeBase::ENGINEERING_STRAIN);
+    myStructure.AddVisualizationComponent(groupId, NuTo::VisualizeBase::ENGINEERING_STRESS);
+    myStructure.AddVisualizationComponent(groupId, NuTo::VisualizeBase::DAMAGE_PHASE_FIELD);
+
+    cout << "**********************************************" << endl;
+    cout << "**  solver                                  **" << endl;
+    cout << "**********************************************" << endl;
+
+
+    myStructure.NodeBuildGlobalDofs();
+    myStructure.CalculateMaximumIndependentSets();
+
+    myStructure.NodeInfo(10);
+
+
+    myStructure.ElementCheckHessian0(0,1.e-6,-1.e-6,true);
+
+
+    NuTo::FullMatrix<double, 2, 2> dispRHS;
+    dispRHS(0, 0) = 0;
+    dispRHS(1, 0) = Parameters::mSimulationTime;
+    dispRHS(0, 1) = 0;
+    dispRHS(1, 1) = Parameters::mLoad;
+
+    myIntegrationScheme.AddTimeDependentConstraint(load, dispRHS);
+
+try{
+    myIntegrationScheme.Solve(Parameters::mSimulationTime);
+
+}
+catch(...)
+{
+
+}
+    myStructure.NodeInfo(10);
+
+    cout << "**********************************************" << endl;
+    cout << "**  end                                     **" << endl;
+    cout << "**********************************************" << endl;
+}
+

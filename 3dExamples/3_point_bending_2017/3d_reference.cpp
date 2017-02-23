@@ -148,50 +148,47 @@ int main(int argc, char* argv[]) {
     // visualization
     structure.AddVisualizationComponent(groupEleDamage, eVisualizeWhat::DISPLACEMENTS);
     structure.AddVisualizationComponent(groupEleDamage, eVisualizeWhat::DAMAGE);
-    structure.AddVisualizationComponent(groupEleDamage, eVisualizeWhat::NONLOCAL_EQ_STRAIN);
-    structure.AddVisualizationComponent(groupEleDamage, eVisualizeWhat::CONSTITUTIVE);
 
     structure.AddVisualizationComponent(groupEleLinear, eVisualizeWhat::DISPLACEMENTS);
-    structure.AddVisualizationComponent(groupEleLinear, eVisualizeWhat::CONSTITUTIVE);
 //    structure.AddVisualizationComponent(groupEleLinear, eVisualizeWhat::DAMAGE);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Fibers
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // section
-    const int sectionIdFiber = structure.SectionCreate(eSectionType::TRUSS);
-    structure.SectionSetArea(sectionIdFiber, crossSectionFiber);
-
-    // material
-    const int materialIdFiber = structure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
-    structure.ConstitutiveLawSetParameterDouble(materialIdFiber, NuTo::Constitutive::eConstitutiveParameter::YOUNGS_MODULUS, youngsModulusFiber);
-
-    auto eleGroupAndInterpolationTypeFibers = structure.ImportFromGmsh(argv[2]);
-
-    const int groupEleFibers = eleGroupAndInterpolationTypeFibers[0].first;
-    const int interpolationTypeIdFibers = eleGroupAndInterpolationTypeFibers[0].second;
-    structure.InterpolationTypeAdd(interpolationTypeIdFibers, eDof::DISPLACEMENTS,    eTypeOrder::EQUIDISTANT1);
-
-    structure.ElementGroupSetSection(groupEleFibers,           sectionIdFiber);
-    structure.ElementGroupSetConstitutiveLaw(groupEleFibers,   materialIdFiber);
-    structure.ElementConvertToInterpolationType(groupEleFibers);
-
-    structure.AddVisualizationComponent(groupEleFibers, eVisualizeWhat::DISPLACEMENTS);
-    structure.AddVisualizationComponent(groupEleFibers, eVisualizeWhat::CONSTITUTIVE);
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // constraints
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    int groupConstraintNodes = structure.GroupCreate(eGroupId::Nodes);
-    structure.GroupAddNodesFromElements(groupConstraintNodes, groupEleFibers);
-
-    int numNearestNeighbours = 1;
-
-    auto nodeIds = structure.GroupGetMemberIds(groupConstraintNodes);
-    for (const int iNode : nodeIds)
-        structure.ConstraintLinearEquationNodeToElementCreate(iNode, groupEleDamage, NuTo::Node::eDof::DISPLACEMENTS);
+//    // section
+//    const int sectionIdFiber = structure.SectionCreate(eSectionType::TRUSS);
+//    structure.SectionSetArea(sectionIdFiber, crossSectionFiber);
+//
+//    // material
+//    const int materialIdFiber = structure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+//    structure.ConstitutiveLawSetParameterDouble(materialIdFiber, NuTo::Constitutive::eConstitutiveParameter::YOUNGS_MODULUS, youngsModulusFiber);
+//
+//    auto eleGroupAndInterpolationTypeFibers = structure.ImportFromGmsh(argv[2]);
+//
+//    const int groupEleFibers = eleGroupAndInterpolationTypeFibers[0].first;
+//    const int interpolationTypeIdFibers = eleGroupAndInterpolationTypeFibers[0].second;
+//    structure.InterpolationTypeAdd(interpolationTypeIdFibers, eDof::DISPLACEMENTS,    eTypeOrder::EQUIDISTANT1);
+//
+//    structure.ElementGroupSetSection(groupEleFibers,           sectionIdFiber);
+//    structure.ElementGroupSetConstitutiveLaw(groupEleFibers,   materialIdFiber);
+//    structure.ElementConvertToInterpolationType(groupEleFibers);
+//
+//    structure.AddVisualizationComponent(groupEleFibers, eVisualizeWhat::DISPLACEMENTS);
+//    structure.AddVisualizationComponent(groupEleFibers, eVisualizeWhat::CONSTITUTIVE);
+//
+//    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//    // constraints
+//    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//    int groupConstraintNodes = structure.GroupCreate(eGroupId::Nodes);
+//    structure.GroupAddNodesFromElements(groupConstraintNodes, groupEleFibers);
+//
+//    int numNearestNeighbours = 1;
+//
+//    auto nodeIds = structure.GroupGetMemberIds(groupConstraintNodes);
+//    for (const int iNode : nodeIds)
+//        structure.ConstraintLinearEquationNodeToElementCreate(iNode, groupEleDamage, NuTo::Node::eDof::DISPLACEMENTS);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Interface
