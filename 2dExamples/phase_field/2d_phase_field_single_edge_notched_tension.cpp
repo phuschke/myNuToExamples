@@ -92,13 +92,6 @@ int main(int argc, char* argv[])
     myIntegrationScheme.SetExportDataFileNodes      ( false );
     myIntegrationScheme.SetMinTimeStepPlot          ( timeStepPostProcessing );
 
-//    std::set<NuTo::Node::eDof> crackPhaseField;
-//    crackPhaseField.insert(NuTo::Node::CRACKPHASEFIELD);
-//    myIntegrationScheme.AddCalculationStep(crackPhaseField);
-//    std::set<NuTo::Node::eDof> displacements;
-//    displacements.insert(NuTo::Node::DISPLACEMENTS);
-//    myIntegrationScheme.AddCalculationStep(displacements);
-
     std::ofstream file;
     file.open(std::string(resultPath.string() + "parameters.txt"));
     cout << "Writing simulation parameters to file: " << std::string(resultPath.string() + "parameters.txt") << std::endl;

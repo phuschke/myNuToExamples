@@ -17,16 +17,16 @@ slipAtResidualBondStress="1"
 subDirectory="10"
 writeOutputToFile="10_bla.txt"
 
-./3d_reference $matrixMeshFile $fiberMeshFile $tensileStrength $compressiveStrength $fractureEnergy $nonlocalRadius $youngsModulusFiber $crossSectionFiber $circumferenceFiber $interfaceNormalStiffness $alpha $maxBondStress $residualBondStress $slipAtMaxBondStress $slipAtResidualBondStress $subDirectory > $writeOutputToFile &
+./3d_reference $matrixMeshFile $fiberMeshFile $tensileStrength $compressiveStrength $fractureEnergy $nonlocalRadius $youngsModulusFiber $crossSectionFiber $circumferenceFiber $interfaceNormalStiffness $alpha $maxBondStress $residualBondStress $slipAtMaxBondStress $slipAtResidualBondStress $subDirectory > $writeOutputToFile 2>&1 &
 
 nonlocalRadius="0.02"
 subDirectory="11"
 writeOutputToFile="11_bla.txt"
-./3d_reference $matrixMeshFile $fiberMeshFile $tensileStrength $compressiveStrength $fractureEnergy $nonlocalRadius $youngsModulusFiber $crossSectionFiber $circumferenceFiber $interfaceNormalStiffness $alpha $maxBondStress $residualBondStress $slipAtMaxBondStress $slipAtResidualBondStress $subDirectory > $writeOutputToFile &
+./3d_reference $matrixMeshFile $fiberMeshFile $tensileStrength $compressiveStrength $fractureEnergy $nonlocalRadius $youngsModulusFiber $crossSectionFiber $circumferenceFiber $interfaceNormalStiffness $alpha $maxBondStress $residualBondStress $slipAtMaxBondStress $slipAtResidualBondStress $subDirectory > $writeOutputToFile 2>&1 &
 
 
 fractureEnergy="0.05"
 subDirectory="12"
 writeOutputToFile="12_bla.txt"
-./3d_reference $matrixMeshFile $fiberMeshFile $tensileStrength $compressiveStrength $fractureEnergy $nonlocalRadius $youngsModulusFiber $crossSectionFiber $circumferenceFiber $interfaceNormalStiffness $alpha $maxBondStress $residualBondStress $slipAtMaxBondStress $slipAtResidualBondStress $subDirectory > $writeOutputToFile &
+./3d_reference $matrixMeshFile $fiberMeshFile $tensileStrength $compressiveStrength $fractureEnergy $nonlocalRadius $youngsModulusFiber $crossSectionFiber $circumferenceFiber $interfaceNormalStiffness $alpha $maxBondStress $residualBondStress $slipAtMaxBondStress $slipAtResidualBondStress $subDirectory > $writeOutputToFile 2>&1 &
 

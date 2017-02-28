@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     NuTo::Structure structure(dimension);
-    structure.SetShowTime(false);
+    structure.SetShowTime(true);
     structure.SetVerboseLevel(10);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -145,12 +145,6 @@ int main(int argc, char* argv[]) {
     structure.ElementGroupSetConstitutiveLaw(groupEleLinear, materialIdMatrixLinear);
 
     structure.ElementTotalConvertToInterpolationType();
-    // visualization
-    structure.AddVisualizationComponent(groupEleDamage, eVisualizeWhat::DISPLACEMENTS);
-    structure.AddVisualizationComponent(groupEleDamage, eVisualizeWhat::DAMAGE);
-
-    structure.AddVisualizationComponent(groupEleLinear, eVisualizeWhat::DISPLACEMENTS);
-//    structure.AddVisualizationComponent(groupEleLinear, eVisualizeWhat::DAMAGE);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Fibers
@@ -293,10 +287,8 @@ int main(int argc, char* argv[]) {
     timeIntegration.AddTimeDependentConstraint(loadId, dispRHS);
 
 
-    timeIntegration.Solve(simulationTime);
-
     try{
-
+        timeIntegration.Solve(simulationTime);
 
     }
     catch(NuTo::MechanicsException e)
@@ -305,6 +297,16 @@ int main(int argc, char* argv[]) {
         std::cout << "structure.GetNumTotalDofs(): \t" << structure.GetNumTotalDofs() << std::endl;
         return EXIT_FAILURE;
     }
+
+    // visualization
+//    structure.AddVisualizationComponent(groupEleDamage, eVisualizeWhat::DISPLACEMENTS);
+
+    structure.AddVisualizationComponent(groupEleDamage, eVisualizeWhat::DAMAGE);
+    structure.SetVisualizationType(groupEleDamage, NuTo::eVisualizationType::POINTS);
+
+//    structure.AddVisualizationComponent(groupEleLinear, eVisualizeWhat::DISPLACEMENTS);
+//    structure.AddVisualizationComponent(groupEleLinear, eVisualizeWhat::DAMAGE);
+
 
     std::cout << "structure.GetNumTotalDofs(): \t" << structure.GetNumTotalDofs() << std::endl;
 
