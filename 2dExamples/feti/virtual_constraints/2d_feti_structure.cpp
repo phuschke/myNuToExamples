@@ -15,7 +15,10 @@
 constexpr int dim = 2;
 using Eigen::VectorXd;
 using Eigen::MatrixXd;
-
+//using EigenSolver = Eigen::SparseQR<Eigen::SparseMatrix<double>,Eigen::COLAMDOrdering<int>>;
+//using EigenSolver = Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>>;
+//using EigenSolver = Eigen::PardisoLU<Eigen::SparseMatrix<double>>;
+using EigenSolver = Eigen::SparseLU<Eigen::SparseMatrix<double>,Eigen::COLAMDOrdering<int>>;
 
 
 
@@ -78,140 +81,40 @@ int main(int argc, char* argv[])
     AssignSection(structure);
 
     structure.GetLogger() << "**********************************************" << "\n";
-    structure.GetLogger() << "**  virtual constraints                     **" << "\n";
+    structure.GetLogger() << "**  create node groups                      **" << "\n";
     structure.GetLogger() << "**********************************************" << "\n\n";
 
     Eigen::VectorXd nodeCoords(2);
 
+    int groupNodesLeftBoundary = structure.GroupCreate(eGroupId::Nodes);
+    structure.GroupAddNodeCoordinateRange(groupNodesLeftBoundary,0,-1.e-6,+1.e-6);
 
-    if (structure.mRank == 1)
-    {
-        int groupNodesFakeConstraints00 = structure.GroupCreate(eGroupId::Nodes);
-        int groupNodesFakeConstraints01 = structure.GroupCreate(eGroupId::Nodes);
-
-        nodeCoords[0] = 10;
-        nodeCoords[1] = 0;
-        structure.GroupAddNodeRadiusRange(groupNodesFakeConstraints00, nodeCoords, 0, 1.e-6);
-        structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesFakeConstraints00, directionX, 0);
+    int loadNodeGroup = structure.GroupCreate(eGroupId::Nodes);
+    nodeCoords[0] = 60;
+    nodeCoords[1] = 0;
+    structure.GroupAddNodeRadiusRange(loadNodeGroup, nodeCoords, 0, 1.e-6);
 
 
-        nodeCoords[0] = 10;
-        nodeCoords[1] = 10;
-        structure.GroupAddNodeRadiusRange(groupNodesFakeConstraints01, nodeCoords, 0, 1.e-6);
-        structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesFakeConstraints01, directionX, 0);
-        structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesFakeConstraints01, directionY, 0);
+    structure.GetLogger() << "**********************************************" << "\n";
+    structure.GetLogger() << "**  virtual constraints                     **" << "\n";
+    structure.GetLogger() << "**********************************************" << "\n\n";
 
-        structure.GetLogger() << "Number of nodes that are constraint in 1st group: \t"
-                              << structure.GroupGetNumMembers(groupNodesFakeConstraints00) << "\n";
+    std::vector<int> nodeIdsBoundaries  = structure.GroupGetMemberIds(groupNodesLeftBoundary);
+    std::vector<int> nodeIdsLoads       = structure.GroupGetMemberIds(loadNodeGroup);
 
-        structure.GetLogger() << "Number of nodes that are constraint in 2nd group: \t"
-                              << structure.GroupGetNumMembers(groupNodesFakeConstraints01) << "\n";
-
-
-    }
-
-    if (structure.mRank == 0)
-    {
-        int groupNodesFakeConstraints00 = structure.GroupCreate(eGroupId::Nodes);
-        int groupNodesFakeConstraints01 = structure.GroupCreate(eGroupId::Nodes);
-
-        nodeCoords[0] = 40;
-        nodeCoords[1] = 0;
-        structure.GroupAddNodeRadiusRange(groupNodesFakeConstraints00, nodeCoords, 0, 1.e-6);
-        structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesFakeConstraints00, directionX, 0);
-
-
-        nodeCoords[0] = 40;
-        nodeCoords[1] = 10;
-        structure.GroupAddNodeRadiusRange(groupNodesFakeConstraints01, nodeCoords, 0, 1.e-6);
-        structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesFakeConstraints01, directionX, 0);
-        structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesFakeConstraints01, directionY, 0);
-
-        structure.GetLogger() << "Number of nodes that are constraint in 1st group: \t"
-                              << structure.GroupGetNumMembers(groupNodesFakeConstraints00) << "\n";
-
-        structure.GetLogger() << "Number of nodes that are constraint in 2nd group: \t"
-                              << structure.GroupGetNumMembers(groupNodesFakeConstraints01) << "\n";
-
-
-    }
-
-    if (structure.mRank == 2)
-    {
-        int groupNodesFakeConstraints00 = structure.GroupCreate(eGroupId::Nodes);
-        int groupNodesFakeConstraints01 = structure.GroupCreate(eGroupId::Nodes);
-
-        nodeCoords[0] = 40;
-        nodeCoords[1] = 0;
-        structure.GroupAddNodeRadiusRange(groupNodesFakeConstraints00, nodeCoords, 0, 1.e-6);
-        structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesFakeConstraints00, directionX, 0);
-
-
-        nodeCoords[0] = 40;
-        nodeCoords[1] = 10;
-        structure.GroupAddNodeRadiusRange(groupNodesFakeConstraints01, nodeCoords, 0, 1.e-6);
-        structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesFakeConstraints01, directionX, 0);
-        structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesFakeConstraints01, directionY, 0);
-
-        structure.GetLogger() << "Number of nodes that are constraint in 1st group: \t"
-                              << structure.GroupGetNumMembers(groupNodesFakeConstraints00) << "\n";
-
-        structure.GetLogger() << "Number of nodes that are constraint in 2nd group: \t"
-                              << structure.GroupGetNumMembers(groupNodesFakeConstraints01) << "\n";
-
-
-    }
-
-
-    if (structure.mRank == 3)
-    {
-        int groupNodesFakeConstraints00 = structure.GroupCreate(eGroupId::Nodes);
-        int groupNodesFakeConstraints01 = structure.GroupCreate(eGroupId::Nodes);
-
-        nodeCoords[0] = 50;
-        nodeCoords[1] = 0;
-        structure.GroupAddNodeRadiusRange(groupNodesFakeConstraints00, nodeCoords, 0, 1.e-6);
-        structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesFakeConstraints00, directionX, 0);
-
-
-        nodeCoords[0] = 50;
-        nodeCoords[1] = 10;
-        structure.GroupAddNodeRadiusRange(groupNodesFakeConstraints01, nodeCoords, 0, 1.e-6);
-        structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesFakeConstraints01, directionX, 0);
-        structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesFakeConstraints01, directionY, 0);
-
-        structure.GetLogger() << "Number of nodes that are constraint in 1st group: \t"
-                              << structure.GroupGetNumMembers(groupNodesFakeConstraints00) << "\n";
-
-        structure.GetLogger() << "Number of nodes that are constraint in 2nd group: \t"
-                              << structure.GroupGetNumMembers(groupNodesFakeConstraints01) << "\n";
-
-    }
-
-    structure.NodeBuildGlobalDofs(__PRETTY_FUNCTION__);
+    structure.ApplyVirtualConstraints(nodeIdsBoundaries, nodeIdsLoads);
 
     structure.GetLogger() << "**********************************************" << "\n";
     structure.GetLogger() << "**  real constraints                        **" << "\n";
     structure.GetLogger() << "**********************************************" << "\n\n";
 
-
-    int groupNodesLeftBoundary = structure.GroupCreate(eGroupId::Nodes);
-
-    structure.GroupAddNodeCoordinateRange(groupNodesLeftBoundary,0,-1.e-6,+1.e-6);
-
+    structure.NodeBuildGlobalDofs(__PRETTY_FUNCTION__);
     structure.ApplyConstraintsTotalFeti(groupNodesLeftBoundary);
 
     structure.GetLogger() << "**********************************************" << "\n";
     structure.GetLogger() << "**  load                                    **" << "\n";
     structure.GetLogger() << "**********************************************" << "\n\n";
 
-
-
-    int loadNodeGroup = structure.GroupCreate(eGroupId::Nodes);
-
-    nodeCoords[0] = 60;
-    nodeCoords[1] = 0;
-    structure.GroupAddNodeRadiusRange(loadNodeGroup, nodeCoords, 0, 1.e-6);
 
     structure.NodeInfo(10);
     // prescribe displacement of loadNodeGroup in Y direction
@@ -224,9 +127,6 @@ int main(int argc, char* argv[])
     }
 
     structure.ApplyPrescribedDisplacements(dofIdAndPrescribedDisplacementMap);
-
-//    int loadId = structure.ConstraintLinearSetDisplacementNodeGroup(loadNodeGroup, directionY, 0);
-
 
     int loadId = structure.LoadCreateNodeGroupForce(0, loadNodeGroup, directionY, 0);
 
@@ -250,7 +150,8 @@ int main(int argc, char* argv[])
 
 
 
-    NuTo::NewmarkFeti myIntegrationScheme(&structure);
+
+    NuTo::NewmarkFeti<EigenSolver> myIntegrationScheme(&structure);
     boost::filesystem::path resultPath(std::string("/home/phuschke/results/feti/" + std::to_string(structure.mRank)));
 
     myIntegrationScheme.SetTimeStep                 ( timeStep                  );
@@ -278,7 +179,8 @@ int main(int argc, char* argv[])
     structure.GetLogger()   << "Total number of Dofs: \t"
                             << structure.GetNumTotalDofs() << "\n\n";
 
-//    myIntegrationScheme.Solve(simulationTime);
+
+    myIntegrationScheme.Solve(simulationTime);
 
 }
 

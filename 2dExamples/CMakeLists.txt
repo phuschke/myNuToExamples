@@ -2,6 +2,7 @@
 
 ADD_SUBDIRECTORY(feti)
 ADD_SUBDIRECTORY(phase_field)
+ADD_SUBDIRECTORY(benchmark)
 
 # create symlinks to the necessary mesh files
 execute_process(

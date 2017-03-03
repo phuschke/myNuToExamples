@@ -1,5 +1,6 @@
 
 #include <boost/filesystem.hpp>
+#include <math/MathException.h>
 
 #include "mechanics/structures/unstructured/Structure.h"
 
@@ -297,7 +298,18 @@ int main(int argc, char* argv[]) {
         std::cout << "structure.GetNumTotalDofs(): \t" << structure.GetNumTotalDofs() << std::endl;
         return EXIT_FAILURE;
     }
-
+    catch(NuTo::MathException e)
+    {
+        std::cout << e.ErrorMessage() << std::endl;
+        std::cout << "structure.GetNumTotalDofs(): \t" << structure.GetNumTotalDofs() << std::endl;
+        return EXIT_FAILURE;
+    }
+    catch(...)
+    {
+        std::cout << "Some other exception" << std::endl;
+        std::cout << "structure.GetNumTotalDofs(): \t" << structure.GetNumTotalDofs() << std::endl;
+        return EXIT_FAILURE;
+    }
     // visualization
 //    structure.AddVisualizationComponent(groupEleDamage, eVisualizeWhat::DISPLACEMENTS);
 

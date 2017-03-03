@@ -1,3 +1,5 @@
+#include <eigen3/Eigen/Dense>
+#include <eigen3/Eigen/Core>
 #include "mechanics/nodes/NodeEnum.h"
 #include "mechanics/groups/GroupEnum.h"
 #include "mechanics/sections/SectionEnum.h"
@@ -20,3 +22,9 @@ using NuTo::Interpolation::eShapeType;
 using NuTo::eGroupId;
 using NuTo::eVisualizeWhat;
 using NuTo::eSectionType;
+
+using Eigen::VectorXd;
+using Eigen::MatrixXd;
+
+using Eigen::Vector2d;
+using Eigen::Matrix2d;
