@@ -1,4 +1,6 @@
-set(MESH_DIR "/home/phuschke/nuto_project/nuto/applications/custom/myNutoExamples/meshFiles/2d/feti/virtual_constraints")
+set(MESH_DIR "${CMAKE_SOURCE_DIR}/applications/custom/myNutoExamples/meshFiles/2d/feti/virtual_constraints")
+
+
 foreach(task RANGE 0 3)
     foreach(mesh
             feti_beam_4_subdomains.mesh
@@ -18,6 +20,7 @@ foreach(task RANGE 0 1)
             feti_beam_coarse_2_subdomains.mesh
             feti_beam_coarse_2_subdomains_24_ele.mesh
             feti_beam_coarse_2_subdomains_6_ele.mesh
+            feti_linear_benchmark_2_subs.mesh
             )
 
         execute_process(
@@ -29,6 +32,7 @@ endforeach()
 
 foreach(mesh
         feti_beam_coarse_2_subdomains.msh
+        feti_linear_benchmark.msh
         feti_beam_coarse_2_subdomains_24_ele_compare.msh
         feti_beam_coarse_2_subdomains_6_ele_compare.msh
          )

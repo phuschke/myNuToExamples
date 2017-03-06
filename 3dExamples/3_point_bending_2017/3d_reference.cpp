@@ -29,8 +29,6 @@ using NuTo::eGroupId;
 using NuTo::eVisualizeWhat;
 using NuTo::eSectionType;
 
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -71,7 +69,7 @@ int main(int argc, char* argv[]) {
     const   double      maxIterations              = 10;
 
     const   std::string subDirectory                = argv[16];
-    boost::filesystem::path resultPath(boost::filesystem::path(getenv("HOME")).string() + std::string("/results/results_3_point_bending_reference/") + subDirectory);
+    boost::filesystem::path resultPath(boost::filesystem::path(getenv("HOME")).string() + std::string("/results/results_3_point_bending_reference/") + subDirectory + std::string("/"));
     boost::filesystem::create_directory(resultPath);
 
     const auto directionX = Eigen::Matrix<double, dimension, 1>::UnitX();
@@ -101,7 +99,7 @@ int main(int argc, char* argv[]) {
     parameters.emplace("slipAtMaxBondStress",          std::to_string(slipAtMaxBondStress));
     parameters.emplace("slipAtResidualBondStress",     std::to_string(slipAtResidualBondStress));
     parameters.emplace("resultPath",                   resultPath.string());
-    NuTo::WriteSimulationParameters(parameters, resultPath.string());
+
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // structure
@@ -238,7 +236,7 @@ int main(int argc, char* argv[]) {
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, directionY, 0);
 
     int groupNodesSymmetryInZ = structure.GroupCreate(eGroupId::Nodes);
-    structure.GroupAddNodeCoordinateRange(groupNodesSymmetryInZ, z_component, 20 -1.e-3, 20 +1.e-3);
+    structure.GroupAddNodeCoordinateRange(groupNodesSymmetryInZ, z_component, 2 -1.e-3, 2 +1.e-3);
 
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesSymmetryInZ, directionZ, 0);
 
@@ -269,7 +267,7 @@ int main(int argc, char* argv[]) {
     timeIntegration.SetMaxNumIterations         ( maxIterations            );
     timeIntegration.SetResultDirectory          ( resultPath.string(), true );
     timeIntegration.SetToleranceResidual        ( eDof::DISPLACEMENTS, toleranceDisp );
-
+    NuTo::WriteSimulationParameters(parameters, resultPath.string());
     Eigen::Matrix2d dispRHS;
     dispRHS(0, 0) = 0;
     dispRHS(1, 0) = simulationTime;
@@ -280,7 +278,7 @@ int main(int argc, char* argv[]) {
 
     timeIntegration.AddResultGroupNodeForce("force", loadNodeGroup);
 
-    nodeCoordsCenter << 80,40,10;
+    nodeCoordsCenter << 80,40,0;
     int grpNodes_output_disp = structure.GroupCreate(eGroupId ::Nodes);
     structure.GroupAddNodeRadiusRange(grpNodes_output_disp, nodeCoordsCenter, 0, 7e-1);
     timeIntegration.AddResultNodeDisplacements("displacements", structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
@@ -296,25 +294,25 @@ int main(int argc, char* argv[]) {
     {
         std::cout << e.ErrorMessage() << std::endl;
         std::cout << "structure.GetNumTotalDofs(): \t" << structure.GetNumTotalDofs() << std::endl;
-        return EXIT_FAILURE;
     }
     catch(NuTo::MathException e)
     {
         std::cout << e.ErrorMessage() << std::endl;
         std::cout << "structure.GetNumTotalDofs(): \t" << structure.GetNumTotalDofs() << std::endl;
-        return EXIT_FAILURE;
     }
     catch(...)
     {
         std::cout << "Some other exception" << std::endl;
         std::cout << "structure.GetNumTotalDofs(): \t" << structure.GetNumTotalDofs() << std::endl;
-        return EXIT_FAILURE;
     }
     // visualization
 //    structure.AddVisualizationComponent(groupEleDamage, eVisualizeWhat::DISPLACEMENTS);
 
     structure.AddVisualizationComponent(groupEleDamage, eVisualizeWhat::DAMAGE);
     structure.SetVisualizationType(groupEleDamage, NuTo::eVisualizationType::POINTS);
+
+
+    structure.ExportVtkDataFileElements(resultPath.string() + "elements.vtk");
 
 //    structure.AddVisualizationComponent(groupEleLinear, eVisualizeWhat::DISPLACEMENTS);
 //    structure.AddVisualizationComponent(groupEleLinear, eVisualizeWhat::DAMAGE);

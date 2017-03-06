@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
     NuTo::StructureFeti structure(dim);
     structure.SetNumTimeDerivatives(0);
     structure.SetVerboseLevel(10);
-    structure.SetShowTime(false);
+    structure.SetShowTime(true);
     structure.GetLogger().OpenFile("output" + std::to_string(rank));
     structure.GetLogger().SetQuiet(true);
 
@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
     structure.GetLogger() << "**********************************************" << "\n\n";
 
 
-    structure.NodeInfo(10);
+//    structure.NodeInfo(10);
     // prescribe displacement of loadNodeGroup in Y direction
     std::map<int, double> dofIdAndPrescribedDisplacementMap;
     std::vector<int> nodeIds = structure.GroupGetMemberIds(loadNodeGroup);
@@ -176,12 +176,12 @@ int main(int argc, char* argv[])
     structure.GetLogger() << "**      Solve                    **" << "\n";
     structure.GetLogger() << "***********************************" << "\n\n";
 
-    structure.GetLogger()   << "Total number of Dofs: \t"
-                            << structure.GetNumTotalDofs() << "\n\n";
+
 
 
     myIntegrationScheme.Solve(simulationTime);
-
+    structure.GetLogger()   << "Total number of Dofs: \t"
+                            << structure.GetNumTotalDofs() << "\n\n";
 }
 
 

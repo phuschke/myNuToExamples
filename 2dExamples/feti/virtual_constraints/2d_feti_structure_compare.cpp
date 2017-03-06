@@ -17,7 +17,8 @@
 
 #include "mechanics/dofSubMatrixSolvers/SolverMUMPS.h"
 #include "mechanics/dofSubMatrixSolvers/SolverEigen.h"
-
+#include "sys/types.h"
+#include "sys/sysinfo.h"
 
 constexpr   int         dim                         = 2;
 constexpr   double      thickness                   = 1.0;
@@ -37,7 +38,7 @@ constexpr   double      minTimeStep                 = 1e-3;
 constexpr   double      maxTimeStep                 =  1e-0;
 constexpr   double      toleranceDisp              = 1e-6;
 constexpr   double      simulationTime              = 1.0;
-constexpr   double      loadFactor                  = -2;
+constexpr   double      loadFactor                  = 10;
 constexpr   double      maxInterations              = 10;
 
 
@@ -50,6 +51,27 @@ void AssignMaterial(NuTo::Structure &structure);
 int main(int argc, char* argv[])
 {
 
+
+    struct sysinfo memInfo;
+    sysinfo(&memInfo);
+    long long totalVirtualMem = memInfo.totalram;
+    totalVirtualMem += memInfo.totalswap;
+    totalVirtualMem *= memInfo.mem_unit;
+
+    long long virtualMemUsed = memInfo.totalram - memInfo.freeram;
+    virtualMemUsed += memInfo.totalswap - memInfo.freeswap;
+    virtualMemUsed *= memInfo.mem_unit;
+
+    long long totalPhysMem = memInfo.totalram;
+    totalPhysMem *= memInfo.mem_unit;
+
+    long long physMemUsed = memInfo.totalram - memInfo.freeram;
+    physMemUsed *= memInfo.mem_unit;
+
+    std::cout << "totalVirtualMem:  \t" << totalVirtualMem << std::endl;
+    std::cout << "virtualMemUsed:   \t" << virtualMemUsed << std::endl;
+    std::cout << "totalPhysMem:     \t" << totalPhysMem << std::endl;
+    std::cout << "physMemUsed:     \t" << physMemUsed << std::endl;
 
     NuTo::Structure structure(dim);
     structure.SetNumTimeDerivatives(0);
@@ -71,25 +93,13 @@ int main(int argc, char* argv[])
     structure.GetLogger() << "**********************************************" << "\n\n";
 
     Eigen::VectorXd nodeCoords(2);
-    nodeCoords[0] = 0;
-    nodeCoords[1] = 0;
+
 
     int groupNodesLeftBoundary = structure.GroupCreate(eGroupId::Nodes);
-
-
-    structure.GroupAddNodeRadiusRange(groupNodesLeftBoundary, nodeCoords, 0, 1.e-6);
-
+    structure.GroupAddNodeCoordinateRange(groupNodesLeftBoundary,0,-1.e-6,+1.e-6);
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesLeftBoundary, Vector2d::UnitX(), 0.0);
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesLeftBoundary, Vector2d::UnitY(), 0.0);
 
-    nodeCoords[0] = 60;
-    nodeCoords[1] = 0;
-
-    int groupNodesRightBoundary = structure.GroupCreate(eGroupId::Nodes);
-    structure.GroupAddNodeRadiusRange(groupNodesRightBoundary, nodeCoords, 0, 1.e-6);
-
-    structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, Vector2d::UnitX(), 0.0);
-    structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, Vector2d::UnitY(), 0.0);
     structure.GetLogger() << "**********************************************" << "\n";
     structure.GetLogger() << "**  load                                    **" << "\n";
     structure.GetLogger() << "**********************************************" << "\n\n";
@@ -99,8 +109,8 @@ int main(int argc, char* argv[])
 
     int loadNodeGroup = structure.GroupCreate(eGroupId::Nodes);
 
-    nodeCoords[0] = 20;
-    nodeCoords[1] = 10;
+    nodeCoords[0] = 60;
+    nodeCoords[1] = 0;
     structure.GroupAddNodeRadiusRange(loadNodeGroup, nodeCoords, 0, 1.e-6);
     int loadId = structure.ConstraintLinearSetDisplacementNodeGroup(loadNodeGroup, Vector2d::UnitY(), 1);
 
@@ -154,16 +164,17 @@ int main(int argc, char* argv[])
 
 
     myIntegrationScheme.SetSolver(std::make_unique<NuTo::SolverEigen<Eigen::SparseLU<Eigen::SparseMatrix<double>,Eigen::COLAMDOrdering<int>>>>());
+//    myIntegrationScheme.SetSolver(std::make_unique<NuTo::SolverMUMPS>());
 
 
     structure.GetLogger() << "***********************************" << "\n";
     structure.GetLogger() << "**      Solve                    **" << "\n";
     structure.GetLogger() << "***********************************" << "\n\n";
 
+    myIntegrationScheme.Solve(simulationTime);
+
     structure.GetLogger()   << "Total number of Dofs: \t"
                             << structure.GetNumTotalDofs() << "\n\n";
-
-    myIntegrationScheme.Solve(simulationTime);
 
 }
 

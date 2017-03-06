@@ -30,7 +30,7 @@ x_origin  =  0;
 x_length  =  30;
 y_origin  =  0;
 y_length  =  40;
-z_end     =  20;
+z_end     =  2;
 Call CreateRectangle;
 surfaceId[0]     =   plane1;
 

@@ -1,0 +1,5 @@
+NumSubDomains Time DofsProcess1 DofsProcess2
+2 12.0 241726 241668
+1 14.6 482802 0
+
+
