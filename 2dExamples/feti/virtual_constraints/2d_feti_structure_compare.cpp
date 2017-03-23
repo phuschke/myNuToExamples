@@ -20,6 +20,9 @@
 #include "sys/types.h"
 #include "sys/sysinfo.h"
 
+#include "mechanics/sections/SectionPlane.h"
+
+
 constexpr   int         dim                         = 2;
 constexpr   double      thickness                   = 1.0;
 
@@ -39,7 +42,7 @@ constexpr   double      maxTimeStep                 =  1e-0;
 constexpr   double      toleranceDisp              = 1e-6;
 constexpr   double      simulationTime              = 1.0;
 constexpr   double      loadFactor                  = 10;
-constexpr   double      maxInterations              = 10;
+constexpr   double      maxIterations              = 10;
 
 
 
@@ -137,7 +140,7 @@ int main(int argc, char* argv[])
     boost::filesystem::path resultPath(std::string("/home/phuschke/results/feti/compare"));
 
     myIntegrationScheme.SetTimeStep                 ( timeStep                  );
-    myIntegrationScheme.SetMaxNumIterations         ( maxInterations            );
+    myIntegrationScheme.SetMaxNumIterations         ( maxIterations            );
     myIntegrationScheme.SetMinTimeStep              ( minTimeStep               );
     myIntegrationScheme.SetMaxTimeStep              ( maxTimeStep               );
     myIntegrationScheme.SetAutomaticTimeStepping    ( automaticTimeStepping     );
@@ -181,15 +184,8 @@ int main(int argc, char* argv[])
 
 void AssignSection(NuTo::Structure& structure)
 {
-    structure.GetLogger() << "***********************************" << "\n";
-    structure.GetLogger() << "**      Section                  **" << "\n";
-    structure.GetLogger() << "***********************************" << "\n\n";
-
-    int section00 = structure.SectionCreate(NuTo::eSectionType::PLANE_STRESS);
-    structure.SectionSetThickness(section00, thickness);
-
-    structure.ElementTotalSetSection(section00);
-}
+    auto section = NuTo::SectionPlane::Create(thickness,true);
+    structure.ElementTotalSetSection(section);}
 
 void AssignMaterial(NuTo::Structure& structure)
 {

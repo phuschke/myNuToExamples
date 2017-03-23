@@ -21,6 +21,18 @@ foreach(task RANGE 0 1)
             feti_beam_coarse_2_subdomains_24_ele.mesh
             feti_beam_coarse_2_subdomains_6_ele.mesh
             feti_linear_benchmark_2_subs.mesh
+            2d_single_edge_notched_tension_test_2_subdomains.mesh
+            )
+
+        execute_process(
+                COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "${MESH_DIR}/${mesh}${task}" "${CMAKE_CURRENT_BINARY_DIR}/${mesh}${task}"
+        )
+    endforeach()
+endforeach()
+
+foreach(task RANGE 0 2)
+    foreach(mesh
+            feti_beam_coarse_3_subdomains_compare_150_ele.mesh
             )
 
         execute_process(
@@ -35,6 +47,8 @@ foreach(mesh
         feti_linear_benchmark.msh
         feti_beam_coarse_2_subdomains_24_ele_compare.msh
         feti_beam_coarse_2_subdomains_6_ele_compare.msh
+        feti_beam_compare_15704_ele.msh
+        feti_beam_coarse_3_subdomains_compare_150_ele.msh
          )
 
     execute_process(
@@ -47,7 +61,10 @@ if (ENABLE_MPI)
 foreach(file
         2d_feti_structure
         #2d_feti_structure_local_damage
-        #2d_feti_structure_gradient_damage
+        2d_feti_structure_gradient_damage
+        2d_feti_structure_phase_field
+        2d_feti_structure_phase_field_tension
+        2d_feti_structure_phase_field_single_edge_notched_tension_test
         )
 
     add_executable(${file} ${file}.cpp)
@@ -64,6 +81,7 @@ foreach(file
         2d_feti_structure_compare
 #        2d_feti_structure_local_damage_compare
 #        2d_feti_structure_gradient_damage_compare
+        2d_fetI_structure_phase_field_compare
         )
 
     add_executable(${file} ${file}.cpp)

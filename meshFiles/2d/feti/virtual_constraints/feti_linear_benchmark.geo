@@ -12,8 +12,8 @@ Function CreateRectangle
   l3  = newreg; Line(l3)  = {p3,p4};
   l4  = newreg; Line(l4)  = {p4,p1};
 
-  Transfinite Line {l1,l3} = 1200+1;
-  Transfinite Line {l2,l4} = 200+1;
+  Transfinite Line {l1,l3} = 30+1;
+  Transfinite Line {l2,l4} = 5+1;
 
   loop1 = newll; Line Loop(loop1) = {l1,l2,l3,l4};
 
@@ -26,7 +26,7 @@ Function CreateRectangle
 Return
 
 
-meshSize       = 0.1;
+meshSize       = 0.5;
 x  = 0;
 y  = 0;
 lx = 60;

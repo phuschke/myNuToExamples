@@ -8,7 +8,6 @@
 
 #include "mechanics/nodes/NodeEnum.h"
 #include "mechanics/groups/GroupEnum.h"
-#include "mechanics/sections/SectionEnum.h"
 #include "mechanics/constitutive/ConstitutiveEnum.h"
 #include "visualize/VisualizeEnum.h"
 #include "mechanics/interpolationtypes/InterpolationTypeEnum.h"
@@ -27,7 +26,6 @@ using NuTo::Interpolation::eTypeOrder;
 using NuTo::Interpolation::eShapeType;
 using NuTo::eGroupId;
 using NuTo::eVisualizeWhat;
-using NuTo::eSectionType;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -58,7 +56,7 @@ int main(int argc, char* argv[]) {
 
 
     // integration
-    const   double      timeStep                    = 1.e-2;
+    const   double      timeStep                    = 2.e-2;
     const   double      minTimeStep                 = 1.e-4;
     const   double      maxTimeStep                 = 1.e-1;
     const   double      automaticTimeStepping       = true;
@@ -124,9 +122,6 @@ int main(int argc, char* argv[]) {
     structure.InterpolationTypeAdd(interpolationTypeIdLinear, eDof::DISPLACEMENTS,    eTypeOrder::EQUIDISTANT2);
 //    structure.InterpolationTypeAdd(interpolationTypeIdLinear, eDof::NONLOCALEQSTRAIN, eTypeOrder::EQUIDISTANT1);
 
-    // section
-    int sectionId = structure.SectionCreate(eSectionType::VOLUME);
-    structure.ElementTotalSetSection(sectionId);
 
     // material
     const int materialIdMatrixDamage = structure.ConstitutiveLawCreate(eConstitutiveType::GRADIENT_DAMAGE_ENGINEERING_STRESS);
@@ -249,7 +244,7 @@ int main(int argc, char* argv[]) {
 
     nodeCoordsCenter << 80,40,0;
     int loadNodeGroup = structure.GroupCreate(eGroupId::Nodes);
-    structure.GroupAddNodeCylinderRadiusRange(loadNodeGroup, nodeCoordsCenter,directionZ,0,1.e-3);
+    structure.GroupAddNodeCylinderRadiusRange(loadNodeGroup, nodeCoordsCenter,directionZ,0,1.0);
 
     int loadId = structure.ConstraintLinearSetDisplacementNodeGroup(loadNodeGroup, directionY, 0);
 
@@ -285,6 +280,11 @@ int main(int argc, char* argv[]) {
 
     timeIntegration.AddTimeDependentConstraint(loadId, dispRHS);
 
+    // visualization
+    structure.AddVisualizationComponent(groupEleDamage, eVisualizeWhat::DISPLACEMENTS);
+    structure.AddVisualizationComponent(groupEleDamage, eVisualizeWhat::DAMAGE);
+//    structure.SetVisualizationType(groupEleDamage, NuTo::eVisualizationType::POINTS);
+
 
     try{
         timeIntegration.Solve(simulationTime);
@@ -305,11 +305,6 @@ int main(int argc, char* argv[]) {
         std::cout << "Some other exception" << std::endl;
         std::cout << "structure.GetNumTotalDofs(): \t" << structure.GetNumTotalDofs() << std::endl;
     }
-    // visualization
-//    structure.AddVisualizationComponent(groupEleDamage, eVisualizeWhat::DISPLACEMENTS);
-
-    structure.AddVisualizationComponent(groupEleDamage, eVisualizeWhat::DAMAGE);
-    structure.SetVisualizationType(groupEleDamage, NuTo::eVisualizationType::POINTS);
 
 
     structure.ExportVtkDataFileElements(resultPath.string() + "elements.vtk");

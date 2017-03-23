@@ -1,14 +1,8 @@
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Core>
-#include "mechanics/nodes/NodeEnum.h"
-#include "mechanics/groups/GroupEnum.h"
-#include "mechanics/sections/SectionEnum.h"
-#include "mechanics/constitutive/ConstitutiveEnum.h"
+#include "mechanics/MechanicsEnums.h"
 #include "visualize/VisualizeEnum.h"
-#include "mechanics/interpolationtypes/InterpolationTypeEnum.h"
-#include "mechanics/elements/IpDataEnum.h"
-#include "mechanics/integrationtypes/IntegrationTypeEnum.h"
-#include "mechanics/sections/SectionEnum.h"
+
 
 
 using std::cout;
@@ -21,7 +15,8 @@ using NuTo::Interpolation::eTypeOrder;
 using NuTo::Interpolation::eShapeType;
 using NuTo::eGroupId;
 using NuTo::eVisualizeWhat;
-using NuTo::eSectionType;
+
+using NuTo::eDirection;
 
 using Eigen::VectorXd;
 using Eigen::MatrixXd;

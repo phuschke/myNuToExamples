@@ -3,7 +3,8 @@
 #include "mechanics/constitutive/laws/PhaseField.h"
 #include "mechanics/nodes/NodeEnum.h"
 #include "mechanics/groups/GroupEnum.h"
-#include "mechanics/sections/SectionEnum.h"
+#include "mechanics/sections/SectionPlane.h"
+
 #include "mechanics/constitutive/ConstitutiveEnum.h"
 #include "visualize/VisualizeEnum.h"
 #include "mechanics/interpolationtypes/InterpolationTypeEnum.h"
@@ -12,12 +13,9 @@
 #include "mechanics/nodes/NodeBase.h"
 #include "math/SparseMatrixCSR.h"
 #include "math/SparseMatrixCSRGeneral.h"
-#include "mechanics/dofSubMatrixStorage/BlockSparseMatrix.h"
 #include "mechanics/structures/StructureOutputBlockMatrix.h"
 #include "../../EnumsAndTypedefs.h"
 #include <boost/filesystem.hpp>
-#include <fstream>
-#include <string>
 #include <chrono>
 
 using std::cout;
@@ -25,14 +23,14 @@ using std::endl;
 using NuTo::Constitutive::ePhaseFieldEnergyDecomposition;
 
 constexpr   int         dimension                   = 2;
-constexpr   bool        performLineSearch           = false;
+constexpr   bool        performLineSearch           = true;
 constexpr   bool        automaticTimeStepping       = true;
 constexpr   double      youngsModulus               = 2.1e5;
 constexpr   double      poissonsRatio               = 0.3;
 constexpr   double      thickness                   = 1.0;
 constexpr   double      lengthScaleParameter        = 3.0e-2;
 constexpr   double      fractureEnergy              = 2.7;
-constexpr   double      artificialViscosity         = 0.1;
+constexpr   double      artificialViscosity         = 0.5;
 constexpr   double      timeStep                    = 1e-2;
 constexpr   double      minTimeStep                 = 1e-6;
 constexpr   double      maxTimeStep                 =  1e-1;
@@ -85,7 +83,7 @@ int main(int argc, char* argv[])
 
 
     boost::filesystem::path resultPath(std::string("/home/phuschke/results/2d/2d_miehe_three_point_bending_phase_field/" + std::to_string(subdirectory) + "/"));
-    const boost::filesystem::path meshFilePath("2d_miehe_symmetric_three_point_bending.msh");
+    const boost::filesystem::path meshFilePath("2d_miehe_symmetric_three_point_bending_no_notch.msh");
 
     const Eigen::Vector2d directionX    = Eigen::Vector2d::UnitX();
     const Eigen::Vector2d directionY    = Eigen::Vector2d::UnitY();
@@ -125,8 +123,8 @@ int main(int argc, char* argv[])
     cout << "**  section                                 **" << endl;
     cout << "**********************************************" << endl;
 
-    int mySection = myStructure.SectionCreate(NuTo::eSectionType::PLANE_STRAIN);
-    myStructure.SectionSetThickness(mySection,  thickness);
+    auto section = NuTo::SectionPlane::Create(thickness,true);
+    myStructure.ElementTotalSetSection(section);
 
     cout << "**********************************************" << endl;
     cout << "**  material                                **" << endl;
@@ -206,7 +204,7 @@ int main(int argc, char* argv[])
 
     myStructure.ElementTotalConvertToInterpolationType(1.e-6, 10);
 
-    myStructure.ElementTotalSetSection(mySection);
+    myStructure.ElementTotalSetSection(section);
     myStructure.ElementTotalSetConstitutiveLaw(matrixMaterial);
 
     cout << "**********************************************" << endl;
@@ -264,18 +262,18 @@ int main(int argc, char* argv[])
     myStructure.CalculateMaximumIndependentSets();
 
 
-//    center[0] = 175;
-//    center[1] = 100;
-//    int grpNodes_output = myStructure.GroupCreate(NuTo::Groups::Nodes);
-//    myStructure.GroupAddNodeRadiusRange(grpNodes_output, center, 0, 5e-1);
-//
-//    myIntegrationScheme.AddResultGroupNodeForce("myforce", grpNodes_output);
-//
-//    center[0] = 240;
-//    center[1] = 0;
-//    int grpNodes_output_disp = myStructure.GroupCreate(NuTo::Groups::Nodes);
-//    myStructure.GroupAddNodeRadiusRange(grpNodes_output_disp, center, 0, 7e-1);
-//    myIntegrationScheme.AddResultNodeDisplacements("mydisplacements", myStructure.GroupGetMemberIds(grpNodes_output_disp).GetValue(0, 0));
+    center[0] = 4;
+    center[1] = 2;
+    int grpNodes_output = myStructure.GroupCreate(eGroupId::Nodes);
+    myStructure.GroupAddNodeRadiusRange(grpNodes_output, center, 0, 5e-1);
+
+    myIntegrationScheme.AddResultGroupNodeForce("myforce", grpNodes_output);
+
+    center[0] = 4;
+    center[1] = 2;
+    int grpNodes_output_disp = myStructure.GroupCreate(NuTo::eGroupId::Nodes);
+    myStructure.GroupAddNodeRadiusRange(grpNodes_output_disp, center, 0, 7e-1);
+    myIntegrationScheme.AddResultNodeDisplacements("mydisplacements", myStructure.GroupGetMemberIds(grpNodes_output_disp)[0]);
 
     Eigen::Matrix2d dispRHS;
     dispRHS(0, 0) = 0;

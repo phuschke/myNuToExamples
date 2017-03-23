@@ -9,14 +9,12 @@
 
 #include "mechanics/nodes/NodeEnum.h"
 #include "mechanics/groups/GroupEnum.h"
-#include "mechanics/sections/SectionEnum.h"
 #include "mechanics/constitutive/ConstitutiveEnum.h"
 #include "visualize/VisualizeEnum.h"
 #include "mechanics/interpolationtypes/InterpolationTypeEnum.h"
 #include "mechanics/elements/IpDataEnum.h"
 #include "mechanics/integrationtypes/IntegrationTypeEnum.h"
 
-#include "mechanics/sections/SectionEnum.h"
 
 
 
@@ -29,7 +27,7 @@ using NuTo::Interpolation::eTypeOrder;
 using NuTo::Interpolation::eShapeType;
 using NuTo::eGroupId;
 using NuTo::eVisualizeWhat;
-using NuTo::eSectionType;
+
 
 // geometry
 constexpr   int         dimension                   = 3;
@@ -48,7 +46,7 @@ constexpr   double      timeStep                    = 1.e-1;
 constexpr   double      toleranceDisp               = 1e-6;
 constexpr   double      simulationTime              = 1.0;
 constexpr   double      loadFactor                  = -0.05;
-constexpr   double      maxInterations              = 10;
+constexpr   double      maxIterations              = 10;
 
 const auto directionX = Eigen::Matrix<double, dimension, 1>::UnitX();
 const auto directionY = Eigen::Matrix<double, dimension, 1>::UnitY();
@@ -83,10 +81,6 @@ int main(int argc, char* argv[]) {
     structure.SetVerboseLevel(10);
 
     structure.ElementTotalConvertToInterpolationType();
-
-    // section
-    int sectionId = structure.SectionCreate(eSectionType::VOLUME);
-    structure.ElementTotalSetSection(sectionId);
 
     // material
 
@@ -179,7 +173,7 @@ int main(int argc, char* argv[]) {
     boost::filesystem::path resultPath(boost::filesystem::initial_path().string() + std::string("/results_3_point_bending"));
 
     timeIntegration.SetTimeStep                 ( timeStep                  );
-    timeIntegration.SetMaxNumIterations         ( maxInterations            );
+    timeIntegration.SetMaxNumIterations         ( maxIterations            );
     timeIntegration.SetResultDirectory          ( resultPath.string(), true );
     timeIntegration.SetToleranceResidual        ( eDof::DISPLACEMENTS, toleranceDisp );
 

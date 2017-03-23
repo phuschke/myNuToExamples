@@ -8,7 +8,7 @@ mesh_factor = 0.1;
 // create points
 Point(2)  = {factor * 0   	        							,   factor * 0		    				,   0,  meshSize};
 Point(3)  = {factor * 3.9	 			    			    	,   factor * 0					 	    ,   0,  mesh_factor*meshSize};
-Point(4)  = {factor * 4	 			    			    	,   factor * 0.4					 	    ,   0,  mesh_factor*meshSize};
+Point(4)  = {factor * 4	 			    			    	,   factor * 0.					 	    ,   0,  mesh_factor*meshSize};
 
 Point(5)  = {factor * 4						        			,   factor * 2					        ,   0,  mesh_factor*meshSize};
 Point(6)  = {factor * 0						        			,   factor * 2					        ,   0,  meshSize};
@@ -27,5 +27,5 @@ Rotate {{0, 1, 0}, {factor * 4, 0, 0}, Pi} {
   Duplicata { Surface{1}; }
 }
 
-Recombine Surface {1,7};
+//Recombine Surface {1,7};
 Physical Surface(999) = {1,-7};

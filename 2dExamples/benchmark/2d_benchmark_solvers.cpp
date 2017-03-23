@@ -18,6 +18,8 @@
 #include "mechanics/dofSubMatrixSolvers/SolverMUMPS.h"
 #include "mechanics/dofSubMatrixSolvers/SolverEigen.h"
 #include "base/Timer.h"
+#include "mechanics/sections/SectionPlane.h"
+
 
 constexpr   int         dim                         = 2;
 constexpr   double      thickness                   = 1.0;
@@ -38,7 +40,7 @@ constexpr   double      maxTimeStep                 =  1e-0;
 constexpr   double      toleranceDisp              = 1e-6;
 constexpr   double      simulationTime              = 1.0;
 constexpr   double      loadFactor                  = -2;
-constexpr   double      maxInterations              = 10;
+constexpr   double      maxIterations              = 10;
 
 void AssignSection(NuTo::Structure& structure);
 void AssignMaterial(NuTo::Structure& structure);
@@ -208,10 +210,8 @@ void AssignSection(NuTo::Structure& structure)
     structure.GetLogger() << "**      Section                  **" << "\n";
     structure.GetLogger() << "***********************************" << "\n\n";
 
-    int section00 = structure.SectionCreate(NuTo::eSectionType::PLANE_STRESS);
-    structure.SectionSetThickness(section00, thickness);
-
-    structure.ElementTotalSetSection(section00);
+    auto section = NuTo::SectionPlane::Create(thickness,true);
+    structure.ElementTotalSetSection(section);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -13,6 +13,8 @@
 
 #include "boost/filesystem.hpp"
 
+#include "mechanics/sections/SectionPlane.h"
+
 constexpr int dim = 2;
 using Eigen::VectorXd;
 using Eigen::MatrixXd;
@@ -29,17 +31,17 @@ constexpr   double      thickness                   = 1.0;
 // material
 constexpr   double      nonlocalRadius              = 5;                   // mm
 
-//constexpr   double      youngsModulus               = 4.0;                // N/mm^2
-//constexpr   double      poissonsRatio               = 0.2;
-//constexpr   double      fractureEnergy              = 1e-6;                   // N/mm
-//constexpr   double      compressiveStrength         = 30.e-4;                  // N/mm
-//constexpr   double      tensileStrength             = 3.e-4;                  // N/mm
-
-constexpr   double      youngsModulus               = 4.0e4;
+constexpr   double      youngsModulus               = 4.0;                // N/mm^2
 constexpr   double      poissonsRatio               = 0.2;
-constexpr   double      tensileStrength             = 3;
-constexpr   double      compressiveStrength         = 30;
-constexpr   double      fractureEnergy              = 0.1;
+constexpr   double      fractureEnergy              = 1e-6;                   // N/mm
+constexpr   double      compressiveStrength         = 30.e-4;                  // N/mm
+constexpr   double      tensileStrength             = 3.e-4;                  // N/mm
+
+//constexpr   double      youngsModulus               = 4.0e4;
+//constexpr   double      poissonsRatio               = 0.2;
+//constexpr   double      tensileStrength             = 3;
+//constexpr   double      compressiveStrength         = 30;
+//constexpr   double      fractureEnergy              = 0.1;
 
 // integration
 constexpr   bool        performLineSearch           = true;
@@ -53,7 +55,7 @@ constexpr   double      toleranceNlEqStrain        = 1e-6;
 
 constexpr   double      simulationTime              = 1.0;
 constexpr   double      loadFactor                  = -2e-2;
-constexpr   double      maxInterations              = 10;
+constexpr   double      maxIterations              = 10;
 
 
 const Eigen::Vector2d directionX    = Eigen::Vector2d::UnitX();
@@ -256,7 +258,7 @@ int main(int argc, char* argv[])
     for (auto const& nodeId : nodeIds)
     {
         std::vector<int> dofIds = structure.NodeGetDofIds(nodeId, eDof::DISPLACEMENTS);
-        dofIdAndPrescribedDisplacementMap.emplace(dofIds[1], 1.);
+        dofIdAndPrescribedDisplacementMap.emplace(dofIds[1], -1.);
     }
 
     structure.ApplyPrescribedDisplacements(dofIdAndPrescribedDisplacementMap);
@@ -291,7 +293,7 @@ int main(int argc, char* argv[])
     boost::filesystem::path resultPath(std::string("/home/phuschke/results/feti/" + std::to_string(structure.mRank)));
 
     myIntegrationScheme.SetTimeStep                 ( timeStep                  );
-    myIntegrationScheme.SetMaxNumIterations         ( maxInterations            );
+    myIntegrationScheme.SetMaxNumIterations         ( maxIterations            );
     myIntegrationScheme.SetMinTimeStep              ( minTimeStep               );
     myIntegrationScheme.SetMaxTimeStep              ( maxTimeStep               );
     myIntegrationScheme.SetAutomaticTimeStepping    ( automaticTimeStepping     );
@@ -338,14 +340,8 @@ int main(int argc, char* argv[])
 
 void AssignSection(NuTo::StructureFeti& structure)
 {
-    structure.GetLogger() << "***********************************" << "\n";
-    structure.GetLogger() << "**      Section                  **" << "\n";
-    structure.GetLogger() << "***********************************" << "\n\n";
-
-    int section00 = structure.SectionCreate(NuTo::eSectionType::PLANE_STRESS);
-    structure.SectionSetThickness(section00, thickness);
-
-    structure.ElementTotalSetSection(section00);
+    auto section = NuTo::SectionPlane::Create(thickness,true);
+    structure.ElementTotalSetSection(section);
 }
 
 void AssignMaterial(NuTo::StructureFeti& structure)

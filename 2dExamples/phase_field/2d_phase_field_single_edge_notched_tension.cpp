@@ -12,6 +12,9 @@
 #include <boost/filesystem.hpp>
 #include <chrono>
 
+#include "mechanics/sections/SectionPlane.h"
+
+
 using std::cout;
 using std::endl;
 using NuTo::Constitutive::ePhaseFieldEnergyDecomposition;
@@ -38,21 +41,21 @@ int main(int argc, char* argv[])
     // material
     constexpr   double      youngsModulus               = 2.1e5;                // N/mm^2
     constexpr   double      poissonsRatio               = 0.3;    
-    constexpr   double      lengthScaleParameter        = 7.5e-3;               // mm
+    constexpr   double      lengthScaleParameter        = 1.e-2;               // mm
     constexpr   double      fractureEnergy              = 2.7;                  // N/mm
-    constexpr   double      artificialViscosity         = 2.0e-3;               // Ns/mm^2
+    constexpr   double      artificialViscosity         = 1.;               // Ns/mm^2
     constexpr   ePhaseFieldEnergyDecomposition energyDecomposition = ePhaseFieldEnergyDecomposition::ISOTROPIC;
 
     constexpr   bool        performLineSearch           = false;
     constexpr   bool        automaticTimeStepping       = false;
-    constexpr   double      timeStep                   = 1.e-5;
+    constexpr   double      timeStep                   = 1.e-4;
     constexpr   double      minTimeStep                = 1.e-8;
-    constexpr   double      maxTimeStep                = 1.e-4;
+    constexpr   double      maxTimeStep                = 1.e-2;
     constexpr   double      timeStepPostProcessing     = 5.e-5;
 
     constexpr   double      toleranceCrack             = 1e-4;
-    constexpr   double      toleranceDisp              = 1e-5;
-    constexpr   double      simulationTime             = 8.0e-3;
+    constexpr   double      toleranceDisp              = 1e-7;
+    constexpr   double      simulationTime             = 9.0e-3;
     constexpr   double      loadFactor                 = simulationTime;
 
     constexpr   double      tol                        = 1.0e-8;
@@ -122,8 +125,8 @@ int main(int argc, char* argv[])
     cout << "**  section                                 **" << endl;
     cout << "**********************************************" << endl;
 
-    int mySection = myStructure.SectionCreate(NuTo::eSectionType::PLANE_STRAIN);
-    myStructure.SectionSetThickness(mySection,  thickness);
+    auto section = NuTo::SectionPlane::Create(thickness,true);
+    myStructure.ElementTotalSetSection(section);
 
     cout << "**********************************************" << endl;
     cout << "**  material                                **" << endl;
@@ -184,7 +187,7 @@ int main(int argc, char* argv[])
 
     myStructure.ElementTotalConvertToInterpolationType(1.e-9, 1);
 
-    myStructure.ElementTotalSetSection(mySection);
+    myStructure.ElementTotalSetSection(section);
     myStructure.ElementTotalSetConstitutiveLaw(matrixMaterial);
 
 
@@ -198,6 +201,13 @@ int main(int argc, char* argv[])
     myStructure.GroupAddNodeCoordinateRange(groupNodesBCBottom, 1, - tol, tol);
 
     myStructure.ConstraintLinearSetDisplacementNodeGroup(groupNodesBCBottom, directionY, 0);
+
+    center[0] = 0;
+    center[1] = 0;
+    int groupNodesBCBottomX = myStructure.GroupCreate(eGroupId::Nodes);
+    myStructure.GroupAddNodeRadiusRange(groupNodesBCBottomX, center, 0, tol);
+    myStructure.ConstraintLinearSetDisplacementNodeGroup(groupNodesBCBottomX, directionX, 0);
+
 
     cout << "**********************************************" << endl;
     cout << "**  load                                    **" << endl;
@@ -238,6 +248,7 @@ int main(int argc, char* argv[])
 
     myIntegrationScheme.AddTimeDependentConstraint(loadID, dispRHS);
 
+    std::cout << "Number of elements: \t" << myStructure.GetNumElements() << std::endl;
     try
     {
         myIntegrationScheme.Solve(simulationTime);
@@ -245,14 +256,17 @@ int main(int argc, char* argv[])
     catch(...)
     {
         cout << "!!! SOMETHING WENT WRONG !!!" << endl;
-         myStructure.ExportVtkDataFileElements(resultPath.string()+"bla.vtu", true);
+//         myStructure.ExportVtkDataFileElements(resultPath.string()+"bla.vtu", true);
+//        std::string newcommand = "python " + resultPath.parent_path().parent_path().string() + "/paraviewPythonScript.py " + resultPath.string() + "/Group999_ElementsAll.pvd; okular /home/phuschke/test.png";
+//        system(newcommand.c_str());
+        return EXIT_FAILURE;
     }
 
-
-    std::string command = "paste " +  resultPath.string() + "myforce.dat " +  resultPath.string() + "mydisplacements.dat > " +  resultPath.string() + "forceDisp.dat";
-    system(command.c_str());
-    std::string newcommand = "python " + resultPath.parent_path().parent_path().string() + "/paraviewPythonScript.py " + resultPath.string() + "/Group999_ElementsAll.pvd; okular /home/phuschke/test.png";
-    system(newcommand.c_str());
+//
+//    std::string command = "paste " +  resultPath.string() + "myforce.dat " +  resultPath.string() + "mydisplacements.dat > " +  resultPath.string() + "forceDisp.dat";
+//    system(command.c_str());
+//    std::string newcommand = "python " + resultPath.parent_path().parent_path().string() + "/paraviewPythonScript.py " + resultPath.string() + "/Group999_ElementsAll.pvd; okular /home/phuschke/test.png";
+//    system(newcommand.c_str());
 
 
     cout << "**********************************************" << endl;
