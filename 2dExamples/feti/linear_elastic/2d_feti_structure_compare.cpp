@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
 
 
     NuTo::NewmarkDirect myIntegrationScheme(&structure);
-    boost::filesystem::path resultPath(std::string("/home/phuschke/results/feti/compare"));
+    boost::filesystem::path resultPath(boost::filesystem::path(getenv("HOME")).string() + std::string("/results/feti/compare/"));
 
     myIntegrationScheme.SetTimeStep                 ( timeStep                  );
     myIntegrationScheme.SetMaxNumIterations         ( maxIterations            );
@@ -133,13 +133,13 @@ int main(int argc, char* argv[])
     dispRHS(0, 1) = 0;
     dispRHS(1, 1) = loadFactor;
 
-    myIntegrationScheme.AddResultGroupNodeForce("myforcebla", loadNodeGroup);
+    myIntegrationScheme.AddResultGroupNodeForce("forces", loadNodeGroup);
 
     nodeCoords[0] = 20;
     nodeCoords[1] = 10;
     int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
     structure.GroupAddNodeRadiusRange(grpNodes_output_disp, nodeCoords, 0, 1.e-6);
-    myIntegrationScheme.AddResultNodeDisplacements("mydisplacements", structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
+    myIntegrationScheme.AddResultNodeDisplacements("displacements", structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
 
     myIntegrationScheme.AddTimeDependentConstraint(loadId, dispRHS);
 //    myIntegrationScheme.SetTimeDependentLoadCase(loadId, dispRHS);
