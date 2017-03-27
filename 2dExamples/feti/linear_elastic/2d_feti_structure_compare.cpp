@@ -46,14 +46,9 @@ constexpr   double      maxIterations              = 10;
 
 
 
-void AssignSection(NuTo::Structure& structure);
-void AssignMaterial(NuTo::Structure &structure);
-
-
 
 int main(int argc, char* argv[])
 {
-
 
     NuTo::Structure structure(dim);
     structure.SetNumTimeDerivatives(0);
@@ -67,12 +62,21 @@ int main(int argc, char* argv[])
     structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS,   eTypeOrder::EQUIDISTANT1);
     structure.ElementTotalConvertToInterpolationType();
 
-    AssignMaterial(structure);
-    AssignSection(structure);
+    const int materialId = structure.ConstitutiveLawCreate(eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
+    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::POISSONS_RATIO, poissonsRatio);
 
-    structure.GetLogger() << "**********************************************" << "\n";
-    structure.GetLogger() << "**  real constraints                        **" << "\n";
-    structure.GetLogger() << "**********************************************" << "\n\n";
+    structure.ElementTotalSetConstitutiveLaw(materialId);
+
+
+    auto section = NuTo::SectionPlane::Create(thickness,true);
+    structure.ElementTotalSetSection(section);
+
+
+
+    structure.GetLogger() << "*********************************** \n"
+                          << "**      constraints              ** \n"
+                          << "*********************************** \n\n";
 
     Eigen::VectorXd nodeCoords(2);
 
@@ -82,9 +86,9 @@ int main(int argc, char* argv[])
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesLeftBoundary, Vector2d::UnitX(), 0.0);
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesLeftBoundary, Vector2d::UnitY(), 0.0);
 
-    structure.GetLogger() << "**********************************************" << "\n";
-    structure.GetLogger() << "**  load                                    **" << "\n";
-    structure.GetLogger() << "**********************************************" << "\n\n";
+    structure.GetLogger() << "*********************************** \n"
+                          << "**      load                     ** \n"
+                          << "*********************************** \n\n";
 
 
 
@@ -97,9 +101,9 @@ int main(int argc, char* argv[])
     int loadId = structure.ConstraintLinearSetDisplacementNodeGroup(loadNodeGroup, Vector2d::UnitY(), 1);
 
 
-    structure.GetLogger() << "***********************************" << "\n";
-    structure.GetLogger() << "**      Visualization            **" << "\n";
-    structure.GetLogger() << "***********************************" << "\n\n";
+    structure.GetLogger() << "*********************************** \n"
+                          << "**      visualization            ** \n"
+                          << "*********************************** \n\n";
 
     int groupAllElements = 9999;
     structure.GroupCreate(groupAllElements, eGroupId::Elements);
@@ -108,9 +112,9 @@ int main(int argc, char* argv[])
 
 
 
-    structure.GetLogger() << "**********************************************" << "\n";
-    structure.GetLogger() << "**  integration sheme                       **" << "\n";
-    structure.GetLogger() << "**********************************************" << "\n\n";
+    structure.GetLogger() << "*********************************** \n"
+                          << "**      integration scheme       ** \n"
+                          << "*********************************** \n\n";
 
 
 
@@ -149,9 +153,9 @@ int main(int argc, char* argv[])
 //    myIntegrationScheme.SetSolver(std::make_unique<NuTo::SolverMUMPS>());
 
 
-    structure.GetLogger() << "***********************************" << "\n";
-    structure.GetLogger() << "**      Solve                    **" << "\n";
-    structure.GetLogger() << "***********************************" << "\n\n";
+    structure.GetLogger() << "*********************************** \n"
+                          << "**      solve                    ** \n"
+                          << "*********************************** \n\n";
 
     myIntegrationScheme.Solve(simulationTime);
 
@@ -160,23 +164,3 @@ int main(int argc, char* argv[])
 
 }
 
-
-void AssignSection(NuTo::Structure& structure)
-{
-    auto section = NuTo::SectionPlane::Create(thickness,true);
-    structure.ElementTotalSetSection(section);}
-
-void AssignMaterial(NuTo::Structure& structure)
-{
-    structure.GetLogger() << "***********************************" << "\n";
-    structure.GetLogger() << "**      Material                 **" << "\n";
-    structure.GetLogger() << "***********************************" << "\n\n";
-
-    int material00 = structure.ConstitutiveLawCreate(eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
-
-    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
-    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::POISSONS_RATIO, poissonsRatio);
-
-    structure.ElementTotalSetConstitutiveLaw(material00);
-
-}

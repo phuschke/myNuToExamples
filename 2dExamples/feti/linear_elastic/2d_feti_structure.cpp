@@ -42,13 +42,8 @@ constexpr double simulationTime = 1.0;
 constexpr double loadFactor = 10.0;
 constexpr double maxIterations = 1;
 
-
 const Eigen::Vector2d directionX = Eigen::Vector2d::UnitX();
 const Eigen::Vector2d directionY = Eigen::Vector2d::UnitY();
-
-void AssignSection(NuTo::StructureFeti& structure);
-void AssignMaterial(NuTo::StructureFeti& structure);
-
 
 int main(int argc, char* argv[])
 {
@@ -74,17 +69,19 @@ int main(int argc, char* argv[])
 
     structure.ImportMeshJson(meshFile, interpolationTypeId);
 
+    const int materialId = structure.ConstitutiveLawCreate(eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
+    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::POISSONS_RATIO, poissonsRatio);
+    structure.ElementTotalSetConstitutiveLaw(materialId);
 
-    AssignMaterial(structure);
-    AssignSection(structure);
+
+    auto section = NuTo::SectionPlane::Create(thickness, true);
+    structure.ElementTotalSetSection(section);
 
 
-    structure.GetLogger() << "**********************************************"
-                          << "\n";
-    structure.GetLogger() << "**  create node groups                      **"
-                          << "\n";
-    structure.GetLogger() << "**********************************************"
-                          << "\n\n";
+    structure.GetLogger() << "*********************************** \n"
+                          << "**      node groups              ** \n"
+                          << "*********************************** \n\n";
 
     Eigen::VectorXd nodeCoords(2);
 
@@ -97,12 +94,9 @@ int main(int argc, char* argv[])
     //    structure.GroupAddNodeRadiusRange(loadNodeGroup, nodeCoords, 0, 1.e-6);
     structure.GroupAddNodeCoordinateRange(loadNodeGroup, 0, 60 - 1.e-6, 60 + 1.e-6);
 
-    structure.GetLogger() << "**********************************************"
-                          << "\n";
-    structure.GetLogger() << "**  virtual constraints                     **"
-                          << "\n";
-    structure.GetLogger() << "**********************************************"
-                          << "\n\n";
+    structure.GetLogger() << "*********************************** \n"
+                          << "**      virtual constraints      ** \n"
+                          << "*********************************** \n\n";
 
     std::vector<int> nodeIdsBoundaries = structure.GroupGetMemberIds(groupNodesLeftBoundary);
     std::vector<int> nodeIdsLoads = structure.GroupGetMemberIds(loadNodeGroup);
@@ -110,25 +104,18 @@ int main(int argc, char* argv[])
 
     structure.ApplyVirtualConstraints(nodeIdsBoundaries, nodeIdsLoads);
 
-    structure.GetLogger() << "**********************************************"
-                          << "\n";
-    structure.GetLogger() << "**  real constraints                        **"
-                          << "\n";
-    structure.GetLogger() << "**********************************************"
-                          << "\n\n";
+    structure.GetLogger() << "*********************************** \n"
+                          << "**      real constraints         ** \n"
+                          << "*********************************** \n\n";
 
     structure.NodeBuildGlobalDofs(__PRETTY_FUNCTION__);
     structure.ApplyConstraintsTotalFeti(groupNodesLeftBoundary);
 
-    structure.GetLogger() << "**********************************************"
-                          << "\n";
-    structure.GetLogger() << "**  load                                    **"
-                          << "\n";
-    structure.GetLogger() << "**********************************************"
-                          << "\n\n";
+    structure.GetLogger() << "*********************************** \n"
+                          << "**      load                     ** \n"
+                          << "*********************************** \n\n";
 
 
-    //    structure.NodeInfo(10);
     // prescribe displacement of loadNodeGroup in Y direction
     std::map<int, double> dofIdAndPrescribedDisplacementMap;
     std::vector<int> nodeIds = structure.GroupGetMemberIds(loadNodeGroup);
@@ -142,13 +129,9 @@ int main(int argc, char* argv[])
 
     int loadId = structure.LoadCreateNodeGroupForce(0, loadNodeGroup, directionY, 0);
 
-
-    structure.GetLogger() << "***********************************"
-                          << "\n";
-    structure.GetLogger() << "**      Visualization            **"
-                          << "\n";
-    structure.GetLogger() << "***********************************"
-                          << "\n\n";
+    structure.GetLogger() << "*********************************** \n"
+                          << "**      visualization            ** \n"
+                          << "*********************************** \n\n";
 
     int groupAllElements = 9999;
     structure.GroupCreate(groupAllElements, eGroupId::Elements);
@@ -156,19 +139,17 @@ int main(int argc, char* argv[])
     structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DISPLACEMENTS);
     structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::ENGINEERING_STRAIN);
     structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::ENGINEERING_STRESS);
-    //    structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DAMAGE);
 
-
-    structure.GetLogger() << "**********************************************"
-                          << "\n";
-    structure.GetLogger() << "**  integration sheme                       **"
-                          << "\n";
-    structure.GetLogger() << "**********************************************"
-                          << "\n\n";
+    structure.GetLogger() << "*********************************** \n"
+                          << "**      integration scheme       ** \n"
+                          << "*********************************** \n\n";
 
 
     NuTo::NewmarkFeti<EigenSolver> myIntegrationScheme(&structure);
-    boost::filesystem::path resultPath(std::string("/home/phuschke/results/feti/" + std::to_string(structure.mRank)));
+
+    boost::filesystem::path resultPath(boost::filesystem::path(getenv("HOME")).string() +
+                                       std::string("/results/feti/") + std::to_string(structure.mRank));
+
 
     myIntegrationScheme.SetTimeStep(timeStep);
     myIntegrationScheme.SetMaxNumIterations(maxIterations);
@@ -188,68 +169,12 @@ int main(int argc, char* argv[])
     //    myIntegrationScheme.AddTimeDependentConstraint(loadId, dispRHS);
     myIntegrationScheme.SetTimeDependentLoadCase(loadId, dispRHS);
 
-    structure.GetLogger() << "***********************************"
-                          << "\n";
-    structure.GetLogger() << "**      Solve                    **"
-                          << "\n";
-    structure.GetLogger() << "***********************************"
-                          << "\n\n";
+    structure.GetLogger() << "*********************************** \n"
+                          << "**      solve                    ** \n"
+                          << "*********************************** \n\n";
 
 
     myIntegrationScheme.Solve(simulationTime);
     structure.GetLogger() << "Total number of Dofs: \t" << structure.GetNumTotalDofs() << "\n\n";
 
-    //
-    //    structure.GetLogger().CloseFile();
-    //    structure.GetLogger().OpenFile("PreconditionerTest" + std::to_string(rank));
-    //
-    //    structure.NodeInfo(10);
-    //    structure.GetLogger() << "B=\n" << structure.GetConnectivityMatrix() << "\n\n";
-    //    structure.GetLogger() << "RBM=\n" << structure.GetRigidBodyModes() << "\n\n";
-    //    structure.GetLogger() << std::setprecision(5) << "Projection=\n" << structure.GetProjectionMatrix() << "\n\n";
-    //
-    //    std::map<NuTo::eStructureOutput, NuTo::StructureOutputBase*> evalHessian0;
-    //
-    //    NuTo::StructureOutputBlockMatrix hessian0(structure.GetDofStatus(), true);
-    //    evalHessian0[NuTo::eStructureOutput::HESSIAN0] = &hessian0;
-    //
-    //    NuTo::ConstitutiveInputMap inputMap;
-    //    inputMap[NuTo::Constitutive::eInput::CALCULATE_STATIC_DATA] =
-    //            std::make_unique<NuTo::ConstitutiveCalculateStaticData>(NuTo::eCalculateStaticData::EULER_BACKWARD);
-    //
-    //    structure.Evaluate(inputMap, evalHessian0);
-    //
-    //    structure.GetLogger() << "Kjj=\n" << hessian0.JJ.ExportToEigenSparseMatrix() << "\n\n";
-    //
-    //    Eigen::Matrix2d bla = 3*Eigen::Matrix2d::Ones();
-    //    Eigen::Matrix2d bla2;
-    //    structure.GetLogger() << "F_I=\n" << bla << "\n\n";
-    //
-    //    MPI_Allreduce(bla.data(), bla2.data(), 4, MPI_DOUBLE, MPI_PROD, MPI_COMM_WORLD);
-    //    structure.GetLogger() << "F_I=\n" << bla2 << "\n\n";
-}
-
-
-void AssignSection(NuTo::StructureFeti& structure)
-{
-
-    auto section = NuTo::SectionPlane::Create(thickness, true);
-    structure.ElementTotalSetSection(section);
-}
-
-void AssignMaterial(NuTo::StructureFeti& structure)
-{
-    structure.GetLogger() << "***********************************"
-                          << "\n";
-    structure.GetLogger() << "**      Material                 **"
-                          << "\n";
-    structure.GetLogger() << "***********************************"
-                          << "\n\n";
-
-    int material00 = structure.ConstitutiveLawCreate(eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
-
-    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
-    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::POISSONS_RATIO, poissonsRatio);
-
-    structure.ElementTotalSetConstitutiveLaw(material00);
 }
