@@ -13,6 +13,9 @@ endforeach()
 
 foreach(task RANGE 0 1)
     foreach(mesh
+            feti_beam_coarse_2_subdomains.mesh
+            feti_beam_coarse_2_subdomains_24_ele.mesh
+            feti_beam_coarse_2_subdomains_6_ele.mesh
             feti_linear_benchmark_2_subs.mesh
             )
 
