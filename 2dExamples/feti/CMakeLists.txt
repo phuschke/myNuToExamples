@@ -1,5 +1,9 @@
 add_subdirectory(virtual_constraints)
 
+add_subdirectory(gradient_damage)
+add_subdirectory(phase_field)
+add_subdirectory(linear_elastic)
+
 
 # create symlinks to the necessary mesh files
 foreach(task RANGE 0 4)

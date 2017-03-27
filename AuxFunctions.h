@@ -106,4 +106,7 @@ bool BiCGStab(const Eigen::MatrixXd& mat, const Eigen::VectorXd& rhs, Eigen::Vec
     iters     = i;
     return true;
 }
-}
+
+
+
+} // namespace NuTo

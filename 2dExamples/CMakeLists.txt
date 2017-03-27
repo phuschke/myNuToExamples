@@ -31,7 +31,7 @@ execute_process(
   endforeach()
 
 foreach(file
-        2d_feti_structure_compare_phase_field
+        #2d_feti_structure_compare_phase_field
         )
   add_executable        (${file} ${file}.cpp)
   target_link_libraries (${file} NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})

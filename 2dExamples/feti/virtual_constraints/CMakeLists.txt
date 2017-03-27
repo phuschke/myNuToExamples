@@ -59,7 +59,6 @@ endforeach()
 
 if (ENABLE_MPI)
 foreach(file
-        2d_feti_structure
         #2d_feti_structure_local_damage
         2d_feti_structure_gradient_damage
         2d_feti_structure_phase_field
@@ -78,7 +77,6 @@ endforeach()
 endif ()
 
 foreach(file
-        2d_feti_structure_compare
 #        2d_feti_structure_local_damage_compare
 #        2d_feti_structure_gradient_damage_compare
         2d_fetI_structure_phase_field_compare
