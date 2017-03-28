@@ -23,28 +23,27 @@
 #include "mechanics/sections/SectionPlane.h"
 
 
-constexpr   int         dim                         = 2;
-constexpr   double      thickness                   = 1.0;
+constexpr int dim = 2;
+constexpr double thickness = 1.0;
 
 // material
-constexpr   double      youngsModulus               = 4.0e4;
-constexpr   double      poissonsRatio               = 0.2;
-constexpr   double      tensileStrength             = 3;
-constexpr   double      compressiveStrength         = 30;
-constexpr   double      fractureEnergy              = 0.1;
+constexpr double youngsModulus = 2.1e5;
+constexpr double poissonsRatio = 0.3;
+
 
 // integration
-constexpr   bool        performLineSearch           = true;
-constexpr   bool        automaticTimeStepping       = true;
-constexpr   double      timeStep                    = 1e-0;
-constexpr   double      minTimeStep                 = 1e-3;
-constexpr   double      maxTimeStep                 =  1e-0;
-constexpr   double      toleranceDisp              = 1e-6;
-constexpr   double      simulationTime              = 1.0;
-constexpr   double      loadFactor                  = 10;
-constexpr   double      maxIterations              = 10;
+constexpr bool performLineSearch = false;
+constexpr bool automaticTimeStepping = false;
+constexpr double timeStep = 1e-0;
+constexpr double minTimeStep = 1e-1;
+constexpr double maxTimeStep = 1e-0;
+constexpr double toleranceDisp = 1e-6;
+constexpr double simulationTime = 1.0;
+constexpr double loadFactor = -10.0;
+constexpr double maxIterations = 1;
 
-
+const Eigen::Vector2d directionX = Eigen::Vector2d::UnitX();
+const Eigen::Vector2d directionY = Eigen::Vector2d::UnitY();
 
 
 int main(int argc, char* argv[])
@@ -59,7 +58,7 @@ int main(int argc, char* argv[])
     auto importContainer = structure.ImportFromGmsh(argv[1]);
 
     const int interpolationTypeId = importContainer[0].second;
-    structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS,   eTypeOrder::EQUIDISTANT1);
+    structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT1);
     structure.ElementTotalConvertToInterpolationType();
 
     const int materialId = structure.ConstitutiveLawCreate(eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
@@ -69,20 +68,19 @@ int main(int argc, char* argv[])
     structure.ElementTotalSetConstitutiveLaw(materialId);
 
 
-    auto section = NuTo::SectionPlane::Create(thickness,true);
+    auto section = NuTo::SectionPlane::Create(thickness, true);
     structure.ElementTotalSetSection(section);
-
 
 
     structure.GetLogger() << "*********************************** \n"
                           << "**      constraints              ** \n"
                           << "*********************************** \n\n";
 
-    Eigen::VectorXd nodeCoords(2);
+    Eigen::VectorXd coordinates(dim);
 
 
     int groupNodesLeftBoundary = structure.GroupCreate(eGroupId::Nodes);
-    structure.GroupAddNodeCoordinateRange(groupNodesLeftBoundary,0,-1.e-6,+1.e-6);
+    structure.GroupAddNodeCoordinateRange(groupNodesLeftBoundary, 0, -1.e-6, +1.e-6);
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesLeftBoundary, Vector2d::UnitX(), 0.0);
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesLeftBoundary, Vector2d::UnitY(), 0.0);
 
@@ -91,13 +89,11 @@ int main(int argc, char* argv[])
                           << "*********************************** \n\n";
 
 
-
-
     int loadNodeGroup = structure.GroupCreate(eGroupId::Nodes);
 
-    nodeCoords[0] = 60;
-    nodeCoords[1] = 0;
-    structure.GroupAddNodeRadiusRange(loadNodeGroup, nodeCoords, 0, 1.e-6);
+    coordinates[0] = 60;
+    coordinates[1] = 0;
+    structure.GroupAddNodeRadiusRange(loadNodeGroup, coordinates, 0, 1.e-6);
     int loadId = structure.ConstraintLinearSetDisplacementNodeGroup(loadNodeGroup, Vector2d::UnitY(), 1);
 
 
@@ -111,25 +107,23 @@ int main(int argc, char* argv[])
     structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DISPLACEMENTS);
 
 
-
     structure.GetLogger() << "*********************************** \n"
                           << "**      integration scheme       ** \n"
                           << "*********************************** \n\n";
 
 
-
-
     NuTo::NewmarkDirect myIntegrationScheme(&structure);
-    boost::filesystem::path resultPath(boost::filesystem::path(getenv("HOME")).string() + std::string("/results/feti/compare/"));
+    boost::filesystem::path resultPath(boost::filesystem::path(getenv("HOME")).string() +
+                                       std::string("/results/feti/compare/"));
 
-    myIntegrationScheme.SetTimeStep                 ( timeStep                  );
-    myIntegrationScheme.SetMaxNumIterations         ( maxIterations            );
-    myIntegrationScheme.SetMinTimeStep              ( minTimeStep               );
-    myIntegrationScheme.SetMaxTimeStep              ( maxTimeStep               );
-    myIntegrationScheme.SetAutomaticTimeStepping    ( automaticTimeStepping     );
-    myIntegrationScheme.SetResultDirectory          ( resultPath.string(), true );
-    myIntegrationScheme.SetPerformLineSearch        ( performLineSearch         );
-    myIntegrationScheme.SetToleranceResidual        ( eDof::DISPLACEMENTS, toleranceDisp );
+    myIntegrationScheme.SetTimeStep(timeStep);
+    myIntegrationScheme.SetMaxNumIterations(maxIterations);
+    myIntegrationScheme.SetMinTimeStep(minTimeStep);
+    myIntegrationScheme.SetMaxTimeStep(maxTimeStep);
+    myIntegrationScheme.SetAutomaticTimeStepping(automaticTimeStepping);
+    myIntegrationScheme.SetResultDirectory(resultPath.string(), true);
+    myIntegrationScheme.SetPerformLineSearch(performLineSearch);
+    myIntegrationScheme.SetToleranceResidual(eDof::DISPLACEMENTS, toleranceDisp);
 
     Eigen::Matrix2d dispRHS;
     dispRHS(0, 0) = 0;
@@ -139,18 +133,19 @@ int main(int argc, char* argv[])
 
     myIntegrationScheme.AddResultGroupNodeForce("forces", loadNodeGroup);
 
-    nodeCoords[0] = 20;
-    nodeCoords[1] = 10;
+    coordinates[0] = 20;
+    coordinates[1] = 10;
     int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
-    structure.GroupAddNodeRadiusRange(grpNodes_output_disp, nodeCoords, 0, 1.e-6);
-    myIntegrationScheme.AddResultNodeDisplacements("displacements", structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
+    structure.GroupAddNodeRadiusRange(grpNodes_output_disp, coordinates, 0, 1.e-6);
+    myIntegrationScheme.AddResultNodeDisplacements("displacements",
+                                                   structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
 
     myIntegrationScheme.AddTimeDependentConstraint(loadId, dispRHS);
-//    myIntegrationScheme.SetTimeDependentLoadCase(loadId, dispRHS);
 
-
-    myIntegrationScheme.SetSolver(std::make_unique<NuTo::SolverEigen<Eigen::SparseLU<Eigen::SparseMatrix<double>,Eigen::COLAMDOrdering<int>>>>());
-//    myIntegrationScheme.SetSolver(std::make_unique<NuTo::SolverMUMPS>());
+    myIntegrationScheme.SetSolver(
+            std::make_unique<
+                    NuTo::SolverEigen<Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>>>>());
+    //    myIntegrationScheme.SetSolver(std::make_unique<NuTo::SolverMUMPS>());
 
 
     structure.GetLogger() << "*********************************** \n"
@@ -159,8 +154,5 @@ int main(int argc, char* argv[])
 
     myIntegrationScheme.Solve(simulationTime);
 
-    structure.GetLogger()   << "Total number of Dofs: \t"
-                            << structure.GetNumTotalDofs() << "\n\n";
-
+    structure.GetLogger() << "Total number of Dofs: \t" << structure.GetNumTotalDofs() << "\n\n";
 }
-

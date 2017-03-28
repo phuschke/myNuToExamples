@@ -2,6 +2,7 @@ set(MESH_DIR "${CMAKE_SOURCE_DIR}/applications/custom/myNutoExamples/meshFiles/2
 
 foreach(mesh
         feti_linear_benchmark.msh
+        feti_linear_benchmark_2_subs_500k_nodes.msh
         )
     execute_process(
             COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "${MESH_DIR}/${mesh}" "${CMAKE_CURRENT_BINARY_DIR}/${mesh}"
@@ -17,6 +18,35 @@ foreach(task RANGE 0 1)
             feti_beam_coarse_2_subdomains_24_ele.mesh
             feti_beam_coarse_2_subdomains_6_ele.mesh
             feti_linear_benchmark_2_subs.mesh
+            feti_linear_benchmark_2_subs_500k_nodes.mesh
+            )
+
+        execute_process(
+                COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "${MESH_DIR}/${mesh}${task}" "${CMAKE_CURRENT_BINARY_DIR}/${mesh}${task}"
+        )
+    endforeach()
+endforeach()
+
+########################################################################################################################
+########################################################################################################################
+
+foreach(task RANGE 0 3)
+    foreach(mesh
+            feti_linear_benchmark_4_subs_500k_nodes.mesh
+            )
+
+        execute_process(
+                COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "${MESH_DIR}/${mesh}${task}" "${CMAKE_CURRENT_BINARY_DIR}/${mesh}${task}"
+        )
+    endforeach()
+endforeach()
+
+########################################################################################################################
+########################################################################################################################
+
+foreach(task RANGE 0 7)
+    foreach(mesh
+            feti_linear_benchmark_8_subs_500k_nodes.mesh
             )
 
         execute_process(

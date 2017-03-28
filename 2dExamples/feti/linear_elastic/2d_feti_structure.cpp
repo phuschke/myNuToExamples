@@ -22,24 +22,22 @@ using Eigen::MatrixXd;
 // using EigenSolver = Eigen::PardisoLU<Eigen::SparseMatrix<double>>;
 using EigenSolver = Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>>;
 
-
-constexpr int dimension = 2;
 constexpr double thickness = 1.0;
 
 // material
-constexpr double youngsModulus = 1.0e4;
-constexpr double poissonsRatio = 0.2;
+constexpr double youngsModulus = 2.1e5;
+constexpr double poissonsRatio = 0.3;
 
 
 // integration
-constexpr bool performLineSearch = true;
-constexpr bool automaticTimeStepping = true;
+constexpr bool performLineSearch = false;
+constexpr bool automaticTimeStepping = false;
 constexpr double timeStep = 1e-0;
 constexpr double minTimeStep = 1e-1;
 constexpr double maxTimeStep = 1e-0;
 constexpr double toleranceDisp = 1e-6;
 constexpr double simulationTime = 1.0;
-constexpr double loadFactor = 10.0;
+constexpr double loadFactor = -10.0;
 constexpr double maxIterations = 1;
 
 const Eigen::Vector2d directionX = Eigen::Vector2d::UnitX();
@@ -83,16 +81,16 @@ int main(int argc, char* argv[])
                           << "**      node groups              ** \n"
                           << "*********************************** \n\n";
 
-    Eigen::VectorXd nodeCoords(2);
+    Eigen::VectorXd coordinates(dim);
 
     int groupNodesLeftBoundary = structure.GroupCreate(eGroupId::Nodes);
     structure.GroupAddNodeCoordinateRange(groupNodesLeftBoundary, 0, -1.e-6, +1.e-6);
 
     int loadNodeGroup = structure.GroupCreate(eGroupId::Nodes);
-    //    nodeCoords[0] = 60;
-    //    nodeCoords[1] = 0;
-    //    structure.GroupAddNodeRadiusRange(loadNodeGroup, nodeCoords, 0, 1.e-6);
-    structure.GroupAddNodeCoordinateRange(loadNodeGroup, 0, 60 - 1.e-6, 60 + 1.e-6);
+    coordinates[0] = 60;
+    coordinates[1] = 0;
+    structure.GroupAddNodeRadiusRange(loadNodeGroup, coordinates, 0, 1.e-6);
+
 
     structure.GetLogger() << "*********************************** \n"
                           << "**      virtual constraints      ** \n"
@@ -122,7 +120,7 @@ int main(int argc, char* argv[])
     for (auto const& nodeId : nodeIds)
     {
         std::vector<int> dofIds = structure.NodeGetDofIds(nodeId, eDof::DISPLACEMENTS);
-        dofIdAndPrescribedDisplacementMap.emplace(dofIds[0], 1.);
+        dofIdAndPrescribedDisplacementMap.emplace(dofIds[1], 1.);
     }
 
     structure.ApplyPrescribedDisplacements(dofIdAndPrescribedDisplacementMap);
@@ -159,6 +157,7 @@ int main(int argc, char* argv[])
     myIntegrationScheme.SetResultDirectory(resultPath.string(), true);
     myIntegrationScheme.SetPerformLineSearch(performLineSearch);
     myIntegrationScheme.SetToleranceResidual(eDof::DISPLACEMENTS, toleranceDisp);
+    myIntegrationScheme.SetToleranceIterativeSolver(1.e-4);
 
     Eigen::Matrix2d dispRHS;
     dispRHS(0, 0) = 0;
@@ -166,7 +165,6 @@ int main(int argc, char* argv[])
     dispRHS(0, 1) = 0;
     dispRHS(1, 1) = loadFactor;
 
-    //    myIntegrationScheme.AddTimeDependentConstraint(loadId, dispRHS);
     myIntegrationScheme.SetTimeDependentLoadCase(loadId, dispRHS);
 
     structure.GetLogger() << "*********************************** \n"
@@ -176,5 +174,4 @@ int main(int argc, char* argv[])
 
     myIntegrationScheme.Solve(simulationTime);
     structure.GetLogger() << "Total number of Dofs: \t" << structure.GetNumTotalDofs() << "\n\n";
-
 }
