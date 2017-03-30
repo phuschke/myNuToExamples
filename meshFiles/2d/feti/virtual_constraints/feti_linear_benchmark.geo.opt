@@ -1,0 +1,10 @@
+Plugin(SimplePartition).Mapping= "t";
+Plugin(SimplePartition).NumSlices=4;
+Plugin(SimplePartition).Direction=0;
+Plugin(SimplePartition).CreateBoundaries=0;
+Plugin(SimplePartition).Run;
+Plugin(SimplePartition).Mapping= "t";
+Plugin(SimplePartition).NumSlices=4;
+Plugin(SimplePartition).Direction=0;
+Plugin(SimplePartition).CreateBoundaries=0;
+Plugin(SimplePartition).Run;

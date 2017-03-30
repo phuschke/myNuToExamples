@@ -5,6 +5,7 @@
 #include "mechanics/feti/StructureFeti.h"
 #include <ctime>
 #include <chrono>
+#include <mechanics/constitutive/damageLaws/DamageLawExponential.h>
 #include "mechanics/feti/NewmarkFeti.h"
 #include "../../../EnumsAndTypedefs.h"
 
@@ -36,6 +37,7 @@ constexpr double tensileStrength = 3;
 constexpr double compressiveStrength = 30;
 constexpr double fractureEnergy = 0.01;
 constexpr double nonlocalRadius = 2; // mm
+constexpr double alpha = 0.95; // mm
 
 // integration
 constexpr double timeStep = 1.e-0;
@@ -221,7 +223,8 @@ int main(int argc, char* argv[])
 
     myIntegrationScheme.SetToleranceResidual(eDof::DISPLACEMENTS, toleranceDisp);
     myIntegrationScheme.SetToleranceResidual(eDof::NONLOCALEQSTRAIN, toleranceNlEqStrain);
-    myIntegrationScheme.SetIterativeSolver(NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::BiconjugateGradientStabilized);
+    myIntegrationScheme.SetIterativeSolver(
+            NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::BiconjugateGradientStabilized);
 
     Eigen::Matrix2d dispRHS;
     dispRHS(0, 0) = 0;
@@ -254,14 +257,17 @@ void AssignMaterial(NuTo::StructureFeti& structure)
     structure.GetLogger() << "***********************************"
                           << "\n\n";
 
-    int material00 = structure.ConstitutiveLawCreate(eConstitutiveType::GRADIENT_DAMAGE_ENGINEERING_STRESS);
-    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
-    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::POISSONS_RATIO, poissonsRatio);
-    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::TENSILE_STRENGTH, tensileStrength);
-    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::COMPRESSIVE_STRENGTH,
+    int materialId = structure.ConstitutiveLawCreate(eConstitutiveType::GRADIENT_DAMAGE_ENGINEERING_STRESS);
+    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
+    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::POISSONS_RATIO, poissonsRatio);
+    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::TENSILE_STRENGTH, tensileStrength);
+    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::COMPRESSIVE_STRENGTH,
                                                 compressiveStrength);
-    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::NONLOCAL_RADIUS, nonlocalRadius);
-    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::FRACTURE_ENERGY, fractureEnergy);
+    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::NONLOCAL_RADIUS, nonlocalRadius);
 
-    structure.ElementTotalSetConstitutiveLaw(material00);
+    structure.ConstitutiveLawSetDamageLaw(
+            materialId, NuTo::Constitutive::DamageLawExponential::Create(tensileStrength / youngsModulus,
+                                                                         tensileStrength / fractureEnergy, alpha));
+
+    structure.ElementTotalSetConstitutiveLaw(materialId);
 }

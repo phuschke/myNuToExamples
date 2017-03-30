@@ -6,6 +6,7 @@
 
 #include <ctime>
 #include <chrono>
+#include <mechanics/constitutive/damageLaws/DamageLawExponential.h>
 #include "mechanics/feti/NewmarkFeti.h"
 #include "../../../EnumsAndTypedefs.h"
 
@@ -93,9 +94,8 @@ int main(int argc, char* argv[])
     structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::COMPRESSIVE_STRENGTH,
                                                 compressiveStrength);
     structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::NONLOCAL_RADIUS, nonlocalRadius);
-    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::FRACTURE_ENERGY, fractureEnergy);
-    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::MAX_OMEGA, alpha);
-    structure.ConstitutiveLawSetDamageLaw(materialId,NuTo::Constitutive::eDamageLawType::ISOTROPIC_EXPONENTIAL_SOFTENING_RES_LOAD);
+
+    structure.ConstitutiveLawSetDamageLaw(materialId, NuTo::Constitutive::DamageLawExponential::Create(tensileStrength/youngsModulus,tensileStrength/fractureEnergy,alpha));
 
     structure.ElementTotalSetConstitutiveLaw(materialId);
 
