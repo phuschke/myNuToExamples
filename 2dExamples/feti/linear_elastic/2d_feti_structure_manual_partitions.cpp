@@ -14,7 +14,6 @@
 #include "mechanics/sections/SectionPlane.h"
 
 #include "mechanics/mesh/MeshGenerator.h"
-
 constexpr int dim = 2;
 using Eigen::VectorXd;
 using Eigen::MatrixXd;
@@ -54,7 +53,7 @@ int main(int argc, char* argv[])
     NuTo::StructureFeti structure(dim);
     structure.SetNumTimeDerivatives(0);
     structure.SetVerboseLevel(5);
-    structure.SetShowTime(false);
+    structure.SetShowTime(true);
     structure.GetLogger().OpenFile("output" + std::to_string(rank));
     structure.GetLogger().SetQuiet(true);
 
@@ -63,8 +62,8 @@ int main(int argc, char* argv[])
     meshDimensions.push_back(10.);
 
     std::vector<int> numElements;
-    numElements.push_back(300);
-    numElements.push_back(200);
+    numElements.push_back(20);
+    numElements.push_back(10);
 
     structure.CreateRectangularMesh2D(meshDimensions, numElements);
 
@@ -100,6 +99,7 @@ int main(int argc, char* argv[])
     std::vector<int> nodeIdsBoundaries = structure.GroupGetMemberIds(groupNodesLeftBoundary);
     std::vector<int> nodeIdsLoads = structure.GroupGetMemberIds(loadNodeGroup);
 
+//    std::cout << nodeIdsBoundaries << "\n";
 
     structure.ApplyVirtualConstraints(nodeIdsBoundaries, nodeIdsLoads);
 
@@ -159,6 +159,8 @@ int main(int argc, char* argv[])
     myIntegrationScheme.SetPerformLineSearch(performLineSearch);
     myIntegrationScheme.SetToleranceResidual(eDof::DISPLACEMENTS, toleranceDisp);
     myIntegrationScheme.SetToleranceIterativeSolver(1.e-4);
+    myIntegrationScheme.SetIterativeSolver(NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::ConjugateGradient);
+    myIntegrationScheme.SetFetiPreconditioner(NuTo::NewmarkFeti<EigenSolver>::eFetiPreconditioner::Lumped);
 
     Eigen::Matrix2d dispRHS;
     dispRHS(0, 0) = 0;

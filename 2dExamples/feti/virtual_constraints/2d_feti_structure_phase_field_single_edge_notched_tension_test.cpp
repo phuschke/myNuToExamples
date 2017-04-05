@@ -28,7 +28,7 @@ constexpr int dimension    = 2;
 constexpr double thickness = 1.0;
 
 constexpr double tol                 = 1e-6;
-constexpr double toleranceDisp       = 1e-4;
+constexpr double toleranceDisp       = 1e-7;
 constexpr double toleranceCrack      = 1e-4;
 constexpr double toleranceNlEqStrain = 1e-6;
 
@@ -67,23 +67,23 @@ const Eigen::Vector2d directionY = Eigen::Vector2d::UnitY();
 
 
 // material
-constexpr double youngsModulus                               = 2.1e0; // N/mm^2
-constexpr double poissonsRatio                               = 0.3;
-constexpr double lengthScaleParameter                        = 1.e-2; // mm
-constexpr double fractureEnergy                              = 2.7; // N/mm
-constexpr double artificialViscosity                         = 1.0e-2; // Ns/mm^2
+constexpr   double      youngsModulus               = 2.1e5;                // N/mm^2
+constexpr   double      poissonsRatio               = 0.3;
+constexpr   double      lengthScaleParameter        = 1.e-2;               // mm
+constexpr   double      fractureEnergy              = 2.7;                  // N/mm
+constexpr   double      artificialViscosity         = 1.e-6;               // Ns/mm^2
 constexpr ePhaseFieldEnergyDecomposition energyDecomposition = ePhaseFieldEnergyDecomposition::ISOTROPIC;
 
 
-// integration
-constexpr   bool        performLineSearch           = false;
+constexpr   bool        performLineSearch           = true;
 constexpr   bool        automaticTimeStepping       = true;
 constexpr   double      timeStep                   = 1.e-4;
 constexpr   double      minTimeStep                = 1.e-8;
-constexpr   double      maxTimeStep                = 1.e-4;
+constexpr   double      maxTimeStep                = 1.e-2;
 constexpr   double      timeStepPostProcessing     = 5.e-5;
 
-constexpr   double      simulationTime             = 9.0e-3;
+
+constexpr   double      simulationTime             = 20.0e-3;
 constexpr   double      loadFactor                 = simulationTime;
 
 
@@ -230,6 +230,7 @@ int main(int argc, char* argv[])
     myIntegrationScheme.SetToleranceResidual(eDof::DISPLACEMENTS, toleranceDisp);
     myIntegrationScheme.SetToleranceResidual(eDof::CRACKPHASEFIELD, toleranceCrack);
     myIntegrationScheme.SetToleranceResidual(eDof::NONLOCALEQSTRAIN, toleranceNlEqStrain);
+    myIntegrationScheme.SetIterativeSolver(NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::BiconjugateGradientStabilized);
 
 
     Eigen::Matrix2d dispRHS;
