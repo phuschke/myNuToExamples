@@ -64,8 +64,9 @@ endforeach()
 
 if (ENABLE_MPI)
     foreach(file
-            2d_feti_structure
+#            2d_feti_structure
             2d_feti_structure_manual_partitions
+#            2d_feti_structure_projected_gmres
             )
 
         add_executable(${file} ${file}.cpp)
@@ -81,7 +82,7 @@ endif ()
 ########################################################################################################################
 
 foreach(file
-        2d_feti_structure_compare
+        #2d_feti_structure_compare
         )
     add_executable(${file} ${file}.cpp)
     target_link_libraries(${file} NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})

@@ -21,7 +21,6 @@ foreach(task RANGE 0 1)
             feti_beam_coarse_2_subdomains_24_ele.mesh
             feti_beam_coarse_2_subdomains_6_ele.mesh
             feti_linear_benchmark_2_subs.mesh
-            2d_single_edge_notched_tension_test_2_subdomains.mesh
             )
 
         execute_process(
@@ -63,7 +62,6 @@ foreach(file
         2d_feti_structure_gradient_damage
         2d_feti_structure_phase_field
         2d_feti_structure_phase_field_tension
-        2d_feti_structure_phase_field_single_edge_notched_tension_test
         )
 
     add_executable(${file} ${file}.cpp)

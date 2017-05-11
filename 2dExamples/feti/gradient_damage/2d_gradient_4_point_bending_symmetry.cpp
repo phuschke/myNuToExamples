@@ -36,7 +36,7 @@ constexpr double poissonsRatio = 0.2;
 constexpr double tensileStrength = 3;
 constexpr double compressiveStrength = 30;
 constexpr double fractureEnergy = 0.01;
-constexpr double alpha = 0.3;
+constexpr double alpha = 0.99;
 
 // integration
 constexpr bool performLineSearch = true;
@@ -201,7 +201,8 @@ int main(int argc, char* argv[])
                           << "*********************************** \n\n";
 
     NuTo::NewmarkFeti<EigenSolver> myIntegrationScheme(&structure);
-    boost::filesystem::path resultPath(std::string("/home/phuschke/results/feti/" + std::to_string(structure.mRank)));
+    boost::filesystem::path resultPath(boost::filesystem::path(getenv("HOME")).string() +
+                                       std::string("/results/feti/") + std::to_string(structure.mRank));
 
     myIntegrationScheme.SetTimeStep(timeStep);
     myIntegrationScheme.SetMaxNumIterations(maxIterations);
@@ -213,7 +214,7 @@ int main(int argc, char* argv[])
     myIntegrationScheme.SetToleranceResidual(eDof::DISPLACEMENTS, toleranceDisp);
     myIntegrationScheme.SetToleranceResidual(eDof::NONLOCALEQSTRAIN, toleranceNlEqStrain);
     myIntegrationScheme.SetIterativeSolver(
-            NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::BiconjugateGradientStabilized);
+            NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::ProjectedGmres);
     myIntegrationScheme.SetToleranceIterativeSolver(tolerance);
 
     Eigen::Matrix2d dispRHS;

@@ -35,6 +35,7 @@ endforeach()
 if (ENABLE_MPI)
     foreach(file
             2d_gradient_4_point_bending_symmetry
+            2d_feti_gradient_damage_3_point_bending
             )
 
         add_executable(${file} ${file}.cpp)

@@ -9,7 +9,7 @@
 #include "../../../EnumsAndTypedefs.h"
 
 #include "mechanics/nodes/NodeBase.h"
-
+#include "mechanics/constitutive/damageLaws/DamageLawExponential.h"
 #include "boost/filesystem.hpp"
 #include "mechanics/sections/SectionPlane.h"
 
@@ -25,20 +25,29 @@ using EigenSolver = Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOr
 constexpr double thickness = 1.0;
 
 // material
-constexpr double youngsModulus = 2.1e5;
-constexpr double poissonsRatio = 0.3;
-
+constexpr double nonlocalRadius = 0.5; // mm
+constexpr double youngsModulus = 4.0e4;
+constexpr double poissonsRatio = 0.2;
+constexpr double tensileStrength = 3;
+constexpr double compressiveStrength = 30;
+constexpr double fractureEnergy = 0.01;
+constexpr double alpha = 0.99;
 
 // integration
-constexpr bool performLineSearch = false;
-constexpr bool automaticTimeStepping = false;
-constexpr double timeStep = 1e-0;
-constexpr double minTimeStep = 1e-1;
-constexpr double maxTimeStep = 1e-0;
-constexpr double toleranceDisp = 1e-6;
+constexpr bool performLineSearch = true;
+constexpr bool automaticTimeStepping = true;
+constexpr double timeStep = 1e-3;
+constexpr double minTimeStep = 1e-5;
+constexpr double maxTimeStep = 1e-1;
+
+constexpr double toleranceDisp = 1e-8;
+constexpr double toleranceNlEqStrain = 1e-8;
+constexpr double tolerance = 1e-5;
+
 constexpr double simulationTime = 1.0;
-constexpr double loadFactor = -10.0;
-constexpr double maxIterations = 1;
+constexpr double loadFactor = -0.1;
+constexpr double maxIterations = 10;
+
 
 const Eigen::Vector2d directionX = Eigen::Vector2d::UnitX();
 const Eigen::Vector2d directionY = Eigen::Vector2d::UnitY();
@@ -62,19 +71,33 @@ int main(int argc, char* argv[])
     meshDimensions.push_back(10.);
 
     std::vector<int> numElements;
-    numElements.push_back(40);
-    numElements.push_back(40);
+    numElements.push_back(20);
+    numElements.push_back(10);
 
-    auto importContainer = structure.CreateRectangularMesh2D(meshDimensions, numElements);
-    const int interpolationTypeId = importContainer.second;
-    structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS,   eTypeOrder::EQUIDISTANT1);
+    const auto importContainer = structure.CreateRectangularMesh2D(meshDimensions, numElements);
+
+    const int interpolationTypeIdDamage = importContainer.second;
+    structure.InterpolationTypeAdd(interpolationTypeIdDamage, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT1);
+    structure.InterpolationTypeAdd(interpolationTypeIdDamage, eDof::NONLOCALEQSTRAIN, eTypeOrder::EQUIDISTANT1);
     structure.ElementTotalConvertToInterpolationType();
 
-    const int materialId = structure.ConstitutiveLawCreate(eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+    structure.GetLogger() << "*********************************** \n"
+                          << "**      material                 ** \n"
+                          << "*********************************** \n\n";
+
+    const int materialId = structure.ConstitutiveLawCreate(eConstitutiveType::GRADIENT_DAMAGE_ENGINEERING_STRESS);
     structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
     structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::POISSONS_RATIO, poissonsRatio);
-    structure.ElementTotalSetConstitutiveLaw(materialId);
+    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::TENSILE_STRENGTH, tensileStrength);
+    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::COMPRESSIVE_STRENGTH,
+                                                compressiveStrength);
+    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::NONLOCAL_RADIUS, nonlocalRadius);
 
+    structure.ConstitutiveLawSetDamageLaw(
+            materialId, NuTo::Constitutive::DamageLawExponential::Create(tensileStrength / youngsModulus,
+                                                                         tensileStrength / fractureEnergy, alpha));
+
+    structure.ElementTotalSetConstitutiveLaw(materialId);
 
     auto section = NuTo::SectionPlane::Create(thickness, true);
     structure.ElementTotalSetSection(section);
@@ -86,12 +109,19 @@ int main(int argc, char* argv[])
 
     Eigen::VectorXd coordinates(dim);
 
-    int groupNodesLeftBoundary = structure.GroupCreate(eGroupId::Nodes);
-    structure.GroupAddNodeCoordinateRange(groupNodesLeftBoundary, 0, -1.e-6, +1.e-6);
+    coordinates << 0., 0.;
+    const int groupNodesBottomLeft = structure.GroupCreate(eGroupId::Nodes);
+    structure.GroupAddNodeRadiusRange(groupNodesBottomLeft, coordinates, 0, tolerance);
+
+    coordinates << 60., 0.;
+    const int groupNodesBottomRight = structure.GroupCreate(eGroupId::Nodes);
+    structure.GroupAddNodeRadiusRange(groupNodesBottomRight, coordinates, 0, tolerance);
+
+    const int groupNodesBoundary = structure.GroupUnion(groupNodesBottomLeft, groupNodesBottomRight);
 
     int loadNodeGroup = structure.GroupCreate(eGroupId::Nodes);
-    coordinates[0] = 60;
-    coordinates[1] = 0;
+    coordinates[0] = 30;
+    coordinates[1] = 10;
     structure.GroupAddNodeRadiusRange(loadNodeGroup, coordinates, 0, 1.e-6);
 
 
@@ -99,10 +129,10 @@ int main(int argc, char* argv[])
                           << "**      virtual constraints      ** \n"
                           << "*********************************** \n\n";
 
-    std::vector<int> nodeIdsBoundaries = structure.GroupGetMemberIds(groupNodesLeftBoundary);
+    std::vector<int> nodeIdsBoundaries = structure.GroupGetMemberIds(groupNodesBoundary);
     std::vector<int> nodeIdsLoads = structure.GroupGetMemberIds(loadNodeGroup);
 
-//    std::cout << nodeIdsBoundaries << "\n";
+    //    std::cout << nodeIdsBoundaries << "\n";
 
     structure.ApplyVirtualConstraints(nodeIdsBoundaries, nodeIdsLoads);
 
@@ -111,7 +141,25 @@ int main(int argc, char* argv[])
                           << "*********************************** \n\n";
 
     structure.NodeBuildGlobalDofs(__PRETTY_FUNCTION__);
-    structure.ApplyConstraintsTotalFeti(groupNodesLeftBoundary);
+
+    std::vector<int> boundaryDofIds;
+    std::vector<int> nodeIdsBoundaryLeft = structure.GroupGetMemberIds(groupNodesBottomLeft);
+    for (const int nodeId : nodeIdsBoundaryLeft)
+    {
+        std::vector<int> dofIds = structure.NodeGetDofIds(nodeId, eDof::DISPLACEMENTS);
+        boundaryDofIds.push_back(dofIds[0]);
+        boundaryDofIds.push_back(dofIds[1]);
+    }
+
+    std::vector<int> nodeIdsBoundaryRight = structure.GroupGetMemberIds(groupNodesBottomRight);
+    for (const int nodeId : nodeIdsBoundaryRight)
+    {
+        std::vector<int> dofIds = structure.NodeGetDofIds(nodeId, eDof::DISPLACEMENTS);
+        boundaryDofIds.push_back(dofIds[1]);
+    }
+
+    structure.ApplyConstraintsTotalFeti(boundaryDofIds);
+
 
     structure.GetLogger() << "*********************************** \n"
                           << "**      load                     ** \n"
@@ -141,6 +189,7 @@ int main(int argc, char* argv[])
     structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DISPLACEMENTS);
     structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::ENGINEERING_STRAIN);
     structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::ENGINEERING_STRESS);
+    structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DAMAGE);
 
     structure.GetLogger() << "*********************************** \n"
                           << "**      integration scheme       ** \n"
@@ -161,8 +210,9 @@ int main(int argc, char* argv[])
     myIntegrationScheme.SetResultDirectory(resultPath.string(), true);
     myIntegrationScheme.SetPerformLineSearch(performLineSearch);
     myIntegrationScheme.SetToleranceResidual(eDof::DISPLACEMENTS, toleranceDisp);
-    myIntegrationScheme.SetToleranceIterativeSolver(1.e-4);
-    myIntegrationScheme.SetIterativeSolver(NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::ConjugateGradient);
+    myIntegrationScheme.SetToleranceResidual(eDof::NONLOCALEQSTRAIN, toleranceNlEqStrain);
+    myIntegrationScheme.SetToleranceIterativeSolver(1.e-6);
+    myIntegrationScheme.SetIterativeSolver(NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::ProjectedGmres);
     myIntegrationScheme.SetFetiPreconditioner(NuTo::NewmarkFeti<EigenSolver>::eFetiPreconditioner::Lumped);
 
     Eigen::Matrix2d dispRHS;

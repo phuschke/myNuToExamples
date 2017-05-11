@@ -62,8 +62,8 @@ int main(int argc, char* argv[])
     meshDimensions.push_back(10.);
 
     std::vector<int> numElements;
-    numElements.push_back(40);
-    numElements.push_back(40);
+    numElements.push_back(100);
+    numElements.push_back(50);
 
     auto importContainer = structure.CreateRectangularMesh2D(meshDimensions, numElements);
     const int interpolationTypeId = importContainer.second;
@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
     myIntegrationScheme.SetPerformLineSearch(performLineSearch);
     myIntegrationScheme.SetToleranceResidual(eDof::DISPLACEMENTS, toleranceDisp);
     myIntegrationScheme.SetToleranceIterativeSolver(1.e-4);
-    myIntegrationScheme.SetIterativeSolver(NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::ConjugateGradient);
+    myIntegrationScheme.SetIterativeSolver(NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::ProjectedGmres);
     myIntegrationScheme.SetFetiPreconditioner(NuTo::NewmarkFeti<EigenSolver>::eFetiPreconditioner::Lumped);
 
     Eigen::Matrix2d dispRHS;

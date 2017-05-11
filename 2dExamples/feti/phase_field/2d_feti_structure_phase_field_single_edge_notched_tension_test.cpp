@@ -28,8 +28,8 @@ constexpr int dimension    = 2;
 constexpr double thickness = 1.0;
 
 constexpr double tol                 = 1e-6;
-constexpr double toleranceDisp       = 1e-7;
-constexpr double toleranceCrack      = 1e-4;
+constexpr double toleranceDisp       = 1e-8;
+constexpr double toleranceCrack      = 1e-8;
 constexpr double toleranceNlEqStrain = 1e-6;
 
 const Eigen::Vector2d directionX = Eigen::Vector2d::UnitX();
@@ -67,17 +67,17 @@ const Eigen::Vector2d directionY = Eigen::Vector2d::UnitY();
 
 
 // material
-constexpr   double      youngsModulus               = 2.1e5;                // N/mm^2
-constexpr   double      poissonsRatio               = 0.3;
-constexpr   double      lengthScaleParameter        = 1.e-2;               // mm
-constexpr   double      fractureEnergy              = 2.7;                  // N/mm
-constexpr   double      artificialViscosity         = 1.e-6;               // Ns/mm^2
+constexpr double youngsModulus = 2.1e5; // N/mm^2
+constexpr double poissonsRatio = 0.3;
+constexpr double lengthScaleParameter = 0.05; // mm
+constexpr double fractureEnergy = 2.7; // N/mm
+constexpr double artificialViscosity = 0.02; // Ns/mm^2
 constexpr ePhaseFieldEnergyDecomposition energyDecomposition = ePhaseFieldEnergyDecomposition::ISOTROPIC;
 
 
 constexpr   bool        performLineSearch           = true;
-constexpr   bool        automaticTimeStepping       = true;
-constexpr   double      timeStep                   = 1.e-4;
+constexpr   bool        automaticTimeStepping       = false;
+constexpr   double      timeStep                   = 1.e-3;
 constexpr   double      minTimeStep                = 1.e-8;
 constexpr   double      maxTimeStep                = 1.e-2;
 constexpr   double      timeStepPostProcessing     = 5.e-5;
@@ -134,6 +134,7 @@ int main(int argc, char* argv[])
 
     int groupNodesLoad = structure.GroupCreate(eGroupId::Nodes);
     structure.GroupAddNodeCoordinateRange(groupNodesLoad, 1, 1. - tol, 1. + tol);
+
 
     structure.GetLogger() << "*********************************** \n"
                           << "**      virtual constraints      ** \n"
@@ -218,19 +219,23 @@ int main(int argc, char* argv[])
                           << "*********************************** \n\n";
 
     NuTo::NewmarkFeti<EigenSolver> myIntegrationScheme(&structure);
-    boost::filesystem::path resultPath(std::string("/home/phuschke/results/feti/" + std::to_string(structure.mRank)));
+    boost::filesystem::path resultPath(boost::filesystem::path(getenv("HOME")).string() +
+                                       std::string("/results/feti/") + std::to_string(structure.mRank));
 
     myIntegrationScheme.SetTimeStep(timeStep);
 
     myIntegrationScheme.SetMinTimeStep(minTimeStep);
     myIntegrationScheme.SetMaxTimeStep(maxTimeStep);
+    myIntegrationScheme.SetMaxNumIterations(5);
     myIntegrationScheme.SetAutomaticTimeStepping(automaticTimeStepping);
     myIntegrationScheme.SetResultDirectory(resultPath.string(), true);
     myIntegrationScheme.SetPerformLineSearch(performLineSearch);
     myIntegrationScheme.SetToleranceResidual(eDof::DISPLACEMENTS, toleranceDisp);
     myIntegrationScheme.SetToleranceResidual(eDof::CRACKPHASEFIELD, toleranceCrack);
     myIntegrationScheme.SetToleranceResidual(eDof::NONLOCALEQSTRAIN, toleranceNlEqStrain);
-    myIntegrationScheme.SetIterativeSolver(NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::BiconjugateGradientStabilized);
+    myIntegrationScheme.SetIterativeSolver(NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::ProjectedGmres);
+    myIntegrationScheme.SetFetiPreconditioner(NuTo::NewmarkFeti<EigenSolver>::eFetiPreconditioner::Lumped);
+    myIntegrationScheme.SetMinTimeStepPlot(timeStepPostProcessing);
 
 
     Eigen::Matrix2d dispRHS;
@@ -245,6 +250,23 @@ int main(int argc, char* argv[])
     structure.GetLogger() << "*********************************** \n"
                           << "**      solve                    ** \n"
                           << "*********************************** \n\n";
+
+    myIntegrationScheme.AddResultGroupNodeForce("force", groupNodesLoad);
+
+    if (rank == 0)
+    {
+        nodeCoords[0] = 0;
+        nodeCoords[1] = 1;
+    }
+    else
+    {
+        nodeCoords[0] = 1;
+        nodeCoords[1] = 1;
+    }
+    int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
+    structure.GroupAddNodeRadiusRange(grpNodes_output_disp, nodeCoords, 0, tol);
+    myIntegrationScheme.AddResultNodeDisplacements("displacements",
+                                                   structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
 
 
     myIntegrationScheme.Solve(simulationTime);
