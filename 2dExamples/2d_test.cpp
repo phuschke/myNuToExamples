@@ -4,15 +4,13 @@
 int main()
 {
 
-    constexpr int numSubdomains     = 2;
-    constexpr int dimension         = 2;
+    constexpr int numSubdomains = 2;
+    constexpr int dimension = 2;
 
 
-
-//    for (auto& structure : vec)
-//    {
-//        structure = NuTo::Structure(dimension);
-//        structure.SetVerboseLevel(10);
-//    }
-
+    //    for (auto& structure : vec)
+    //    {
+    //        structure = NuTo::Structure(dimension);
+    //        structure.SetVerboseLevel(10);
+    //    }
 }

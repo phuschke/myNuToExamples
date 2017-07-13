@@ -38,7 +38,8 @@ int assignMaterial(NuTo::Structure& myStructure, const double factor)
     NuTo::FullVector<double, Eigen::Dynamic> myDamageLaw(1);
     myDamageLaw(0) = NuTo::Constitutive::eDamageLawType::ISOTROPIC_EXPONENTIAL_SOFTENING;
 
-    int myMaterial = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::GRADIENT_DAMAGE_ENGINEERING_STRESS);
+    int myMaterial = myStructure.ConstitutiveLawCreate(
+            NuTo::Constitutive::eConstitutiveType::GRADIENT_DAMAGE_ENGINEERING_STRESS);
 
     myStructure.ConstitutiveLawSetPoissonsRatio(myMaterial, poissonsRatio);
     myStructure.ConstitutiveLawSetYoungsModulus(myMaterial, factor * youngsModulus);
@@ -82,8 +83,7 @@ void run1D()
     boost::filesystem::create_directory(resultDirectory);
 
     const int dimension = 1;
-    NuTo::FullVector<double, dimension> directionX(
-    { 1 });
+    NuTo::FullVector<double, dimension> directionX({1});
 
     //**********************************************
     //          Structure 1D
@@ -106,7 +106,7 @@ void run1D()
     //          Geometry 1D
     //**********************************************
 
-    //create nodes
+    // create nodes
     int numElements = 20;
     int numNodesX = numElements + 1;
     double deltaX = lengthX / numElements;
@@ -123,14 +123,16 @@ void run1D()
     int myInterpolationType = myStructure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::TRUSS1D);
     myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::COORDINATES, NuTo::Interpolation::EQUIDISTANT1);
     myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT2);
-    myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::NONLOCALEQSTRAIN, NuTo::Interpolation::EQUIDISTANT1);
-    //create elements
+    myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::NONLOCALEQSTRAIN,
+                                     NuTo::Interpolation::EQUIDISTANT1);
+    // create elements
     for (int countX = 0; countX < numElements; countX++)
     {
         NuTo::FullVector<int, Eigen::Dynamic> nodes(2);
         nodes(0) = countX;
         nodes(1) = countX + 1;
-        myStructure.ElementCreate(myInterpolationType, nodes, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::STATICDATA);
+        myStructure.ElementCreate(myInterpolationType, nodes, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                                  NuTo::IpData::eIpDataType::STATICDATA);
     }
     myStructure.ElementTotalConvertToInterpolationType(1.e-6, 10);
 
@@ -194,11 +196,9 @@ void run2D()
     boost::filesystem::create_directory(resultDirectory);
 
     const int dimension = 2;
-    NuTo::FullVector<double, dimension> directionX(
-    { 1, 0 });
-    //directionY
-    NuTo::FullVector<double, dimension> directionY(
-    { 0, 1 });
+    NuTo::FullVector<double, dimension> directionX({1, 0});
+    // directionY
+    NuTo::FullVector<double, dimension> directionY({0, 1});
 
     //**********************************************
     //          Structure 2D
@@ -221,16 +221,19 @@ void run2D()
     //          Geometry 2D
     //**********************************************
     boost::filesystem::path meshFile("/home/phuschke/develop/nuto/myNutoExamples/beam2D.msh");
-    NuTo::FullMatrix<int, Eigen::Dynamic, Eigen::Dynamic> createdGroupIds = myStructure.ImportFromGmsh(meshFile.string(), NuTo::ElementData::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::STATICDATA);
+    NuTo::FullMatrix<int, Eigen::Dynamic, Eigen::Dynamic> createdGroupIds = myStructure.ImportFromGmsh(
+            meshFile.string(), NuTo::ElementData::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::STATICDATA);
     int groupId = createdGroupIds.GetValue(0, 0);
 
     int myInterpolationType = myStructure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::QUAD2D);
     myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::COORDINATES, NuTo::Interpolation::EQUIDISTANT1);
     myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT2);
-    myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::NONLOCALEQSTRAIN, NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::NONLOCALEQSTRAIN,
+                                     NuTo::Interpolation::EQUIDISTANT1);
     myStructure.ElementGroupSetInterpolationType(groupId, myInterpolationType);
     myStructure.ElementTotalConvertToInterpolationType(1.e-6, 10);
-    myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::IntegrationType::IntegrationType2D4NGauss4Ip, NuTo::IpData::STATICDATA);
+    myStructure.InterpolationTypeSetIntegrationType(
+            myInterpolationType, NuTo::IntegrationType::IntegrationType2D4NGauss4Ip, NuTo::IpData::STATICDATA);
 
     myStructure.ElementTotalSetConstitutiveLaw(myMaterial);
     myStructure.ElementTotalSetSection(mySection);
@@ -298,7 +301,6 @@ void run2D()
     myStructure.ExportVtkDataFileElements(resultDirectory.string() + "out.vtk");
 
     std::cout << "End 2D" << std::endl;
-
 }
 
 void run3D()
@@ -309,14 +311,11 @@ void run3D()
     boost::filesystem::create_directory(resultDirectory);
 
     const int dimension = 3;
-    NuTo::FullVector<double, dimension> directionX(
-    { 1, 0, 0 });
-    //directionY
-    NuTo::FullVector<double, dimension> directionY(
-    { 0, 1, 0 });
-    //directionZ
-    NuTo::FullVector<double, dimension> directionZ(
-    { 0, 0, 1 });
+    NuTo::FullVector<double, dimension> directionX({1, 0, 0});
+    // directionY
+    NuTo::FullVector<double, dimension> directionY({0, 1, 0});
+    // directionZ
+    NuTo::FullVector<double, dimension> directionZ({0, 0, 1});
 
     //**********************************************
     //          Structure 3D
@@ -338,16 +337,19 @@ void run3D()
     //          Geometry 3D
     //**********************************************
     boost::filesystem::path meshFile("/home/phuschke/develop/nuto/myNutoExamples/beam3D.msh");
-    NuTo::FullMatrix<int, Eigen::Dynamic, Eigen::Dynamic> createdGroupIds = myStructure.ImportFromGmsh(meshFile.string(), NuTo::ElementData::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::STATICDATA);
+    NuTo::FullMatrix<int, Eigen::Dynamic, Eigen::Dynamic> createdGroupIds = myStructure.ImportFromGmsh(
+            meshFile.string(), NuTo::ElementData::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::STATICDATA);
     int groupId = createdGroupIds.GetValue(0, 0);
 
     int myInterpolationType = myStructure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::BRICK3D);
     myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::COORDINATES, NuTo::Interpolation::EQUIDISTANT1);
     myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT2);
-    myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::NONLOCALEQSTRAIN, NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::NONLOCALEQSTRAIN,
+                                     NuTo::Interpolation::EQUIDISTANT1);
     myStructure.ElementGroupSetInterpolationType(groupId, myInterpolationType);
     myStructure.ElementTotalConvertToInterpolationType(1.e-6, 10);
-    myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::IntegrationType::IntegrationType3D8NGauss2x2x2Ip, NuTo::IpData::STATICDATA);
+    myStructure.InterpolationTypeSetIntegrationType(
+            myInterpolationType, NuTo::IntegrationType::IntegrationType3D8NGauss2x2x2Ip, NuTo::IpData::STATICDATA);
 
     myStructure.ElementTotalSetConstitutiveLaw(myMaterial);
     myStructure.ElementTotalSetSection(mySection);
@@ -419,4 +421,3 @@ int main(int argc, char* argv[])
 
     std::cout << " ===> End all <=== " << std::endl;
 }
-

@@ -12,13 +12,12 @@
 class Parameters
 {
 public:
-
     static const int mDimension = 1;
 
     static const bool mPerformLineSearch = true;
     static const bool mAutomaticTimeStepping = true;
 
-    static constexpr double mMatrixYoungsModulus = 3.0e4;   // concrete
+    static constexpr double mMatrixYoungsModulus = 3.0e4; // concrete
     static constexpr double mMatrixPoissonsRatio = 0.2;
     static constexpr double mMatrixThickness = 0.1;
     static constexpr double mMatrixNonlocalRadius = 2;
@@ -33,20 +32,16 @@ public:
     static constexpr double mMaxTimeStep = 1e-1;
     static constexpr double mToleranceForce = 1e-4;
     static constexpr double mSimulationTime = 1.0;
-    static constexpr double mLoad =0.2;
+    static constexpr double mLoad = 0.2;
 
     static const boost::filesystem::path mOutputPath;
 
     static const NuTo::FullVector<double, 1> mDirectionX;
-
 };
 
 const boost::filesystem::path Parameters::mOutputPath("/home/phuschke/1d_gradient/");
 
 const NuTo::FullVector<double, 1> Parameters::mDirectionX = NuTo::FullVector<double, 1>::UnitX();
-
-
-
 
 
 int main(int argc, char* argv[])
@@ -66,7 +61,8 @@ int main(int argc, char* argv[])
     NuTo::Structure myStructure(Parameters::mDimension);
 
     char resultDirectoryName[200];
-    sprintf(resultDirectoryName, "/home/phuschke/1d_gradient_results_ele_%04d_dispOrder_%02d_nlOrder_%02d_ip_%02d/", numElements, dispOrder, nlOrder, ipOrder);
+    sprintf(resultDirectoryName, "/home/phuschke/1d_gradient_results_ele_%04d_dispOrder_%02d_nlOrder_%02d_ip_%02d/",
+            numElements, dispOrder, nlOrder, ipOrder);
     boost::filesystem::path resultDirectory(resultDirectoryName);
     boost::filesystem::remove_all(resultDirectory);
     boost::filesystem::create_directory(resultDirectory);
@@ -108,19 +104,32 @@ int main(int argc, char* argv[])
     std::cout << "**      Material                 **" << std::endl;
     std::cout << "***********************************" << std::endl;
 
-    int matrixMaterial = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::GRADIENT_DAMAGE_ENGINEERING_STRESS);
-    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::YOUNGS_MODULUS, Parameters::mMatrixYoungsModulus);
-    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::POISSONS_RATIO, Parameters::mMatrixPoissonsRatio);
-    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::TENSILE_STRENGTH, Parameters::mMatrixTensileStrength);
-    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::COMPRESSIVE_STRENGTH, Parameters::mMatrixCompressiveStrength);
-    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::NONLOCAL_RADIUS, Parameters::mMatrixNonlocalRadius);
-    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::FRACTURE_ENERGY, Parameters::mMatrixFractureEnergy);
+    int matrixMaterial = myStructure.ConstitutiveLawCreate(
+            NuTo::Constitutive::eConstitutiveType::GRADIENT_DAMAGE_ENGINEERING_STRESS);
+    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial,
+                                                  NuTo::Constitutive::eConstitutiveParameter::YOUNGS_MODULUS,
+                                                  Parameters::mMatrixYoungsModulus);
+    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial,
+                                                  NuTo::Constitutive::eConstitutiveParameter::POISSONS_RATIO,
+                                                  Parameters::mMatrixPoissonsRatio);
+    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial,
+                                                  NuTo::Constitutive::eConstitutiveParameter::TENSILE_STRENGTH,
+                                                  Parameters::mMatrixTensileStrength);
+    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial,
+                                                  NuTo::Constitutive::eConstitutiveParameter::COMPRESSIVE_STRENGTH,
+                                                  Parameters::mMatrixCompressiveStrength);
+    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial,
+                                                  NuTo::Constitutive::eConstitutiveParameter::NONLOCAL_RADIUS,
+                                                  Parameters::mMatrixNonlocalRadius);
+    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial,
+                                                  NuTo::Constitutive::eConstitutiveParameter::FRACTURE_ENERGY,
+                                                  Parameters::mMatrixFractureEnergy);
 
     //**********************************************
     //          Geometry
     //**********************************************
 
-    //create nodes
+    // create nodes
     int numNodesX = numElements + 1;
     double deltaX = length / numElements;
 
@@ -139,13 +148,16 @@ int main(int argc, char* argv[])
     switch (dispOrder)
     {
     case 2:
-        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT2);
+        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                         NuTo::Interpolation::EQUIDISTANT2);
         break;
     case 3:
-        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT3);
+        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                         NuTo::Interpolation::EQUIDISTANT3);
         break;
     case 4:
-        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT4);
+        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                         NuTo::Interpolation::EQUIDISTANT4);
         break;
     default:
         return 1;
@@ -154,13 +166,16 @@ int main(int argc, char* argv[])
     switch (nlOrder)
     {
     case 1:
-        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::NONLOCALEQSTRAIN, NuTo::Interpolation::EQUIDISTANT1);
+        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::NONLOCALEQSTRAIN,
+                                         NuTo::Interpolation::EQUIDISTANT1);
         break;
     case 2:
-        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::NONLOCALEQSTRAIN, NuTo::Interpolation::EQUIDISTANT2);
+        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::NONLOCALEQSTRAIN,
+                                         NuTo::Interpolation::EQUIDISTANT2);
         break;
     case 3:
-        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::NONLOCALEQSTRAIN, NuTo::Interpolation::EQUIDISTANT3);
+        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::NONLOCALEQSTRAIN,
+                                         NuTo::Interpolation::EQUIDISTANT3);
         break;
     default:
         return 1;
@@ -169,28 +184,33 @@ int main(int argc, char* argv[])
     switch (ipOrder)
     {
     case 2:
-        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss2Ip, NuTo::IpData::STATICDATA);
+        myStructure.InterpolationTypeSetIntegrationType(
+                myInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss2Ip, NuTo::IpData::STATICDATA);
         break;
     case 3:
-        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss3Ip, NuTo::IpData::STATICDATA);
+        myStructure.InterpolationTypeSetIntegrationType(
+                myInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss3Ip, NuTo::IpData::STATICDATA);
         break;
     case 4:
-        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss4Ip, NuTo::IpData::STATICDATA);
+        myStructure.InterpolationTypeSetIntegrationType(
+                myInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss4Ip, NuTo::IpData::STATICDATA);
         break;
     case 5:
-        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss5Ip, NuTo::IpData::STATICDATA);
+        myStructure.InterpolationTypeSetIntegrationType(
+                myInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss5Ip, NuTo::IpData::STATICDATA);
         break;
     default:
         return 1;
     }
 
-    //create elements
+    // create elements
     for (int countX = 0; countX < numElements; countX++)
     {
         NuTo::FullVector<int, Eigen::Dynamic> nodes(2);
         nodes(0) = countX;
         nodes(1) = countX + 1;
-        myStructure.ElementCreate(myInterpolationType, nodes, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::STATICDATA);
+        myStructure.ElementCreate(myInterpolationType, nodes, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                                  NuTo::IpData::eIpDataType::STATICDATA);
     }
 
     myStructure.ElementTotalConvertToInterpolationType(1.e-6, 10);
@@ -230,12 +250,12 @@ int main(int argc, char* argv[])
     myStructure.AddVisualizationComponentDisplacements();
     myStructure.AddVisualizationComponentDisplacements(weakElemets);
 
-//    myStructure.AddVisualizationComponentEngineeringStrain();
-//    myStructure.AddVisualizationComponentEngineeringStress();
-//    myStructure.AddVisualizationComponentDamage();
-//    myStructure.AddVisualizationComponentNonlocalEqStrain();
-//    myStructure.AddVisualizationComponentSection();
-//    myStructure.AddVisualizationComponentConstitutive();
+    //    myStructure.AddVisualizationComponentEngineeringStrain();
+    //    myStructure.AddVisualizationComponentEngineeringStress();
+    //    myStructure.AddVisualizationComponentDamage();
+    //    myStructure.AddVisualizationComponentNonlocalEqStrain();
+    //    myStructure.AddVisualizationComponentSection();
+    //    myStructure.AddVisualizationComponentConstitutive();
 
     //**********************************************
     //          Solver
@@ -251,7 +271,8 @@ int main(int argc, char* argv[])
     timeDependentLoad(1, 1) = Parameters::mLoad;
 
     myIntegrationScheme.AddResultGroupNodeForce("force", nodesRight);
-    myIntegrationScheme.AddResultNodeDisplacements("displacements", myStructure.GroupGetMemberIds(nodesRight).GetValue(0, 0));
+    myIntegrationScheme.AddResultNodeDisplacements("displacements",
+                                                   myStructure.GroupGetMemberIds(nodesRight).GetValue(0, 0));
 
     myIntegrationScheme.SetTimeDependentConstraint(load, timeDependentLoad);
 
@@ -263,4 +284,3 @@ int main(int argc, char* argv[])
 
     std::cout << " ===> End <=== " << std::endl;
 }
-

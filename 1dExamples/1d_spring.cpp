@@ -33,7 +33,6 @@ const unsigned int dimension = 1;
 class Parameters
 {
 public:
-
     static const int mDimension = 1;
 
     static const bool mPerformLineSearch = true;
@@ -52,7 +51,6 @@ public:
     static const boost::filesystem::path mMeshFilePath;
 
     static const NuTo::FullVector<double, 1> mDirectionX;
-
 };
 
 const boost::filesystem::path Parameters::mOutputPath("/home/phuschke/1d_spring/");
@@ -90,15 +88,18 @@ int main(int argc, char* argv[])
     //**********************************************
 
     int springMaterial = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_SPRING);
-    myStructure.ConstitutiveLawSetParameterDouble(springMaterial, NuTo::Constitutive::eConstitutiveParameter::SPRING_STIFFNESS, Parameters::mSpringStiffness);
+    myStructure.ConstitutiveLawSetParameterDouble(
+            springMaterial, NuTo::Constitutive::eConstitutiveParameter::SPRING_STIFFNESS, Parameters::mSpringStiffness);
 
     //**********************************************
     //          Interpolation
     //**********************************************
 
     int fibreInterpolationType = myStructure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::SPRING);
-    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::COORDINATES, NuTo::Interpolation::EQUIDISTANT1);
-    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::COORDINATES,
+                                     NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                     NuTo::Interpolation::EQUIDISTANT1);
 
     myStructure.InterpolationTypeInfo(fibreInterpolationType);
 
@@ -121,15 +122,15 @@ int main(int argc, char* argv[])
     int node1 = myStructure.NodeCreate(nodeCoords, dofs);
 
 
-
-
     myStructure.Info();
 
     nodeIndicesSpring[0] = node0;
     nodeIndicesSpring[1] = node1;
-    myStructure.ElementCreate(fibreInterpolationType, nodeIndicesSpring, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    myStructure.ElementCreate(fibreInterpolationType, nodeIndicesSpring,
+                              NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                              NuTo::IpData::eIpDataType::NOIPDATA);
 
-    //myStructure.ElementTotalConvertToInterpolationType();
+    // myStructure.ElementTotalConvertToInterpolationType();
     myStructure.ElementTotalSetSection(fibreSection);
     myStructure.ElementTotalSetConstitutiveLaw(springMaterial);
 
@@ -205,4 +206,3 @@ int main(int argc, char* argv[])
     std::cout << "*                                    END                                           *" << std::endl;
     std::cout << "************************************************************************************" << std::endl;
 }
-

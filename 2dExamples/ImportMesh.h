@@ -8,7 +8,6 @@
 using namespace std::string_literals;
 
 
-
 struct Node
 {
     Eigen::Vector3d mCoordinates;
@@ -36,24 +35,25 @@ struct Interface
 
 struct ImportContainer
 {
-    using NodeList      = std::vector<Node>;
-    using ElementList   = std::vector<Element>;
-    using BoundaryList  = std::vector<Boundary>;
+    using NodeList = std::vector<Node>;
+    using ElementList = std::vector<Element>;
+    using BoundaryList = std::vector<Boundary>;
     using InterfaceList = std::vector<Interface>;
 
-    NodeList        mNodeList;
-    ElementList     mElementList;
-    BoundaryList    mBoundaryList;
-    InterfaceList   mInterfaceList;
+    NodeList mNodeList;
+    ElementList mElementList;
+    BoundaryList mBoundaryList;
+    InterfaceList mInterfaceList;
 };
 
 
 std::vector<Node> ReadNodeData(std::ifstream& file)
 {
     std::string line = "initialization";
-    while(std::getline(file, line) and line.compare("Nodes")!=0);
+    while (std::getline(file, line) and line.compare("Nodes") != 0)
+        ;
 
-    if (line.compare("Nodes")!=0)
+    if (line.compare("Nodes") != 0)
         throw std::exception();
 
     int num_nodes = 0;
@@ -69,22 +69,23 @@ std::vector<Node> ReadNodeData(std::ifstream& file)
 std::vector<Element> ReadElementData(std::ifstream& file)
 {
     std::string line = "initialization";
-    while(std::getline(file, line) and line.compare("Elements")!=0);
+    while (std::getline(file, line) and line.compare("Elements") != 0)
+        ;
 
-    if (line.compare("Elements")!=0)
+    if (line.compare("Elements") != 0)
         throw std::exception();
 
     int num_elements = 0;
     file >> num_elements;
 
-    std::vector<Element>   elements(num_elements);
+    std::vector<Element> elements(num_elements);
     for (auto& element : elements)
     {
         file >> element.mId;
 
         element.mNodeIds.resize(4);
 
-        for(auto& nodeId: element.mNodeIds)
+        for (auto& nodeId : element.mNodeIds)
             file >> nodeId;
     }
 
@@ -94,28 +95,28 @@ std::vector<Element> ReadElementData(std::ifstream& file)
 std::vector<Boundary> ReadBoundaryData(std::ifstream& file)
 {
     std::string line = "initialization";
-    while(std::getline(file, line) and line.compare("Boundaries")!=0);
+    while (std::getline(file, line) and line.compare("Boundaries") != 0)
+        ;
 
-    if (line.compare("Boundaries")!=0)
+    if (line.compare("Boundaries") != 0)
         throw std::exception();
 
     int num_boundaries = 0;
     file >> num_boundaries;
 
-    std::vector<Boundary>   boundaries(num_boundaries);
+    std::vector<Boundary> boundaries(num_boundaries);
     for (auto& boundary : boundaries)
     {
         int num_nodes = 0;
         file >> num_nodes;
 
-        for(int i = 0; i < num_nodes; ++i)
+        for (int i = 0; i < num_nodes; ++i)
         {
-            int globalId  = 0;
-            int localId   = 0;
+            int globalId = 0;
+            int localId = 0;
             file >> globalId >> localId;
             boundary.mNodeIdsMap.emplace(globalId, localId);
         }
-
     }
 
     return boundaries;
@@ -124,38 +125,37 @@ std::vector<Boundary> ReadBoundaryData(std::ifstream& file)
 std::vector<Interface> ReadInterfaceData(std::ifstream& file)
 {
     std::string line = "initialization";
-    while(std::getline(file, line) and line.compare("Interfaces")!=0);
+    while (std::getline(file, line) and line.compare("Interfaces") != 0)
+        ;
 
-    if (line.compare("Interfaces")!=0)
+    if (line.compare("Interfaces") != 0)
         throw std::exception();
 
     int num_interfaces = 0;
     file >> num_interfaces;
 
-    std::vector<Interface>   interfaces(num_interfaces);
+    std::vector<Interface> interfaces(num_interfaces);
     for (auto& interface : interfaces)
     {
         int num_nodes = 0;
         file >> num_nodes;
 
-        for(int i = 0; i < num_nodes; ++i)
+        for (int i = 0; i < num_nodes; ++i)
         {
-            int globalId  = 0;
-            int localId   = 0;
+            int globalId = 0;
+            int localId = 0;
             file >> globalId >> localId;
             interface.mNodeIdsMap.emplace(globalId, localId);
         }
 
         file >> interface.mValue;
-
-
     }
 
     return interfaces;
 }
 
 
-ImportContainer ImportMeshFile(const std::string &rFileName)
+ImportContainer ImportMeshFile(const std::string& rFileName)
 {
 
     std::ifstream file(rFileName.c_str(), std::ios::in);
@@ -164,10 +164,10 @@ ImportContainer ImportMeshFile(const std::string &rFileName)
 
     ImportContainer importContainer;
 
-    importContainer.mNodeList         = ReadNodeData              (file);
-    importContainer.mElementList      = ReadElementData           (file);
-    importContainer.mBoundaryList     = ReadBoundaryData          (file);
-    importContainer.mInterfaceList    = ReadInterfaceData         (file);
+    importContainer.mNodeList = ReadNodeData(file);
+    importContainer.mElementList = ReadElementData(file);
+    importContainer.mBoundaryList = ReadBoundaryData(file);
+    importContainer.mInterfaceList = ReadInterfaceData(file);
 
 
     file.close();

@@ -21,21 +21,21 @@ using std::cout;
 using std::endl;
 using NuTo::Constitutive::ePhaseFieldEnergyDecomposition;
 
-constexpr int dim                     = 2;
-constexpr bool performLineSearch      = true;
-constexpr bool automaticTimeStepping  = true;
-constexpr double youngsModulus        = 2.1e5;
-constexpr double poissonsRatio        = 0.3;
-constexpr double thickness            = 1.0;
+constexpr int dim = 2;
+constexpr bool performLineSearch = true;
+constexpr bool automaticTimeStepping = true;
+constexpr double youngsModulus = 2.1e5;
+constexpr double poissonsRatio = 0.3;
+constexpr double thickness = 1.0;
 constexpr double lengthScaleParameter = 3.0e-0;
-constexpr double fractureEnergy       = 2.7;
-constexpr double artificialViscosity  = 0.5;
-constexpr double timeStep             = 1e-2;
-constexpr double minTimeStep          = 1e-6;
-constexpr double maxTimeStep          = 1e-1;
-constexpr double toleranceForce       = 1e-6;
-constexpr double simulationTime       = 1.0;
-constexpr double loadFactor           = -0.4;
+constexpr double fractureEnergy = 2.7;
+constexpr double artificialViscosity = 0.5;
+constexpr double timeStep = 1e-2;
+constexpr double minTimeStep = 1e-6;
+constexpr double maxTimeStep = 1e-1;
+constexpr double toleranceForce = 1e-6;
+constexpr double simulationTime = 1.0;
+constexpr double loadFactor = -0.4;
 constexpr ePhaseFieldEnergyDecomposition energyDecomposition =
         ePhaseFieldEnergyDecomposition::ANISOTROPIC_SPECTRAL_DECOMPOSITION;
 
@@ -69,7 +69,6 @@ int main(int argc, char* argv[])
                           << "*********************************** \n\n";
 
     Eigen::VectorXd nodeCoords(2);
-
 
 
     nodeCoords[0] = 0;
@@ -114,7 +113,7 @@ int main(int argc, char* argv[])
     structure.GroupAddElementsTotal(groupAllElements);
     structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DISPLACEMENTS);
     structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::CRACK_PHASE_FIELD);
-//    structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::ENGINEERING_STRAIN);
+    //    structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::ENGINEERING_STRAIN);
 
 
     structure.GetLogger() << "**********************************************"
@@ -143,8 +142,8 @@ int main(int argc, char* argv[])
 
     myIntegrationScheme.AddResultGroupNodeForce("myforcebla", loadNodeGroup);
 
-    nodeCoords[0]            = 30;
-    nodeCoords[1]            = 10;
+    nodeCoords[0] = 30;
+    nodeCoords[1] = 10;
     int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
     structure.GroupAddNodeRadiusRange(grpNodes_output_disp, nodeCoords, 0, 1.e-6);
     myIntegrationScheme.AddResultNodeDisplacements("mydisplacements",
@@ -166,7 +165,7 @@ int main(int argc, char* argv[])
 
 void AssignSection(NuTo::Structure& structure)
 {
-    auto section = NuTo::SectionPlane::Create(thickness,true);
+    auto section = NuTo::SectionPlane::Create(thickness, true);
     structure.ElementTotalSetSection(section);
 }
 

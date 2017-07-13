@@ -28,7 +28,6 @@ const unsigned int dimension = 1;
 class Parameters
 {
 public:
-
     static const int mDimension = 1;
 
     static const bool mPerformLineSearch = true;
@@ -87,18 +86,24 @@ int main(int argc, char* argv[])
     //          Material
     //**********************************************
 
-    int fibreMaterial = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
-    myStructure.ConstitutiveLawSetParameterDouble(fibreMaterial,NuTo::Constitutive::eConstitutiveParameter::YOUNGS_MODULUS ,Parameters::mFibreYoungsModulus);
-    myStructure.ConstitutiveLawSetParameterDouble(fibreMaterial,NuTo::Constitutive::eConstitutiveParameter::POISSONS_RATIO ,Parameters::mFibrePoissonsRatio);
+    int fibreMaterial =
+            myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+    myStructure.ConstitutiveLawSetParameterDouble(
+            fibreMaterial, NuTo::Constitutive::eConstitutiveParameter::YOUNGS_MODULUS, Parameters::mFibreYoungsModulus);
+    myStructure.ConstitutiveLawSetParameterDouble(
+            fibreMaterial, NuTo::Constitutive::eConstitutiveParameter::POISSONS_RATIO, Parameters::mFibrePoissonsRatio);
 
     //**********************************************
     //          Interpolation
     //**********************************************
 
     int fibreInterpolationType = myStructure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::TRUSS1D);
-    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::COORDINATES, NuTo::Interpolation::EQUIDISTANT1);
-    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT1);
-    myStructure.InterpolationTypeSetIntegrationType(fibreInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss1Ip, NuTo::IpData::STATICDATA);
+    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::COORDINATES,
+                                     NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                     NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeSetIntegrationType(
+            fibreInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss1Ip, NuTo::IpData::STATICDATA);
 
     myStructure.InterpolationTypeInfo(fibreInterpolationType);
 
@@ -118,7 +123,9 @@ int main(int argc, char* argv[])
 
     nodeIndicesFibre[0] = node0;
     nodeIndicesFibre[1] = node1;
-    myStructure.ElementCreate(fibreInterpolationType, nodeIndicesFibre, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    myStructure.ElementCreate(fibreInterpolationType, nodeIndicesFibre,
+                              NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                              NuTo::IpData::eIpDataType::NOIPDATA);
 
     myStructure.ElementTotalConvertToInterpolationType(1e-6, 10);
     myStructure.ElementTotalSetSection(fibreSection);
@@ -127,9 +134,9 @@ int main(int argc, char* argv[])
     NuTo::FullVector<double, 1> directionX;
     directionX[0] = 1;
 
-    std::cout << "directionX"<< directionX << std::endl;
+    std::cout << "directionX" << directionX << std::endl;
 
-    myStructure.ConstraintLinearSetDisplacementNode(node0, directionX,0);
+    myStructure.ConstraintLinearSetDisplacementNode(node0, directionX, 0);
 
     int loadCase = 0;
     myStructure.LoadCreateNodeForce(loadCase, node1, directionX, 1);
@@ -151,4 +158,3 @@ int main(int argc, char* argv[])
     std::cout << "*                                    END                                           *" << std::endl;
     std::cout << "************************************************************************************" << std::endl;
 }
-

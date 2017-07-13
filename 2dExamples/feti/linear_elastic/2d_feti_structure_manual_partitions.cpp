@@ -25,7 +25,8 @@ using EigenSolver = Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOr
 constexpr double thickness = 1.0;
 
 // material
-constexpr double youngsModulus = 2.1e5;
+
+double youngsModulus = 2.1e5;
 constexpr double poissonsRatio = 0.3;
 
 
@@ -53,7 +54,7 @@ int main(int argc, char* argv[])
     NuTo::StructureFeti structure(dim);
     structure.SetNumTimeDerivatives(0);
     structure.SetVerboseLevel(5);
-    structure.SetShowTime(true);
+    structure.SetShowTime(false);
     structure.GetLogger().OpenFile("output" + std::to_string(rank));
     structure.GetLogger().SetQuiet(true);
 
@@ -67,8 +68,12 @@ int main(int argc, char* argv[])
 
     auto importContainer = structure.CreateRectangularMesh2D(meshDimensions, numElements);
     const int interpolationTypeId = importContainer.second;
-    structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS,   eTypeOrder::EQUIDISTANT1);
+    structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT1);
     structure.ElementTotalConvertToInterpolationType();
+
+    if (rank == 1)
+        youngsModulus = 10 * youngsModulus;
+
 
     const int materialId = structure.ConstitutiveLawCreate(eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
     structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
@@ -102,7 +107,7 @@ int main(int argc, char* argv[])
     std::vector<int> nodeIdsBoundaries = structure.GroupGetMemberIds(groupNodesLeftBoundary);
     std::vector<int> nodeIdsLoads = structure.GroupGetMemberIds(loadNodeGroup);
 
-//    std::cout << nodeIdsBoundaries << "\n";
+    //    std::cout << nodeIdsBoundaries << "\n";
 
     structure.ApplyVirtualConstraints(nodeIdsBoundaries, nodeIdsLoads);
 
@@ -161,9 +166,10 @@ int main(int argc, char* argv[])
     myIntegrationScheme.SetResultDirectory(resultPath.string(), true);
     myIntegrationScheme.SetPerformLineSearch(performLineSearch);
     myIntegrationScheme.SetToleranceResidual(eDof::DISPLACEMENTS, toleranceDisp);
-    myIntegrationScheme.SetToleranceIterativeSolver(1.e-4);
+    myIntegrationScheme.SetToleranceIterativeSolver(1.e-8);
     myIntegrationScheme.SetIterativeSolver(NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::ConjugateGradient);
     myIntegrationScheme.SetFetiPreconditioner(NuTo::NewmarkFeti<EigenSolver>::eFetiPreconditioner::Lumped);
+    myIntegrationScheme.SetMaxNumberOfFetiIterations(10000);
 
     Eigen::Matrix2d dispRHS;
     dispRHS(0, 0) = 0;

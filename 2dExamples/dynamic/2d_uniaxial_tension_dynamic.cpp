@@ -10,20 +10,19 @@ constexpr unsigned int dimension = 2;
 class Parameters
 {
 public:
-
     static const int mDimension = dimension;
 
     static const bool mPerformLineSearch = true;
     static const bool mAutomaticTimeStepping = true;
 
-    static constexpr double mMatrixYoungsModulus = 4.0e4;   // concrete
+    static constexpr double mMatrixYoungsModulus = 4.0e4; // concrete
     static constexpr double mMatrixPoissonsRatio = 0.0;
     static constexpr double mMatrixThickness = 1;
     static constexpr double mMatrixNonlocalRadius = 2;
     static constexpr double mMatrixTensileStrength = 3;
     static constexpr double mMatrixCompressiveStrength = 30;
     static constexpr double mMatrixFractureEnergy = 1;
-    static constexpr double mMatrixDensity= 1e0;   // concrete
+    static constexpr double mMatrixDensity = 1e0; // concrete
 
     static constexpr double mTimeStep = 1e-1;
     static constexpr double mMinTimeStep = 1e-2;
@@ -41,7 +40,8 @@ public:
 };
 
 const boost::filesystem::path Parameters::mOutputPath("/home/phuschke/2d_uniaxial_tension_dynamic/");
-const boost::filesystem::path Parameters::mMeshFilePathMatrix("/home/phuschke/develop/nuto/myNutoExamples/MeshFiles/2d_uniaxial_tension_dynamic.msh");
+const boost::filesystem::path Parameters::mMeshFilePathMatrix(
+        "/home/phuschke/develop/nuto/myNutoExamples/MeshFiles/2d_uniaxial_tension_dynamic.msh");
 
 
 const NuTo::FullVector<double, dimension> Parameters::mDirectionX = NuTo::FullVector<double, dimension>::UnitX();
@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
         myIntegrationScheme.SetAutomaticTimeStepping(Parameters::mAutomaticTimeStepping);
         myIntegrationScheme.SetPerformLineSearch(Parameters::mPerformLineSearch);
         myIntegrationScheme.SetResultDirectory(Parameters::mOutputPath.string(), true);
-        //myIntegrationScheme.SetCheckCoefficientMatrix(true);
+        // myIntegrationScheme.SetCheckCoefficientMatrix(true);
 
         std::cout << "***********************************" << std::endl;
         std::cout << "**      Section                  **" << std::endl;
@@ -86,34 +86,54 @@ int main(int argc, char* argv[])
         std::cout << "**      Material                 **" << std::endl;
         std::cout << "***********************************" << std::endl;
 
-        int matrixMaterial = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
-        myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::YOUNGS_MODULUS, Parameters::mMatrixYoungsModulus);
-        myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::POISSONS_RATIO, Parameters::mMatrixPoissonsRatio);
-        myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::DENSITY, Parameters::mMatrixDensity);
+        int matrixMaterial = myStructure.ConstitutiveLawCreate(
+                NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+        myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial,
+                                                      NuTo::Constitutive::eConstitutiveParameter::YOUNGS_MODULUS,
+                                                      Parameters::mMatrixYoungsModulus);
+        myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial,
+                                                      NuTo::Constitutive::eConstitutiveParameter::POISSONS_RATIO,
+                                                      Parameters::mMatrixPoissonsRatio);
+        myStructure.ConstitutiveLawSetParameterDouble(
+                matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::DENSITY, Parameters::mMatrixDensity);
 
-//        int matrixMaterial = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::GRADIENT_DAMAGE_ENGINEERING_STRESS);
-//        myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::YOUNGS_MODULUS, Parameters::mMatrixYoungsModulus);
-//        myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::POISSONS_RATIO, Parameters::mMatrixPoissonsRatio);
-//        myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::TENSILE_STRENGTH, Parameters::mMatrixTensileStrength);
-//        myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::COMPRESSIVE_STRENGTH, Parameters::mMatrixCompressiveStrength);
-//        myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::NONLOCAL_RADIUS, Parameters::mMatrixNonlocalRadius);
-//        myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::FRACTURE_ENERGY, Parameters::mMatrixFractureEnergy);
-//        myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::DENSITY, Parameters::mMatrixDensity);
+        //        int matrixMaterial =
+        //        myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::GRADIENT_DAMAGE_ENGINEERING_STRESS);
+        //        myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial,
+        //        NuTo::Constitutive::eConstitutiveParameter::YOUNGS_MODULUS, Parameters::mMatrixYoungsModulus);
+        //        myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial,
+        //        NuTo::Constitutive::eConstitutiveParameter::POISSONS_RATIO, Parameters::mMatrixPoissonsRatio);
+        //        myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial,
+        //        NuTo::Constitutive::eConstitutiveParameter::TENSILE_STRENGTH, Parameters::mMatrixTensileStrength);
+        //        myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial,
+        //        NuTo::Constitutive::eConstitutiveParameter::COMPRESSIVE_STRENGTH,
+        //        Parameters::mMatrixCompressiveStrength);
+        //        myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial,
+        //        NuTo::Constitutive::eConstitutiveParameter::NONLOCAL_RADIUS, Parameters::mMatrixNonlocalRadius);
+        //        myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial,
+        //        NuTo::Constitutive::eConstitutiveParameter::FRACTURE_ENERGY, Parameters::mMatrixFractureEnergy);
+        //        myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial,
+        //        NuTo::Constitutive::eConstitutiveParameter::DENSITY, Parameters::mMatrixDensity);
 
         std::cout << "***********************************" << std::endl;
         std::cout << "**      Interpolation Type       **" << std::endl;
         std::cout << "***********************************" << std::endl;
 
         int matrixInterpolationType = myStructure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::QUAD2D);
-        myStructure.InterpolationTypeAdd(matrixInterpolationType, NuTo::Node::COORDINATES, NuTo::Interpolation::EQUIDISTANT1);
-        myStructure.InterpolationTypeAdd(matrixInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT1);
-//        myStructure.InterpolationTypeAdd(matrixInterpolationType, NuTo::Node::NONLOCALEQSTRAIN, NuTo::Interpolation::EQUIDISTANT1);         // Gradient damage model
+        myStructure.InterpolationTypeAdd(matrixInterpolationType, NuTo::Node::COORDINATES,
+                                         NuTo::Interpolation::EQUIDISTANT1);
+        myStructure.InterpolationTypeAdd(matrixInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                         NuTo::Interpolation::EQUIDISTANT1);
+        //        myStructure.InterpolationTypeAdd(matrixInterpolationType, NuTo::Node::NONLOCALEQSTRAIN,
+        //        NuTo::Interpolation::EQUIDISTANT1);         // Gradient damage model
 
         std::cout << "***********************************" << std::endl;
         std::cout << "**      Matrix                   **" << std::endl;
         std::cout << "***********************************" << std::endl;
 
-        NuTo::FullMatrix<int, Eigen::Dynamic, Eigen::Dynamic> createdGroupIdMatrix = myStructure.ImportFromGmsh(Parameters::mMeshFilePathMatrix.string(), NuTo::ElementData::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::STATICDATA);
+        NuTo::FullMatrix<int, Eigen::Dynamic, Eigen::Dynamic> createdGroupIdMatrix =
+                myStructure.ImportFromGmsh(Parameters::mMeshFilePathMatrix.string(),
+                                           NuTo::ElementData::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::STATICDATA);
         int groupIdMatrix = createdGroupIdMatrix.GetValue(0, 0);
 
         myStructure.ElementGroupSetInterpolationType(groupIdMatrix, matrixInterpolationType);
@@ -153,7 +173,8 @@ int main(int argc, char* argv[])
         int groupNodeBCRight = myStructure.GroupCreate(NuTo::Groups::eGroupId::Nodes);
         myStructure.GroupAddNodeCoordinateRange(groupNodeBCRight, 0, 10.0 - 1.0e-6, 10.0 + 1.0e-6);
 
-        int timeDependentConstraint = myStructure.ConstraintLinearSetDisplacementNodeGroup(groupNodeBCRight, Parameters::mDirectionX, 1);
+        int timeDependentConstraint =
+                myStructure.ConstraintLinearSetDisplacementNodeGroup(groupNodeBCRight, Parameters::mDirectionX, 1);
 
         std::cout << "***********************************" << std::endl;
         std::cout << "**      Visualization            **" << std::endl;
@@ -185,7 +206,7 @@ int main(int argc, char* argv[])
 
         NuTo::FullMatrix<double, 2, 2> timeDependentLoad;
         timeDependentLoad(0, 0) = 0;
-        timeDependentLoad(1, 0) = 1*Parameters::mSimulationTime;
+        timeDependentLoad(1, 0) = 1 * Parameters::mSimulationTime;
         timeDependentLoad(0, 1) = 0;
         timeDependentLoad(1, 1) = Parameters::mLoad;
 
@@ -194,20 +215,14 @@ int main(int argc, char* argv[])
         myIntegrationScheme.Solve(Parameters::mSimulationTime);
 
 
-
         std::cout << "\n\n\n Results written to " + Parameters::mOutputPath.string() << std::endl;
-
-
-
-    } catch (NuTo::MechanicsException& e)
-    {
-        std::cout << e.ErrorMessage();
-
-    } catch (NuTo::MathException& e)
-    {
-        std::cout << e.ErrorMessage();
-
     }
-
+    catch (NuTo::MechanicsException& e)
+    {
+        std::cout << e.ErrorMessage();
+    }
+    catch (NuTo::MathException& e)
+    {
+        std::cout << e.ErrorMessage();
+    }
 }
-

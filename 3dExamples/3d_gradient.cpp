@@ -24,24 +24,21 @@
 int main(int argc, char* argv[])
 {
 
-    const int dimension               = 3;
-    const double youngsModulus        = 40000;
-    const double poissonsRatio        = 0.0;
-    const double nonlocalRadius       = 1;
-    const double tensileStrength      = 2;
-    const double compressiveStrength  = 20;
-    const double fractureEnergy       = 1;
-    const double displacement         = 0.2;
-    const double lengthX              = 200;
-    //directionX
-    NuTo::FullVector<double, dimension> directionX(
-    { 1, 0, 0 });
-    //directionY
-    NuTo::FullVector<double, dimension> directionY(
-    { 0, 1, 0 });
-    //directionZ
-    NuTo::FullVector<double, dimension> directionZ(
-    { 0, 0, 1 });
+    const int dimension = 3;
+    const double youngsModulus = 40000;
+    const double poissonsRatio = 0.0;
+    const double nonlocalRadius = 1;
+    const double tensileStrength = 2;
+    const double compressiveStrength = 20;
+    const double fractureEnergy = 1;
+    const double displacement = 0.2;
+    const double lengthX = 200;
+    // directionX
+    NuTo::FullVector<double, dimension> directionX({1, 0, 0});
+    // directionY
+    NuTo::FullVector<double, dimension> directionY({0, 1, 0});
+    // directionZ
+    NuTo::FullVector<double, dimension> directionZ({0, 0, 1});
 
     //**********************************************
     //          Structure
@@ -83,7 +80,8 @@ int main(int argc, char* argv[])
     NuTo::FullVector<double, Eigen::Dynamic> myDamageLaw(1);
     myDamageLaw(0) = NuTo::Constitutive::eDamageLawType::ISOTROPIC_EXPONENTIAL_SOFTENING;
 
-    int myMaterial = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::GRADIENT_DAMAGE_ENGINEERING_STRESS);
+    int myMaterial = myStructure.ConstitutiveLawCreate(
+            NuTo::Constitutive::eConstitutiveType::GRADIENT_DAMAGE_ENGINEERING_STRESS);
     myStructure.ConstitutiveLawSetPoissonsRatio(myMaterial, poissonsRatio);
     myStructure.ConstitutiveLawSetYoungsModulus(myMaterial, youngsModulus);
     myStructure.ConstitutiveLawSetNonlocalRadius(myMaterial, nonlocalRadius);
@@ -92,54 +90,58 @@ int main(int argc, char* argv[])
     myStructure.ConstitutiveLawSetDamageLaw(myMaterial, myDamageLaw);
     myStructure.ConstitutiveLawSetCompressiveStrength(myMaterial, compressiveStrength);
 
-    int myMaterialweak = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::GRADIENT_DAMAGE_ENGINEERING_STRESS);
+    int myMaterialweak = myStructure.ConstitutiveLawCreate(
+            NuTo::Constitutive::eConstitutiveType::GRADIENT_DAMAGE_ENGINEERING_STRESS);
     myStructure.ConstitutiveLawSetPoissonsRatio(myMaterialweak, poissonsRatio);
-    myStructure.ConstitutiveLawSetYoungsModulus(myMaterialweak, youngsModulus*0.5);
+    myStructure.ConstitutiveLawSetYoungsModulus(myMaterialweak, youngsModulus * 0.5);
     myStructure.ConstitutiveLawSetNonlocalRadius(myMaterialweak, nonlocalRadius);
-    myStructure.ConstitutiveLawSetTensileStrength(myMaterialweak, tensileStrength*0.5);
+    myStructure.ConstitutiveLawSetTensileStrength(myMaterialweak, tensileStrength * 0.5);
     myStructure.ConstitutiveLawSetFractureEnergy(myMaterialweak, fractureEnergy);
     myStructure.ConstitutiveLawSetDamageLaw(myMaterialweak, myDamageLaw);
-    myStructure.ConstitutiveLawSetCompressiveStrength(myMaterialweak, compressiveStrength*0.5);
+    myStructure.ConstitutiveLawSetCompressiveStrength(myMaterialweak, compressiveStrength * 0.5);
 
     //**********************************************
     //          Geometry
     //**********************************************
 
-    NuTo::FullMatrix<int, Eigen::Dynamic, Eigen::Dynamic> createdGroupIds = myStructure.ImportFromGmsh(meshFile.string(), NuTo::ElementData::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::STATICDATA);
+    NuTo::FullMatrix<int, Eigen::Dynamic, Eigen::Dynamic> createdGroupIds = myStructure.ImportFromGmsh(
+            meshFile.string(), NuTo::ElementData::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::STATICDATA);
     int groupId = createdGroupIds.GetValue(0, 0);
 
     // triangular elements
     int myInterpolationType = myStructure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::BRICK3D);
     myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::COORDINATES, NuTo::Interpolation::EQUIDISTANT1);
     myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT2);
-    myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::NONLOCALEQSTRAIN, NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::NONLOCALEQSTRAIN,
+                                     NuTo::Interpolation::EQUIDISTANT1);
     myStructure.ElementGroupSetInterpolationType(groupId, myInterpolationType);
     myStructure.ElementTotalConvertToInterpolationType(1.e-6, 10);
-    myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::IntegrationType::IntegrationType3D8NGauss2x2x2Ip, NuTo::IpData::STATICDATA);
+    myStructure.InterpolationTypeSetIntegrationType(
+            myInterpolationType, NuTo::IntegrationType::IntegrationType3D8NGauss2x2x2Ip, NuTo::IpData::STATICDATA);
 
     myStructure.ElementTotalSetConstitutiveLaw(myMaterial);
     myStructure.ElementTotalSetSection(mySection);
 
     int weak_Nodes = myStructure.GroupCreate(NuTo::Groups::Nodes);
-    myStructure.GroupAddNodeCoordinateRange(weak_Nodes, 0 , 0.5*lengthX-0.1, 0.5*lengthX+0.1);
+    myStructure.GroupAddNodeCoordinateRange(weak_Nodes, 0, 0.5 * lengthX - 0.1, 0.5 * lengthX + 0.1);
     int weak_Elements = myStructure.GroupCreate(NuTo::Groups::Elements);
     myStructure.GroupAddElementsFromNodes(weak_Elements, weak_Nodes, false);
-    myStructure.ElementGroupSetConstitutiveLaw(weak_Elements,myMaterialweak);
+    myStructure.ElementGroupSetConstitutiveLaw(weak_Elements, myMaterialweak);
 
-//    NuTo::FullVector<int, Eigen::Dynamic> weak_Element_Vector = myStructure.GroupGetMemberIds(weak_Elements);
-//    for (int i = 0; i < weak_Element_Vector.size(); ++i)
-//    {
-//        int ele = weak_Element_Vector[i];
-//        int numIP = myStructure.ElementGetElementPtr(ele)->GetNumIntegrationPoints();
-//
-//
-//        for (int theIP = 0; theIP < numIP; ++theIP)
-//        {
-//            myStructure.ElementGetElementPtr(ele)->GetStaticData(theIP)->AsGradientDamage1D()->SetKappa(7e-5);
-//        }
-//
-//
-//    }
+    //    NuTo::FullVector<int, Eigen::Dynamic> weak_Element_Vector = myStructure.GroupGetMemberIds(weak_Elements);
+    //    for (int i = 0; i < weak_Element_Vector.size(); ++i)
+    //    {
+    //        int ele = weak_Element_Vector[i];
+    //        int numIP = myStructure.ElementGetElementPtr(ele)->GetNumIntegrationPoints();
+    //
+    //
+    //        for (int theIP = 0; theIP < numIP; ++theIP)
+    //        {
+    //            myStructure.ElementGetElementPtr(ele)->GetStaticData(theIP)->AsGradientDamage1D()->SetKappa(7e-5);
+    //        }
+    //
+    //
+    //    }
 
     //**********************************************
     //          Boundary Conditions
@@ -154,16 +156,16 @@ int main(int argc, char* argv[])
     NuTo::FullVector<double, 3> center;
     center.setZero();
     int node_0_0_0 = myStructure.GroupCreate(NuTo::Groups::Nodes);
-    myStructure.GroupAddNodeRadiusRange(node_0_0_0,center,0,1e-6);
+    myStructure.GroupAddNodeRadiusRange(node_0_0_0, center, 0, 1e-6);
     myStructure.ConstraintLinearSetDisplacementNodeGroup(node_0_0_0, directionY, 0);
     myStructure.ConstraintLinearSetDisplacementNodeGroup(node_0_0_0, directionZ, 0);
 
     // fix single node
-    center[0]  = lengthX;
-    center[1]  = 0;
-    center[2]  = 0;
+    center[0] = lengthX;
+    center[1] = 0;
+    center[2] = 0;
     int node_lenX_0_0 = myStructure.GroupCreate(NuTo::Groups::Nodes);
-    myStructure.GroupAddNodeRadiusRange(node_lenX_0_0,center,0,1e-6);
+    myStructure.GroupAddNodeRadiusRange(node_lenX_0_0, center, 0, 1e-6);
     myStructure.ConstraintLinearSetDisplacementNodeGroup(node_lenX_0_0, directionY, 0);
     myStructure.ConstraintLinearSetDisplacementNodeGroup(node_lenX_0_0, directionZ, 0);
 
@@ -207,4 +209,3 @@ int main(int argc, char* argv[])
 
     std::cout << " ===> End 3DGradient <=== " << std::endl;
 }
-

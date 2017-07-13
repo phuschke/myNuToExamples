@@ -9,18 +9,12 @@
 #include <eigen3/Eigen/QR>
 
 
-
-
-
-
-int main() {
+int main()
+{
 
     int dim = 3;
     Eigen::MatrixXd A(dim, dim);
     A.setRandom();
 
     Eigen::DiagonalPreconditioner<double> precond(A);
-
-
-
 }

@@ -22,47 +22,50 @@ using std::cout;
 using std::endl;
 using NuTo::Constitutive::ePhaseFieldEnergyDecomposition;
 
-constexpr   int         dimension                   = 2;
-constexpr   bool        performLineSearch           = true;
-constexpr   bool        automaticTimeStepping       = true;
-constexpr   double      youngsModulus               = 2.1e5;
-constexpr   double      poissonsRatio               = 0.3;
-constexpr   double      thickness                   = 1.0;
-constexpr   double      lengthScaleParameter        = 3.0e-2;
-constexpr   double      fractureEnergy              = 2.7;
-constexpr   double      artificialViscosity         = 0.5;
-constexpr   double      timeStep                    = 1e-2;
-constexpr   double      minTimeStep                 = 1e-6;
-constexpr   double      maxTimeStep                 =  1e-1;
-constexpr   double      toleranceForce              = 1e-6;
-constexpr   double      simulationTime              = 1.0;
-constexpr   double      loadFactor                  = -0.4;
-constexpr   ePhaseFieldEnergyDecomposition energyDecomposition = ePhaseFieldEnergyDecomposition::ANISOTROPIC_SPECTRAL_DECOMPOSITION;
+constexpr int dimension = 2;
+constexpr bool performLineSearch = true;
+constexpr bool automaticTimeStepping = true;
+constexpr double youngsModulus = 2.1e5;
+constexpr double poissonsRatio = 0.3;
+constexpr double thickness = 1.0;
+constexpr double lengthScaleParameter = 3.0e-2;
+constexpr double fractureEnergy = 2.7;
+constexpr double artificialViscosity = 0.5;
+constexpr double timeStep = 1e-2;
+constexpr double minTimeStep = 1e-6;
+constexpr double maxTimeStep = 1e-1;
+constexpr double toleranceForce = 1e-6;
+constexpr double simulationTime = 1.0;
+constexpr double loadFactor = -0.4;
+constexpr ePhaseFieldEnergyDecomposition energyDecomposition =
+        ePhaseFieldEnergyDecomposition::ANISOTROPIC_SPECTRAL_DECOMPOSITION;
 
-void WriteParameters(const int subdirectory, const int dispOrder, const int phaseFieldOrder, const int ipOrder, boost::filesystem::path resultPath)
+void WriteParameters(const int subdirectory, const int dispOrder, const int phaseFieldOrder, const int ipOrder,
+                     boost::filesystem::path resultPath)
 {
     std::ofstream file;
     file.open(std::string(resultPath.string() + "parameters.txt"));
-    cout << "Writing simulation parameters to file: " << std::string(resultPath.string() + "parameters.txt") << std::endl;
-    file << "dispOrder            " << dispOrder            << std::endl;
-    file << "phaseFieldOrder      " << phaseFieldOrder      << std::endl;
-    file << "ipOrder              " << ipOrder              << std::endl;
-    file << "subdirectory         " << subdirectory         << std::endl;
-    file << "dimension            " << dimension            << std::endl;
-    file << "performLineSearch    " << performLineSearch    << std::endl;
-    file << "automaticTimeStepping" << automaticTimeStepping<< std::endl;
-    file << "youngsModulus        " << youngsModulus        << std::endl;
-    file << "poissonsRatio        " << poissonsRatio        << std::endl;
-    file << "thickness            " << thickness            << std::endl;
+    cout << "Writing simulation parameters to file: " << std::string(resultPath.string() + "parameters.txt")
+         << std::endl;
+    file << "dispOrder            " << dispOrder << std::endl;
+    file << "phaseFieldOrder      " << phaseFieldOrder << std::endl;
+    file << "ipOrder              " << ipOrder << std::endl;
+    file << "subdirectory         " << subdirectory << std::endl;
+    file << "dimension            " << dimension << std::endl;
+    file << "performLineSearch    " << performLineSearch << std::endl;
+    file << "automaticTimeStepping" << automaticTimeStepping << std::endl;
+    file << "youngsModulus        " << youngsModulus << std::endl;
+    file << "poissonsRatio        " << poissonsRatio << std::endl;
+    file << "thickness            " << thickness << std::endl;
     file << "lengthScaleParameter " << lengthScaleParameter << std::endl;
-    file << "fractureEnergy       " << fractureEnergy       << std::endl;
-    file << "artificialViscosity  " << artificialViscosity  << std::endl;
-    file << "timeStep             " << timeStep             << std::endl;
-    file << "minTimeStep          " << minTimeStep          << std::endl;
-    file << "maxTimeStep          " << maxTimeStep          << std::endl;
-    file << "toleranceForce       " << toleranceForce       << std::endl;
-    file << "simulationTime       " << simulationTime       << std::endl;
-    file << "loadFactor           " << loadFactor           << std::endl;
+    file << "fractureEnergy       " << fractureEnergy << std::endl;
+    file << "artificialViscosity  " << artificialViscosity << std::endl;
+    file << "timeStep             " << timeStep << std::endl;
+    file << "minTimeStep          " << minTimeStep << std::endl;
+    file << "maxTimeStep          " << maxTimeStep << std::endl;
+    file << "toleranceForce       " << toleranceForce << std::endl;
+    file << "simulationTime       " << simulationTime << std::endl;
+    file << "loadFactor           " << loadFactor << std::endl;
 
     file.close();
 }
@@ -76,18 +79,19 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    const       int         dispOrder                   = std::stoi(argv[1]);
-    const       int         phaseFieldOrder             = std::stoi(argv[2]);
-    const       int         ipOrder                     = std::stoi(argv[3]);
-    const       int         subdirectory                = std::stoi(argv[4]);
+    const int dispOrder = std::stoi(argv[1]);
+    const int phaseFieldOrder = std::stoi(argv[2]);
+    const int ipOrder = std::stoi(argv[3]);
+    const int subdirectory = std::stoi(argv[4]);
 
 
-    boost::filesystem::path resultPath(std::string("/home/phuschke/results/2d/2d_miehe_three_point_bending_phase_field/" + std::to_string(subdirectory) + "/"));
+    boost::filesystem::path resultPath(
+            std::string("/home/phuschke/results/2d/2d_miehe_three_point_bending_phase_field/" +
+                        std::to_string(subdirectory) + "/"));
     const boost::filesystem::path meshFilePath("2d_miehe_symmetric_three_point_bending_no_notch.msh");
 
-    const Eigen::Vector2d directionX    = Eigen::Vector2d::UnitX();
-    const Eigen::Vector2d directionY    = Eigen::Vector2d::UnitY();
-
+    const Eigen::Vector2d directionX = Eigen::Vector2d::UnitX();
+    const Eigen::Vector2d directionY = Eigen::Vector2d::UnitY();
 
 
     cout << "**********************************************" << endl;
@@ -109,13 +113,13 @@ int main(int argc, char* argv[])
 
     NuTo::NewmarkDirect myIntegrationScheme(&myStructure);
 
-    myIntegrationScheme.SetTimeStep                 ( timeStep                  );
-    myIntegrationScheme.SetMinTimeStep              ( minTimeStep               );
-    myIntegrationScheme.SetMaxTimeStep              ( maxTimeStep               );
-    myIntegrationScheme.SetToleranceForce           ( toleranceForce            );
-    myIntegrationScheme.SetAutomaticTimeStepping    ( automaticTimeStepping     );
-    myIntegrationScheme.SetPerformLineSearch        ( performLineSearch         );
-    myIntegrationScheme.SetResultDirectory          ( resultPath.string(), true );
+    myIntegrationScheme.SetTimeStep(timeStep);
+    myIntegrationScheme.SetMinTimeStep(minTimeStep);
+    myIntegrationScheme.SetMaxTimeStep(maxTimeStep);
+    myIntegrationScheme.SetToleranceForce(toleranceForce);
+    myIntegrationScheme.SetAutomaticTimeStepping(automaticTimeStepping);
+    myIntegrationScheme.SetPerformLineSearch(performLineSearch);
+    myIntegrationScheme.SetResultDirectory(resultPath.string(), true);
 
     WriteParameters(subdirectory, dispOrder, phaseFieldOrder, ipOrder, resultPath);
 
@@ -123,20 +127,15 @@ int main(int argc, char* argv[])
     cout << "**  section                                 **" << endl;
     cout << "**********************************************" << endl;
 
-    auto section = NuTo::SectionPlane::Create(thickness,true);
+    auto section = NuTo::SectionPlane::Create(thickness, true);
     myStructure.ElementTotalSetSection(section);
 
     cout << "**********************************************" << endl;
     cout << "**  material                                **" << endl;
     cout << "**********************************************" << endl;
 
-    NuTo::ConstitutiveBase* phaseField = new NuTo::PhaseField(youngsModulus,
-                                                              poissonsRatio,
-                                                              lengthScaleParameter,
-                                                              fractureEnergy,
-                                                              artificialViscosity,
-                                                              energyDecomposition
-                                                              );
+    NuTo::ConstitutiveBase* phaseField = new NuTo::PhaseField(youngsModulus, poissonsRatio, lengthScaleParameter,
+                                                              fractureEnergy, artificialViscosity, energyDecomposition);
 
     int matrixMaterial = myStructure.AddConstitutiveLaw(phaseField);
 
@@ -152,52 +151,56 @@ int main(int argc, char* argv[])
 
     switch (dispOrder)
     {
-        case 1:
-            myStructure.InterpolationTypeAdd(myInterpolationType, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT1);
-            break;
-        case 2:
-            myStructure.InterpolationTypeAdd(myInterpolationType, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT2);
-            break;
-        case 3:
-            myStructure.InterpolationTypeAdd(myInterpolationType, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT3);
-            break;
-        case 4:
-            myStructure.InterpolationTypeAdd(myInterpolationType, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT4);
-            break;
-        default:
-            std::cout << "dispOrder either 2,3 or 4." << std::endl;
-            return EXIT_FAILURE;
+    case 1:
+        myStructure.InterpolationTypeAdd(myInterpolationType, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT1);
+        break;
+    case 2:
+        myStructure.InterpolationTypeAdd(myInterpolationType, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT2);
+        break;
+    case 3:
+        myStructure.InterpolationTypeAdd(myInterpolationType, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT3);
+        break;
+    case 4:
+        myStructure.InterpolationTypeAdd(myInterpolationType, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT4);
+        break;
+    default:
+        std::cout << "dispOrder either 2,3 or 4." << std::endl;
+        return EXIT_FAILURE;
     }
 
     switch (phaseFieldOrder)
     {
-        case 1:
-            myStructure.InterpolationTypeAdd(myInterpolationType, eDof::CRACKPHASEFIELD, eTypeOrder::EQUIDISTANT1);
-            break;
-        default:
-            std::cout << "Crack phase-field order either 1,2 or 3." << std::endl;
-            return EXIT_FAILURE;
+    case 1:
+        myStructure.InterpolationTypeAdd(myInterpolationType, eDof::CRACKPHASEFIELD, eTypeOrder::EQUIDISTANT1);
+        break;
+    default:
+        std::cout << "Crack phase-field order either 1,2 or 3." << std::endl;
+        return EXIT_FAILURE;
     }
 
     myStructure.ElementGroupSetInterpolationType(groupId, myInterpolationType);
 
     switch (ipOrder)
     {
-        case 1:
-            myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::eIntegrationType::IntegrationType2D3NGauss1Ip);
-            break;
-        case 2:
-            myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::eIntegrationType::IntegrationType2D3NGauss3Ip);
-            break;
-        case 3:
-            myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::eIntegrationType::IntegrationType2D3NGauss6Ip);
-            break;
-        case 4:
-            myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::eIntegrationType::IntegrationType2D3NGauss12Ip);
-            break;
-        default:
-            std::cout << "ipOrder either 2, 3 or 4." << std::endl;
-            return EXIT_FAILURE;
+    case 1:
+        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType,
+                                                        NuTo::eIntegrationType::IntegrationType2D3NGauss1Ip);
+        break;
+    case 2:
+        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType,
+                                                        NuTo::eIntegrationType::IntegrationType2D3NGauss3Ip);
+        break;
+    case 3:
+        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType,
+                                                        NuTo::eIntegrationType::IntegrationType2D3NGauss6Ip);
+        break;
+    case 4:
+        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType,
+                                                        NuTo::eIntegrationType::IntegrationType2D3NGauss12Ip);
+        break;
+    default:
+        std::cout << "ipOrder either 2, 3 or 4." << std::endl;
+        return EXIT_FAILURE;
     }
 
     myStructure.InterpolationTypeInfo(myInterpolationType);
@@ -217,8 +220,8 @@ int main(int argc, char* argv[])
     center[1] = 0.0;
     int grpNodes_bottom_left = myStructure.GroupCreate(NuTo::eGroupId::Nodes);
     myStructure.GroupAddNodeRadiusRange(grpNodes_bottom_left, center, 0, tol);
-    myStructure.ConstraintLinearSetDisplacementNodeGroup(grpNodes_bottom_left,  directionY, 0);
-    myStructure.ConstraintLinearSetDisplacementNodeGroup(grpNodes_bottom_left,  directionX, 0);
+    myStructure.ConstraintLinearSetDisplacementNodeGroup(grpNodes_bottom_left, directionY, 0);
+    myStructure.ConstraintLinearSetDisplacementNodeGroup(grpNodes_bottom_left, directionX, 0);
 
     // bottom right boundary
     center[0] = 8.0;
@@ -227,9 +230,6 @@ int main(int argc, char* argv[])
     int grpNodes_bottom_right = myStructure.GroupCreate(NuTo::eGroupId::Nodes);
     myStructure.GroupAddNodeRadiusRange(grpNodes_bottom_right, center, 0, tol);
     myStructure.ConstraintLinearSetDisplacementNodeGroup(grpNodes_bottom_right, directionY, 0);
-
-
-
 
 
     cout << "**********************************************" << endl;
@@ -273,20 +273,22 @@ int main(int argc, char* argv[])
     center[1] = 2;
     int grpNodes_output_disp = myStructure.GroupCreate(NuTo::eGroupId::Nodes);
     myStructure.GroupAddNodeRadiusRange(grpNodes_output_disp, center, 0, 7e-1);
-    myIntegrationScheme.AddResultNodeDisplacements("mydisplacements", myStructure.GroupGetMemberIds(grpNodes_output_disp)[0]);
+    myIntegrationScheme.AddResultNodeDisplacements("mydisplacements",
+                                                   myStructure.GroupGetMemberIds(grpNodes_output_disp)[0]);
 
     Eigen::Matrix2d dispRHS;
     dispRHS(0, 0) = 0;
-    dispRHS(1, 0) =  simulationTime;
+    dispRHS(1, 0) = simulationTime;
     dispRHS(0, 1) = 0;
-    dispRHS(1, 1) =  loadFactor;
+    dispRHS(1, 1) = loadFactor;
 
     myIntegrationScheme.AddTimeDependentConstraint(loadId, dispRHS);
-    myStructure.ExportVtkDataFileElements(resultPath.string()+"bla.vtu", true);
+    myStructure.ExportVtkDataFileElements(resultPath.string() + "bla.vtu", true);
     myIntegrationScheme.Solve(simulationTime);
 
-//    std::string command = "paste " +  OutputPath.string() + "myforce.dat " +  OutputPath.string() + "mydisplacements.dat > " +  OutputPath.string() + "forceDisp.dat";
-//            system(command.c_str());
+    //    std::string command = "paste " +  OutputPath.string() + "myforce.dat " +  OutputPath.string() +
+    //    "mydisplacements.dat > " +  OutputPath.string() + "forceDisp.dat";
+    //            system(command.c_str());
     cout << "**********************************************" << endl;
     cout << "**  end                                     **" << endl;
     cout << "**********************************************" << endl;

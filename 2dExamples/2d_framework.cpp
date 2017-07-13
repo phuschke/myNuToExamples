@@ -24,7 +24,6 @@
 class Parameters
 {
 public:
-
     static const int mDimension = 2;
 
     static const bool mPerformLineSearch = true;
@@ -50,10 +49,8 @@ public:
 
 const boost::filesystem::path Parameters::mOutputPath("/home/phuschke/2D_Framework/");
 
-const NuTo::FullVector<double, 2> Parameters::mDirectionX(
-{ 1, 0 });
-const NuTo::FullVector<double, 2> Parameters::mDirectionY(
-{ 0, 1 });
+const NuTo::FullVector<double, 2> Parameters::mDirectionX({1, 0});
+const NuTo::FullVector<double, 2> Parameters::mDirectionY({0, 1});
 
 int main(int argc, char* argv[])
 {
@@ -91,7 +88,8 @@ int main(int argc, char* argv[])
     //          Material
     //**********************************************
 
-    int fibreMaterial = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+    int fibreMaterial =
+            myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
     myStructure.ConstitutiveLawSetYoungsModulus(fibreMaterial, Parameters::mFibreYoungsModulus);
     myStructure.ConstitutiveLawSetPoissonsRatio(fibreMaterial, Parameters::mFibrePoissonsRatio);
 
@@ -100,9 +98,12 @@ int main(int argc, char* argv[])
     //**********************************************
 
     int fibreInterpolationType = myStructure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::TRUSSXD);
-    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::COORDINATES, NuTo::Interpolation::EQUIDISTANT1);
-    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT1);
-    myStructure.InterpolationTypeSetIntegrationType(fibreInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss1Ip, NuTo::IpData::STATICDATA);
+    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::COORDINATES,
+                                     NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                     NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeSetIntegrationType(
+            fibreInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss1Ip, NuTo::IpData::STATICDATA);
 
     myStructure.InterpolationTypeInfo(fibreInterpolationType);
 
@@ -128,15 +129,21 @@ int main(int argc, char* argv[])
 
     nodeIndicesFibre[0] = node0;
     nodeIndicesFibre[1] = node1;
-    myStructure.ElementCreate(fibreInterpolationType, nodeIndicesFibre, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    myStructure.ElementCreate(fibreInterpolationType, nodeIndicesFibre,
+                              NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                              NuTo::IpData::eIpDataType::NOIPDATA);
 
     nodeIndicesFibre[0] = node1;
     nodeIndicesFibre[1] = node2;
-    myStructure.ElementCreate(fibreInterpolationType, nodeIndicesFibre, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    myStructure.ElementCreate(fibreInterpolationType, nodeIndicesFibre,
+                              NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                              NuTo::IpData::eIpDataType::NOIPDATA);
 
     nodeIndicesFibre[0] = node2;
     nodeIndicesFibre[1] = node0;
-    myStructure.ElementCreate(fibreInterpolationType, nodeIndicesFibre, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    myStructure.ElementCreate(fibreInterpolationType, nodeIndicesFibre,
+                              NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                              NuTo::IpData::eIpDataType::NOIPDATA);
 
     myStructure.SetVerboseLevel(10);
     myStructure.Info();
@@ -144,8 +151,6 @@ int main(int argc, char* argv[])
     myStructure.ElementTotalConvertToInterpolationType(1e-6, 10);
     myStructure.ElementTotalSetSection(fibreSection);
     myStructure.ElementTotalSetConstitutiveLaw(fibreMaterial);
-
-
 
 
     //**********************************************
@@ -167,8 +172,8 @@ int main(int argc, char* argv[])
     dispRHS(1, 1) = Parameters::mLoadFinalDisplacement;
 
 
-    //myStructure.ConstraintLinearSetDisplacementNode(node2, Parameters::mDirectionX, 0);
-    //myStructure.ConstraintLinearSetDisplacementNode(node2, Parameters::mDirectionY, 3);
+    // myStructure.ConstraintLinearSetDisplacementNode(node2, Parameters::mDirectionX, 0);
+    // myStructure.ConstraintLinearSetDisplacementNode(node2, Parameters::mDirectionY, 3);
 
     int load = 0;
     bool enableDisplacementControl = true;
@@ -176,7 +181,8 @@ int main(int argc, char* argv[])
     {
         load = myStructure.ConstraintLinearSetDisplacementNode(node2, Parameters::mDirectionY, 1);
         myIntegrationScheme.SetTimeDependentConstraint(load, dispRHS);
-    } else
+    }
+    else
     {
         load = myStructure.LoadCreateNodeForce(0, node2, Parameters::mDirectionY, 1);
         myIntegrationScheme.SetTimeDependentLoadCase(load, dispRHS);
@@ -200,9 +206,8 @@ int main(int argc, char* argv[])
     myIntegrationScheme.Solve(Parameters::mSimulationTime);
     myStructure.Info();
 
-    myStructure.ExportVtkDataFileElements(Parameters::mOutputPath.string()+"results.vtk");
+    myStructure.ExportVtkDataFileElements(Parameters::mOutputPath.string() + "results.vtk");
     std::cout << "************************************************************************************" << std::endl;
     std::cout << "*                                    END                                           *" << std::endl;
     std::cout << "************************************************************************************" << std::endl;
 }
-

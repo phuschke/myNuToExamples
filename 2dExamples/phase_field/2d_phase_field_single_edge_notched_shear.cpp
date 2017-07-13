@@ -13,7 +13,7 @@
 #include <chrono>
 
 using std::endl;
-using NuTo:: Constitutive::ePhaseFieldEnergyDecomposition;
+using NuTo::Constitutive::ePhaseFieldEnergyDecomposition;
 
 
 int main(int argc, char* argv[])
@@ -25,40 +25,42 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    const       int         dispOrder                   = std::stoi(argv[1]);
-    const       int         phaseFieldOrder             = std::stoi(argv[2]);
-    const       int         ipOrder                     = std::stoi(argv[3]);
-    const       int         subdirectory                = std::stoi(argv[4]);
-    constexpr   unsigned    dimension                   = 2;
-    constexpr   bool        performLineSearch           = false;
-    constexpr   bool        automaticTimeStepping       = true;
-    constexpr   double      youngsModulus               = 2.1e5;                // N/mm^2
-    constexpr   double      poissonsRatio               = 0.3;
-    constexpr   double      thickness                   = 1.0;                  // mm
-    constexpr   double      lengthScaleParameter        = 1.5e-2;               // mm
-    constexpr   double      fractureEnergy              = 2.7;                  // N/mm
-    constexpr   double      artificialViscosity         = 1.0e-3;                  // Ns/mm^2
+    const int dispOrder = std::stoi(argv[1]);
+    const int phaseFieldOrder = std::stoi(argv[2]);
+    const int ipOrder = std::stoi(argv[3]);
+    const int subdirectory = std::stoi(argv[4]);
+    constexpr unsigned dimension = 2;
+    constexpr bool performLineSearch = false;
+    constexpr bool automaticTimeStepping = true;
+    constexpr double youngsModulus = 2.1e5; // N/mm^2
+    constexpr double poissonsRatio = 0.3;
+    constexpr double thickness = 1.0; // mm
+    constexpr double lengthScaleParameter = 1.5e-2; // mm
+    constexpr double fractureEnergy = 2.7; // N/mm
+    constexpr double artificialViscosity = 1.0e-3; // Ns/mm^2
 
-    constexpr   ePhaseFieldEnergyDecomposition energyDecomposition = ePhaseFieldEnergyDecomposition::ANISOTROPIC_SPECTRAL_DECOMPOSITION;
+    constexpr ePhaseFieldEnergyDecomposition energyDecomposition =
+            ePhaseFieldEnergyDecomposition::ANISOTROPIC_SPECTRAL_DECOMPOSITION;
 
 
-    constexpr   double      timeStep                    = 1.0e-3;
-    constexpr   double      minTimeStep                 = 1.0e-6;
-    constexpr   double      maxTimeStep                 = 1.0e-3;
-    constexpr   double      simulationTime              = 1.6e-2;
+    constexpr double timeStep = 1.0e-3;
+    constexpr double minTimeStep = 1.0e-6;
+    constexpr double maxTimeStep = 1.0e-3;
+    constexpr double simulationTime = 1.6e-2;
 
-    constexpr   double      toleranceDisp               = 1.0e-5;
-    constexpr   double      toleranceCrack              = 1.0e-4;
-    constexpr   double      loadFactor                  = simulationTime;
+    constexpr double toleranceDisp = 1.0e-5;
+    constexpr double toleranceCrack = 1.0e-4;
+    constexpr double loadFactor = simulationTime;
 
-    constexpr   double      tol                         = 1.0e-6;
+    constexpr double tol = 1.0e-6;
 
-    boost::filesystem::path resultPath(std::string("/home/phuschke/results/2d/2d_miehe_single_edge_notched_shear_test_phase_field/" + std::to_string(subdirectory) + "/"));
+    boost::filesystem::path resultPath(
+            std::string("/home/phuschke/results/2d/2d_miehe_single_edge_notched_shear_test_phase_field/" +
+                        std::to_string(subdirectory) + "/"));
     const boost::filesystem::path meshFilePath("/home/phuschke/meshFiles/2d/2d_single_edge_notched_shear_test.msh");
 
-    const Eigen::Vector2d directionX    = Eigen::Vector2d::UnitX();
-    const Eigen::Vector2d directionY    = Eigen::Vector2d::UnitY();
-
+    const Eigen::Vector2d directionX = Eigen::Vector2d::UnitX();
+    const Eigen::Vector2d directionY = Eigen::Vector2d::UnitY();
 
 
     cout << "**********************************************" << endl;
@@ -80,39 +82,40 @@ int main(int argc, char* argv[])
 
     NuTo::NewmarkDirect myIntegrationScheme(&myStructure);
 
-    myIntegrationScheme.SetTimeStep                 ( timeStep                  );
-    myIntegrationScheme.SetMinTimeStep              ( minTimeStep               );
-    myIntegrationScheme.SetMaxTimeStep              ( maxTimeStep               );
-    myIntegrationScheme.SetAutomaticTimeStepping    ( automaticTimeStepping     );
-    myIntegrationScheme.SetPerformLineSearch        ( performLineSearch         );
-    myIntegrationScheme.SetResultDirectory          ( resultPath.string(), true );
-    myIntegrationScheme.SetToleranceResidual        ( NuTo::Node::eDof::CRACKPHASEFIELD, toleranceCrack  );
-    myIntegrationScheme.SetToleranceResidual        ( NuTo::Node::eDof::DISPLACEMENTS  , toleranceDisp   );
-    myIntegrationScheme.SetExportDataFileNodes      ( false );
+    myIntegrationScheme.SetTimeStep(timeStep);
+    myIntegrationScheme.SetMinTimeStep(minTimeStep);
+    myIntegrationScheme.SetMaxTimeStep(maxTimeStep);
+    myIntegrationScheme.SetAutomaticTimeStepping(automaticTimeStepping);
+    myIntegrationScheme.SetPerformLineSearch(performLineSearch);
+    myIntegrationScheme.SetResultDirectory(resultPath.string(), true);
+    myIntegrationScheme.SetToleranceResidual(NuTo::Node::eDof::CRACKPHASEFIELD, toleranceCrack);
+    myIntegrationScheme.SetToleranceResidual(NuTo::Node::eDof::DISPLACEMENTS, toleranceDisp);
+    myIntegrationScheme.SetExportDataFileNodes(false);
 
     std::ofstream file;
     file.open(std::string(resultPath.string() + "parameters.txt"));
-    cout << "Writing simulation parameters to file: " << std::string(resultPath.string() + "parameters.txt") << std::endl;
-    file << "dispOrder            " << dispOrder            << std::endl;
-    file << "phaseFieldOrder      " << phaseFieldOrder      << std::endl;
-    file << "ipOrder              " << ipOrder              << std::endl;
-    file << "subdirectory         " << subdirectory         << std::endl;
-    file << "dimension            " << dimension            << std::endl;
-    file << "performLineSearch    " << performLineSearch    << std::endl;
-    file << "automaticTimeStepping" << automaticTimeStepping<< std::endl;
-    file << "youngsModulus        " << youngsModulus        << std::endl;
-    file << "poissonsRatio        " << poissonsRatio        << std::endl;
-    file << "thickness            " << thickness            << std::endl;
+    cout << "Writing simulation parameters to file: " << std::string(resultPath.string() + "parameters.txt")
+         << std::endl;
+    file << "dispOrder            " << dispOrder << std::endl;
+    file << "phaseFieldOrder      " << phaseFieldOrder << std::endl;
+    file << "ipOrder              " << ipOrder << std::endl;
+    file << "subdirectory         " << subdirectory << std::endl;
+    file << "dimension            " << dimension << std::endl;
+    file << "performLineSearch    " << performLineSearch << std::endl;
+    file << "automaticTimeStepping" << automaticTimeStepping << std::endl;
+    file << "youngsModulus        " << youngsModulus << std::endl;
+    file << "poissonsRatio        " << poissonsRatio << std::endl;
+    file << "thickness            " << thickness << std::endl;
     file << "lengthScaleParameter " << lengthScaleParameter << std::endl;
-    file << "fractureEnergy       " << fractureEnergy       << std::endl;
-    file << "artificialViscosity  " << artificialViscosity  << std::endl;
-    file << "timeStep             " << timeStep             << std::endl;
-    file << "minTimeStep          " << minTimeStep          << std::endl;
-    file << "maxTimeStep          " << maxTimeStep          << std::endl;
-    file << "toleranceDisp        " << toleranceDisp        << std::endl;
-    file << "toleranceCrack       " << toleranceCrack       << std::endl;
-    file << "simulationTime       " << simulationTime       << std::endl;
-    file << "loadFactor           " << loadFactor           << std::endl;
+    file << "fractureEnergy       " << fractureEnergy << std::endl;
+    file << "artificialViscosity  " << artificialViscosity << std::endl;
+    file << "timeStep             " << timeStep << std::endl;
+    file << "minTimeStep          " << minTimeStep << std::endl;
+    file << "maxTimeStep          " << maxTimeStep << std::endl;
+    file << "toleranceDisp        " << toleranceDisp << std::endl;
+    file << "toleranceCrack       " << toleranceCrack << std::endl;
+    file << "simulationTime       " << simulationTime << std::endl;
+    file << "loadFactor           " << loadFactor << std::endl;
 
     file.close();
 
@@ -121,20 +124,15 @@ int main(int argc, char* argv[])
     cout << "**********************************************" << endl;
 
     int mySection = myStructure.SectionCreate(NuTo::eSectionType::PLANE_STRAIN);
-    myStructure.SectionSetThickness(mySection,  thickness);
+    myStructure.SectionSetThickness(mySection, thickness);
 
 
     cout << "**********************************************" << endl;
     cout << "**  material                                **" << endl;
     cout << "**********************************************" << endl;
 
-    NuTo::ConstitutiveBase* phaseField = new NuTo::PhaseField(youngsModulus,
-                                                              poissonsRatio,
-                                                              lengthScaleParameter,
-                                                              fractureEnergy,
-                                                              artificialViscosity,
-                                                              energyDecomposition
-                                                              );
+    NuTo::ConstitutiveBase* phaseField = new NuTo::PhaseField(youngsModulus, poissonsRatio, lengthScaleParameter,
+                                                              fractureEnergy, artificialViscosity, energyDecomposition);
 
     int matrixMaterial = myStructure.AddConstitutiveLaw(phaseField);
 
@@ -150,31 +148,31 @@ int main(int argc, char* argv[])
 
     switch (dispOrder)
     {
-        case 1:
-            myStructure.InterpolationTypeAdd(myInterpolationType, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT1);
-            break;
-        case 2:
-            myStructure.InterpolationTypeAdd(myInterpolationType, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT2);
-            break;
-        case 3:
-            myStructure.InterpolationTypeAdd(myInterpolationType, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT3);
-            break;
-        case 4:
-            myStructure.InterpolationTypeAdd(myInterpolationType, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT4);
-            break;
-        default:
-            std::cout << "dispOrder either 2,3 or 4." << std::endl;
-            return EXIT_FAILURE;
+    case 1:
+        myStructure.InterpolationTypeAdd(myInterpolationType, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT1);
+        break;
+    case 2:
+        myStructure.InterpolationTypeAdd(myInterpolationType, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT2);
+        break;
+    case 3:
+        myStructure.InterpolationTypeAdd(myInterpolationType, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT3);
+        break;
+    case 4:
+        myStructure.InterpolationTypeAdd(myInterpolationType, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT4);
+        break;
+    default:
+        std::cout << "dispOrder either 2,3 or 4." << std::endl;
+        return EXIT_FAILURE;
     }
 
     switch (phaseFieldOrder)
     {
-        case 1:
-            myStructure.InterpolationTypeAdd(myInterpolationType, eDof::CRACKPHASEFIELD, eTypeOrder::EQUIDISTANT1);
-            break;
-        default:
-            std::cout << "Crack phase-field order either 1,2 or 3." << std::endl;
-            return EXIT_FAILURE;
+    case 1:
+        myStructure.InterpolationTypeAdd(myInterpolationType, eDof::CRACKPHASEFIELD, eTypeOrder::EQUIDISTANT1);
+        break;
+    default:
+        std::cout << "Crack phase-field order either 1,2 or 3." << std::endl;
+        return EXIT_FAILURE;
     }
 
     myStructure.ElementGroupSetInterpolationType(groupId, myInterpolationType);
@@ -182,16 +180,20 @@ int main(int argc, char* argv[])
     switch (ipOrder)
     {
     case 1:
-        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::eIntegrationType::IntegrationType2D3NGauss1Ip);
+        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType,
+                                                        NuTo::eIntegrationType::IntegrationType2D3NGauss1Ip);
         break;
     case 2:
-        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::eIntegrationType::IntegrationType2D3NGauss3Ip);
+        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType,
+                                                        NuTo::eIntegrationType::IntegrationType2D3NGauss3Ip);
         break;
     case 3:
-        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::eIntegrationType::IntegrationType2D3NGauss6Ip);
+        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType,
+                                                        NuTo::eIntegrationType::IntegrationType2D3NGauss6Ip);
         break;
     case 4:
-        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::eIntegrationType::IntegrationType2D3NGauss12Ip);
+        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType,
+                                                        NuTo::eIntegrationType::IntegrationType2D3NGauss12Ip);
         break;
     default:
         std::cout << "ipOrder either 2, 3 or 4." << std::endl;
@@ -206,13 +208,12 @@ int main(int argc, char* argv[])
     myStructure.ElementTotalSetConstitutiveLaw(matrixMaterial);
 
 
-
     cout << "**********************************************" << endl;
     cout << "**  bc                                      **" << endl;
     cout << "**********************************************" << endl;
 
 
-    NuTo::FullVector<double,2> center;
+    NuTo::FullVector<double, 2> center;
 
     // constrain top boundary in Y
     int groupNodesTop = myStructure.GroupCreate(NuTo::Groups::Nodes);
@@ -222,7 +223,7 @@ int main(int argc, char* argv[])
 
     // constrain bottom boundary in X and Y
     int groupNodesBottom = myStructure.GroupCreate(NuTo::Groups::Nodes);
-    myStructure.GroupAddNodeCoordinateRange(groupNodesBottom, 1, - tol, tol);
+    myStructure.GroupAddNodeCoordinateRange(groupNodesBottom, 1, -tol, tol);
 
     myStructure.ConstraintLinearSetDisplacementNodeGroup(groupNodesBottom, directionX, 0);
     myStructure.ConstraintLinearSetDisplacementNodeGroup(groupNodesBottom, directionY, 0);
@@ -254,13 +255,14 @@ int main(int argc, char* argv[])
     center[1] = 1;
     int grpNodes_output_disp = myStructure.GroupCreate(NuTo::Groups::Nodes);
     myStructure.GroupAddNodeRadiusRange(grpNodes_output_disp, center, 0, tol);
-    myIntegrationScheme.AddResultNodeDisplacements("mydisplacements", myStructure.GroupGetMemberIds(grpNodes_output_disp).GetValue(0, 0));
+    myIntegrationScheme.AddResultNodeDisplacements("mydisplacements",
+                                                   myStructure.GroupGetMemberIds(grpNodes_output_disp).GetValue(0, 0));
 
     NuTo::FullMatrix<double, 2, 2> dispRHS;
     dispRHS(0, 0) = 0;
-    dispRHS(1, 0) =  simulationTime;
+    dispRHS(1, 0) = simulationTime;
     dispRHS(0, 1) = 0;
-    dispRHS(1, 1) =  loadFactor;
+    dispRHS(1, 1) = loadFactor;
 
     myIntegrationScheme.AddTimeDependentConstraint(loadId, dispRHS);
 
@@ -268,16 +270,18 @@ int main(int argc, char* argv[])
     {
         myIntegrationScheme.Solve(simulationTime);
     }
-    catch(...)
+    catch (...)
     {
         cout << "!!! SOMETHING WENT WRONG !!!" << endl;
-         myStructure.ExportVtkDataFileElements(resultPath.string()+"bla.vtu", true);
+        myStructure.ExportVtkDataFileElements(resultPath.string() + "bla.vtu", true);
     }
 
 
-    std::string command = "paste " +  resultPath.string() + "myforce.dat " +  resultPath.string() + "mydisplacements.dat > " +  resultPath.string() + "forceDisp.dat";
+    std::string command = "paste " + resultPath.string() + "myforce.dat " + resultPath.string() +
+                          "mydisplacements.dat > " + resultPath.string() + "forceDisp.dat";
     system(command.c_str());
-    std::string newcommand = "python " + resultPath.parent_path().parent_path().string() + "/paraviewPythonScript.py " + resultPath.string() + "/Group999_ElementsAll.pvd; okular /home/phuschke/test.png";
+    std::string newcommand = "python " + resultPath.parent_path().parent_path().string() + "/paraviewPythonScript.py " +
+                             resultPath.string() + "/Group999_ElementsAll.pvd; okular /home/phuschke/test.png";
     system(newcommand.c_str());
 
 

@@ -11,24 +11,24 @@
 int main()
 {
 
-    std::vector<int> vec01(2,33);
-    std::vector<int> vec02(4,22);
+    std::vector<int> vec01(2, 33);
+    std::vector<int> vec02(4, 22);
 
-    vec01.insert(vec01.end(),vec02.begin(),vec02.end());
+    vec01.insert(vec01.end(), vec02.begin(), vec02.end());
 
 
-    Eigen::SparseMatrix<double> A(2,2);
-    A.insert(0,0) = 1;
-    A.insert(1,0) = 1;
-    A.insert(0,1) = 1;
-    A.insert(1,1) = 1;
+    Eigen::SparseMatrix<double> A(2, 2);
+    A.insert(0, 0) = 1;
+    A.insert(1, 0) = 1;
+    A.insert(0, 1) = 1;
+    A.insert(1, 1) = 1;
 
-    Eigen::SparseMatrix<double> B = 2*A;
-    Eigen::SparseMatrix<double> C = 3*A;
-    Eigen::SparseMatrix<double> D = 4*A;
+    Eigen::SparseMatrix<double> B = 2 * A;
+    Eigen::SparseMatrix<double> C = 3 * A;
+    Eigen::SparseMatrix<double> D = 4 * A;
 
     auto E = A;
-    E.resize(4,4);
+    E.resize(4, 4);
 
     std::cout << "A \n" << A << std::endl;
     std::cout << "B \n" << B << std::endl;
@@ -67,12 +67,12 @@ int main()
 
     std::cout << "E \n" << E << std::endl;
 
-    E.resize(4,4);
+    E.resize(4, 4);
     std::cout << "E \n" << E << std::endl;
 
-    C.resize(2,2);
-    C.insert(1,0) = 443;
-    C.insert(1,1) = 21;
+    C.resize(2, 2);
+    C.insert(1, 0) = 443;
+    C.insert(1, 1) = 21;
     std::cout << "C.nonZeros() \n" << C.nonZeros() << std::endl;
     std::cout << "C.innerVec \n" << C.innerSize() << std::endl;
     std::cout << "C.innerVec \n" << C.outerSize() << std::endl;
@@ -83,11 +83,10 @@ int main()
     std::cout << "C.innerVec \n" << C.outerIndexPtr()[2] << std::endl;
 
 
-
-    Eigen::SparseMatrix<double> mat(2,2);
+    Eigen::SparseMatrix<double> mat(2, 2);
     mat = C;
-    for (int k=0; k<mat.outerSize(); ++k)
-        for (typename Eigen::SparseMatrix<double>::InnerIterator it(mat,k); it; ++it)
+    for (int k = 0; k < mat.outerSize(); ++k)
+        for (typename Eigen::SparseMatrix<double>::InnerIterator it(mat, k); it; ++it)
         {
             long int row = it.row();
             long int col = it.col();
@@ -95,7 +94,6 @@ int main()
             std::cout << "it.value()" << it.value() << std::endl;
             std::cout << "it.row()" << it.row() << std::endl;
             std::cout << "it.col()" << it.col() << std::endl;
-
         }
 
 

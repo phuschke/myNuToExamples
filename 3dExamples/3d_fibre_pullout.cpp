@@ -57,7 +57,9 @@ const NuTo::FullVector<double, 3> ParametersGeometry3D::mDirectionZ = NuTo::Full
 //          Run3d
 //**********************************************
 
-void Run3d(NuTo::FullVector<double, -1> rNodeCoords0, NuTo::FullVector<double, -1> rNodeCoords1, NuTo::FullVector<double, -1> rNodeCoords2, NuTo::FullVector<double, -1> rDirectionAligned, NuTo::FullVector<double, -1> rDirectionOrthogonal0, NuTo::FullVector<double, -1> rDirectionOrthogonal1)
+void Run3d(NuTo::FullVector<double, -1> rNodeCoords0, NuTo::FullVector<double, -1> rNodeCoords1,
+           NuTo::FullVector<double, -1> rNodeCoords2, NuTo::FullVector<double, -1> rDirectionAligned,
+           NuTo::FullVector<double, -1> rDirectionOrthogonal0, NuTo::FullVector<double, -1> rDirectionOrthogonal1)
 {
     //**********************************************
     //          Structure
@@ -69,7 +71,8 @@ void Run3d(NuTo::FullVector<double, -1> rNodeCoords0, NuTo::FullVector<double, -
     //         Integration Scheme
     //**********************************************
 
-    boost::filesystem::path resultPath(boost::filesystem::initial_path().string() + "/resultElementsInHigherDimensions/");
+    boost::filesystem::path resultPath(boost::filesystem::initial_path().string() +
+                                       "/resultElementsInHigherDimensions/");
     boost::filesystem::remove_all(resultPath);
     boost::filesystem::create_directory(resultPath);
 
@@ -88,7 +91,8 @@ void Run3d(NuTo::FullVector<double, -1> rNodeCoords0, NuTo::FullVector<double, -
     //          Material
     //**********************************************
 
-    int fibreMaterial = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+    int fibreMaterial =
+            myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
     myStructure.ConstitutiveLawSetYoungsModulus(fibreMaterial, ParametersMaterial::mYoungsModulus);
     myStructure.ConstitutiveLawSetPoissonsRatio(fibreMaterial, ParametersMaterial::mPoissonsRatio);
 
@@ -97,9 +101,12 @@ void Run3d(NuTo::FullVector<double, -1> rNodeCoords0, NuTo::FullVector<double, -
     //**********************************************
 
     int fibreInterpolationType = myStructure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::TRUSSXD);
-    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::COORDINATES, NuTo::Interpolation::EQUIDISTANT2);
-    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT2);
-    myStructure.InterpolationTypeSetIntegrationType(fibreInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss2Ip, NuTo::IpData::STATICDATA);
+    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::COORDINATES,
+                                     NuTo::Interpolation::EQUIDISTANT2);
+    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                     NuTo::Interpolation::EQUIDISTANT2);
+    myStructure.InterpolationTypeSetIntegrationType(
+            fibreInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss2Ip, NuTo::IpData::STATICDATA);
 
     //**********************************************
     //          Fibre
@@ -114,7 +121,9 @@ void Run3d(NuTo::FullVector<double, -1> rNodeCoords0, NuTo::FullVector<double, -
     nodeIndices[0] = node0;
     nodeIndices[1] = node1;
     nodeIndices[2] = node2;
-    myStructure.ElementCreate(fibreInterpolationType, nodeIndices, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    myStructure.ElementCreate(fibreInterpolationType, nodeIndices,
+                              NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                              NuTo::IpData::eIpDataType::NOIPDATA);
 
     myStructure.ElementTotalConvertToInterpolationType(1e-6, 10);
     myStructure.ElementTotalSetSection(fibreSection);
@@ -125,7 +134,7 @@ void Run3d(NuTo::FullVector<double, -1> rNodeCoords0, NuTo::FullVector<double, -
     //**********************************************
     myStructure.ConstraintLinearSetDisplacementNode(node0, ParametersGeometry3D::mDirectionX, 0);
     myStructure.ConstraintLinearSetDisplacementNode(node0, ParametersGeometry3D::mDirectionY, 0);
-    myStructure.ConstraintLinearSetDisplacementNode(node0, ParametersGeometry3D::mDirectionZ , 0);
+    myStructure.ConstraintLinearSetDisplacementNode(node0, ParametersGeometry3D::mDirectionZ, 0);
 
     myStructure.ConstraintLinearSetDisplacementNode(node1, rDirectionOrthogonal0, 0);
     myStructure.ConstraintLinearSetDisplacementNode(node2, rDirectionOrthogonal0, 0);
@@ -154,7 +163,7 @@ void Run3d(NuTo::FullVector<double, -1> rNodeCoords0, NuTo::FullVector<double, -
     myStructure.NodeBuildGlobalDofs();
     myStructure.CalculateMaximumIndependentSets();
 
-    myStructure.CheckCoefficientMatrix_0(1e-6,true);
+    myStructure.CheckCoefficientMatrix_0(1e-6, true);
     myStructure.Info();
 
     myIntegrationScheme.Solve(ParametersTimeIntegration::mSimulationTime);
@@ -192,11 +201,11 @@ int main(int argc, char* argv[])
         nodeCoords0[1] = 5.0;
         nodeCoords0[2] = 3.0;
 
-        nodeCoords1[0] = 1.0 + 0.5*std::sqrt(3);
+        nodeCoords1[0] = 1.0 + 0.5 * std::sqrt(3);
         nodeCoords1[1] = 5.0;
         nodeCoords1[2] = 3.0;
 
-        nodeCoords2[0] = 1.0 + 1.0*std::sqrt(3);
+        nodeCoords2[0] = 1.0 + 1.0 * std::sqrt(3);
         nodeCoords2[1] = 5.0;
         nodeCoords2[2] = 3.0;
 
@@ -225,11 +234,11 @@ int main(int argc, char* argv[])
 
         nodeCoords1[0] = 1.0;
         nodeCoords1[1] = 5.0;
-        nodeCoords1[2] = 3.0 + 0.5*std::sqrt(3);
+        nodeCoords1[2] = 3.0 + 0.5 * std::sqrt(3);
 
         nodeCoords2[0] = 1.0;
         nodeCoords2[1] = 5.0;
-        nodeCoords2[2] = 3.0 + 1.0*std::sqrt(3);
+        nodeCoords2[2] = 3.0 + 1.0 * std::sqrt(3);
 
         directionAligned[0] = 0.0;
         directionAligned[1] = 0.0;
@@ -279,8 +288,8 @@ int main(int argc, char* argv[])
 
 
         Run3d(nodeCoords0, nodeCoords1, nodeCoords2, directionAligned, directionOrthogonal0, directionOrthogonal1);
-
-    } catch (NuTo::Exception& e)
+    }
+    catch (NuTo::Exception& e)
     {
         std::cout << "## Test failed ##" << std::endl;
         std::cout << e.ErrorMessage();
@@ -288,5 +297,4 @@ int main(int argc, char* argv[])
     }
 
     std::cout << "## Test successful ##" << std::endl;
-
 }

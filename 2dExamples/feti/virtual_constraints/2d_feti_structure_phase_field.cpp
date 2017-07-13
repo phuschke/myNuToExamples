@@ -15,18 +15,18 @@
 constexpr int dim = 2;
 using Eigen::VectorXd;
 using Eigen::MatrixXd;
- using EigenSolver = Eigen::SparseQR<Eigen::SparseMatrix<double>,Eigen::COLAMDOrdering<int>>;
+using EigenSolver = Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>>;
 // using EigenSolver = Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>>;
 // using EigenSolver = Eigen::PardisoLU<Eigen::SparseMatrix<double>>;
-//using EigenSolver = Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>>;
+// using EigenSolver = Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>>;
 
 
-constexpr int dimension    = 2;
+constexpr int dimension = 2;
 constexpr double thickness = 1.0;
 
 
-constexpr double toleranceDisp       = 1e-4;
-constexpr double toleranceCrack      = 1e-4;
+constexpr double toleranceDisp = 1e-4;
+constexpr double toleranceCrack = 1e-4;
 constexpr double toleranceNlEqStrain = 1e-6;
 
 const Eigen::Vector2d directionX = Eigen::Vector2d::UnitX();
@@ -37,26 +37,26 @@ const Eigen::Vector2d directionY = Eigen::Vector2d::UnitY();
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //// material
-//constexpr double nonlocalRadius = 5; // mm
+// constexpr double nonlocalRadius = 5; // mm
 //
-//constexpr double youngsModulus       = 4.0; // N/mm^2
-//constexpr double poissonsRatio       = 0.2;
-//constexpr double fractureEnergy      = 1e-6; // N/mm
-//constexpr double compressiveStrength = 30.e-4; // N/mm
-//constexpr double tensileStrength     = 3.e-4; // N/mm
+// constexpr double youngsModulus       = 4.0; // N/mm^2
+// constexpr double poissonsRatio       = 0.2;
+// constexpr double fractureEnergy      = 1e-6; // N/mm
+// constexpr double compressiveStrength = 30.e-4; // N/mm
+// constexpr double tensileStrength     = 3.e-4; // N/mm
 //
 //
 //// integration
-//constexpr bool performLineSearch     = true;
-//constexpr bool automaticTimeStepping = true;
-//constexpr double timeStep            = 1e-1;
-//constexpr double minTimeStep         = 1e-3;
-//constexpr double maxTimeStep         = 1e-1;
+// constexpr bool performLineSearch     = true;
+// constexpr bool automaticTimeStepping = true;
+// constexpr double timeStep            = 1e-1;
+// constexpr double minTimeStep         = 1e-3;
+// constexpr double maxTimeStep         = 1e-1;
 //
 //
-//constexpr double simulationTime = 1.0;
-//constexpr double loadFactor     = -2e-2;
-//constexpr double maxIterations  = 10;
+// constexpr double simulationTime = 1.0;
+// constexpr double loadFactor     = -2e-2;
+// constexpr double maxIterations  = 10;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //          phase-field model parameters
@@ -64,22 +64,22 @@ const Eigen::Vector2d directionY = Eigen::Vector2d::UnitY();
 
 
 // material
-constexpr double youngsModulus                               = 2.0; // N/mm^2
-constexpr double poissonsRatio                               = 0.3;
-constexpr double lengthScaleParameter                        = 1.0e-1   ; // mm
-constexpr double fractureEnergy                              = 2.0e-4; // N/mm
-constexpr double artificialViscosity                         = 0; // Ns/mm^2
+constexpr double youngsModulus = 2.0; // N/mm^2
+constexpr double poissonsRatio = 0.3;
+constexpr double lengthScaleParameter = 1.0e-1; // mm
+constexpr double fractureEnergy = 2.0e-4; // N/mm
+constexpr double artificialViscosity = 0; // Ns/mm^2
 constexpr ePhaseFieldEnergyDecomposition energyDecomposition = ePhaseFieldEnergyDecomposition::ISOTROPIC;
 
 
 // integration
-constexpr double timeStep             = 1e-6;
-constexpr double minTimeStep          = 1e-6;
-constexpr double maxTimeStep          = 1e-1;
-constexpr double simulationTime       = 1.0;
-constexpr double loadFactor           = -0.5;
-constexpr bool performLineSearch      = true;
-constexpr bool automaticTimeStepping  = true;
+constexpr double timeStep = 1e-6;
+constexpr double minTimeStep = 1e-6;
+constexpr double maxTimeStep = 1e-1;
+constexpr double simulationTime = 1.0;
+constexpr double loadFactor = -0.5;
+constexpr bool performLineSearch = true;
+constexpr bool automaticTimeStepping = true;
 
 
 void AssignSection(NuTo::StructureFeti& structure);
@@ -107,8 +107,8 @@ int main(int argc, char* argv[])
     const int interpolationTypeId = structure.InterpolationTypeCreate(eShapeType::QUAD2D);
     structure.InterpolationTypeAdd(interpolationTypeId, eDof::COORDINATES, eTypeOrder::EQUIDISTANT1);
     structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT1);
-//    structure.InterpolationTypeAdd(interpolationTypeId, eDof::NONLOCALEQSTRAIN, eTypeOrder::EQUIDISTANT1);
-        structure.InterpolationTypeAdd(interpolationTypeId, eDof::CRACKPHASEFIELD, eTypeOrder::EQUIDISTANT1);
+    //    structure.InterpolationTypeAdd(interpolationTypeId, eDof::NONLOCALEQSTRAIN, eTypeOrder::EQUIDISTANT1);
+    structure.InterpolationTypeAdd(interpolationTypeId, eDof::CRACKPHASEFIELD, eTypeOrder::EQUIDISTANT1);
 
     structure.ImportMeshJson(meshFile, interpolationTypeId);
 
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
 
 
     std::vector<int> nodeIdsBoundaries = structure.GroupGetMemberIds(groupNodesBoundary);
-    std::vector<int> nodeIdsLoads      = structure.GroupGetMemberIds(groupNodesLoad);
+    std::vector<int> nodeIdsLoads = structure.GroupGetMemberIds(groupNodesLoad);
 
 
     structure.ApplyVirtualConstraints(nodeIdsBoundaries, nodeIdsLoads);
@@ -213,7 +213,7 @@ int main(int argc, char* argv[])
     structure.GroupCreate(groupAllElements, eGroupId::Elements);
     structure.GroupAddElementsTotal(groupAllElements);
     structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DISPLACEMENTS);
-//        structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DAMAGE);
+    //        structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DAMAGE);
     structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::CRACK_PHASE_FIELD);
 
     structure.GetLogger() << "*********************************** \n"
@@ -256,39 +256,43 @@ int main(int argc, char* argv[])
 
 void AssignSection(NuTo::StructureFeti& structure)
 {
-    auto section = NuTo::SectionPlane::Create(thickness,true);
+    auto section = NuTo::SectionPlane::Create(thickness, true);
     structure.ElementTotalSetSection(section);
 }
 
 void AssignMaterial(NuTo::StructureFeti& structure)
 {
 
-        NuTo::ConstitutiveBase* phaseField = new NuTo::PhaseField(youngsModulus, poissonsRatio, lengthScaleParameter,
-                                                                  fractureEnergy, artificialViscosity,
-                                                                  energyDecomposition);
+    NuTo::ConstitutiveBase* phaseField = new NuTo::PhaseField(youngsModulus, poissonsRatio, lengthScaleParameter,
+                                                              fractureEnergy, artificialViscosity, energyDecomposition);
 
-        int material00 = structure.AddConstitutiveLaw(phaseField);
+    int material00 = structure.AddConstitutiveLaw(phaseField);
 
-        structure.ElementTotalSetConstitutiveLaw(material00);
+    structure.ElementTotalSetConstitutiveLaw(material00);
 
-//        int material00 = structure.ConstitutiveLawCreate(eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
-//
-//        structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::YOUNGS_MODULUS,
-//        youngsModulus);
-//        structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::POISSONS_RATIO,
-//        poissonsRatio);
-//
-//        structure.ElementTotalSetConstitutiveLaw(material00);
+    //        int material00 = structure.ConstitutiveLawCreate(eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+    //
+    //        structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::YOUNGS_MODULUS,
+    //        youngsModulus);
+    //        structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::POISSONS_RATIO,
+    //        poissonsRatio);
+    //
+    //        structure.ElementTotalSetConstitutiveLaw(material00);
 
-//
-//    int material00 = structure.ConstitutiveLawCreate(eConstitutiveType::GRADIENT_DAMAGE_ENGINEERING_STRESS);
-//    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
-//    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::POISSONS_RATIO, poissonsRatio);
-//    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::TENSILE_STRENGTH, tensileStrength);
-//    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::COMPRESSIVE_STRENGTH,
-//                                                compressiveStrength);
-//    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::NONLOCAL_RADIUS, nonlocalRadius);
-//    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::FRACTURE_ENERGY, fractureEnergy);
-//
-//    structure.ElementTotalSetConstitutiveLaw(material00);
+    //
+    //    int material00 = structure.ConstitutiveLawCreate(eConstitutiveType::GRADIENT_DAMAGE_ENGINEERING_STRESS);
+    //    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::YOUNGS_MODULUS,
+    //    youngsModulus);
+    //    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::POISSONS_RATIO,
+    //    poissonsRatio);
+    //    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::TENSILE_STRENGTH,
+    //    tensileStrength);
+    //    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::COMPRESSIVE_STRENGTH,
+    //                                                compressiveStrength);
+    //    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::NONLOCAL_RADIUS,
+    //    nonlocalRadius);
+    //    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::FRACTURE_ENERGY,
+    //    fractureEnergy);
+    //
+    //    structure.ElementTotalSetConstitutiveLaw(material00);
 }

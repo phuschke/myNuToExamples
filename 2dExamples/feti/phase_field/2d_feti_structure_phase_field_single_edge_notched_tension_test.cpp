@@ -8,83 +8,47 @@
 #include "mechanics/feti/NewmarkFeti.h"
 #include "../../../EnumsAndTypedefs.h"
 
-#include "mechanics/nodes/NodeBase.h"
-
 #include "boost/filesystem.hpp"
 
 #include "mechanics/sections/SectionPlane.h"
 
-
 constexpr int dim = 2;
 using Eigen::VectorXd;
 using Eigen::MatrixXd;
-//using EigenSolver = Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>>;
-// using EigenSolver = Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>>;
-// using EigenSolver = Eigen::PardisoLU<Eigen::SparseMatrix<double>>;
- using EigenSolver = Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>>;
+using EigenSolver = Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>>;
 
 
-constexpr int dimension    = 2;
+constexpr int dimension = 2;
 constexpr double thickness = 1.0;
 
-constexpr double tol                 = 1e-6;
-constexpr double toleranceDisp       = 1e-8;
-constexpr double toleranceCrack      = 1e-8;
-constexpr double toleranceNlEqStrain = 1e-6;
+constexpr double tol = 1e-6;
+constexpr double toleranceDisp = 1e-8;
+constexpr double toleranceCrack = 1e-8;
 
 const Eigen::Vector2d directionX = Eigen::Vector2d::UnitX();
 const Eigen::Vector2d directionY = Eigen::Vector2d::UnitY();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//          gradient enhanced damage model parameters
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//// material
-// constexpr double nonlocalRadius = 5; // mm
-//
-// constexpr double youngsModulus       = 4.0; // N/mm^2
-// constexpr double poissonsRatio       = 0.2;
-// constexpr double fractureEnergy      = 1e-6; // N/mm
-// constexpr double compressiveStrength = 30.e-4; // N/mm
-// constexpr double tensileStrength     = 3.e-4; // N/mm
-//
-//
-//// integration
-// constexpr bool performLineSearch     = true;
-// constexpr bool automaticTimeStepping = true;
-// constexpr double timeStep            = 1e-1;
-// constexpr double minTimeStep         = 1e-3;
-// constexpr double maxTimeStep         = 1e-1;
-//
-//
-// constexpr double simulationTime = 1.0;
-// constexpr double loadFactor     = -2e-2;
-// constexpr double maxIterations  = 10;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //          phase-field model parameters
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 // material
 constexpr double youngsModulus = 2.1e5; // N/mm^2
 constexpr double poissonsRatio = 0.3;
-constexpr double lengthScaleParameter = 0.05; // mm
+constexpr double lengthScaleParameter = 0.04; // mm
 constexpr double fractureEnergy = 2.7; // N/mm
-constexpr double artificialViscosity = 0.02; // Ns/mm^2
+constexpr double artificialViscosity = 0.01; // Ns/mm^2
 constexpr ePhaseFieldEnergyDecomposition energyDecomposition = ePhaseFieldEnergyDecomposition::ISOTROPIC;
 
+constexpr bool performLineSearch = true;
+constexpr bool automaticTimeStepping = true;
+constexpr double timeStep = 1.e-3;
+constexpr double minTimeStep = 1.e-8;
+constexpr double maxTimeStep = 1.e-2;
+constexpr double timeStepPostProcessing = 1.e-5;
 
-constexpr   bool        performLineSearch           = true;
-constexpr   bool        automaticTimeStepping       = false;
-constexpr   double      timeStep                   = 1.e-3;
-constexpr   double      minTimeStep                = 1.e-8;
-constexpr   double      maxTimeStep                = 1.e-2;
-constexpr   double      timeStepPostProcessing     = 5.e-5;
-
-
-constexpr   double      simulationTime             = 20.0e-3;
-constexpr   double      loadFactor                 = simulationTime;
+constexpr double simulationTime = 10.0e-3;
+constexpr double loadFactor = simulationTime;
 
 
 void AssignSection(NuTo::StructureFeti& structure);
@@ -109,15 +73,12 @@ int main(int argc, char* argv[])
     std::string meshFile = argv[1] + std::to_string(rank);
     structure.GetLogger() << meshFile << "\n";
 
-    const int interpolationTypeId = structure.InterpolationTypeCreate(eShapeType::TRIANGLE2D);
+    const int interpolationTypeId = structure.InterpolationTypeCreate(eShapeType::QUAD2D);
     structure.InterpolationTypeAdd(interpolationTypeId, eDof::COORDINATES, eTypeOrder::EQUIDISTANT1);
     structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT1);
-    //    structure.InterpolationTypeAdd(interpolationTypeId, eDof::NONLOCALEQSTRAIN, eTypeOrder::EQUIDISTANT1);
     structure.InterpolationTypeAdd(interpolationTypeId, eDof::CRACKPHASEFIELD, eTypeOrder::EQUIDISTANT1);
 
     structure.ImportMeshJson(meshFile, interpolationTypeId);
-
-
 
     AssignMaterial(structure);
     AssignSection(structure);
@@ -142,7 +103,7 @@ int main(int argc, char* argv[])
 
 
     std::vector<int> nodeIdsBoundaries = structure.GroupGetMemberIds(groupNodesBoundary);
-    std::vector<int> nodeIdsLoads      = structure.GroupGetMemberIds(groupNodesLoad);
+    std::vector<int> nodeIdsLoads = structure.GroupGetMemberIds(groupNodesLoad);
 
 
     structure.ApplyVirtualConstraints(nodeIdsBoundaries, nodeIdsLoads);
@@ -180,7 +141,6 @@ int main(int argc, char* argv[])
         boundaryDofIds.push_back(dofIds[0]);
     }
 
-    //////////////////////////////////////////
 
     structure.ApplyConstraintsTotalFeti(boundaryDofIds);
 
@@ -211,31 +171,29 @@ int main(int argc, char* argv[])
     structure.GroupCreate(groupAllElements, eGroupId::Elements);
     structure.GroupAddElementsTotal(groupAllElements);
     structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DISPLACEMENTS);
-    //        structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DAMAGE);
     structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::CRACK_PHASE_FIELD);
 
     structure.GetLogger() << "*********************************** \n"
                           << "**      integration scheme       ** \n"
                           << "*********************************** \n\n";
 
-    NuTo::NewmarkFeti<EigenSolver> myIntegrationScheme(&structure);
+    NuTo::NewmarkFeti<EigenSolver> newmarkFeti(&structure);
     boost::filesystem::path resultPath(boost::filesystem::path(getenv("HOME")).string() +
-                                       std::string("/results/feti/") + std::to_string(structure.mRank));
+                                       std::string("/results/feti/phase_field/") + std::to_string(structure.mRank));
 
-    myIntegrationScheme.SetTimeStep(timeStep);
+    newmarkFeti.SetTimeStep(timeStep);
 
-    myIntegrationScheme.SetMinTimeStep(minTimeStep);
-    myIntegrationScheme.SetMaxTimeStep(maxTimeStep);
-    myIntegrationScheme.SetMaxNumIterations(5);
-    myIntegrationScheme.SetAutomaticTimeStepping(automaticTimeStepping);
-    myIntegrationScheme.SetResultDirectory(resultPath.string(), true);
-    myIntegrationScheme.SetPerformLineSearch(performLineSearch);
-    myIntegrationScheme.SetToleranceResidual(eDof::DISPLACEMENTS, toleranceDisp);
-    myIntegrationScheme.SetToleranceResidual(eDof::CRACKPHASEFIELD, toleranceCrack);
-    myIntegrationScheme.SetToleranceResidual(eDof::NONLOCALEQSTRAIN, toleranceNlEqStrain);
-    myIntegrationScheme.SetIterativeSolver(NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::ProjectedGmres);
-    myIntegrationScheme.SetFetiPreconditioner(NuTo::NewmarkFeti<EigenSolver>::eFetiPreconditioner::Lumped);
-    myIntegrationScheme.SetMinTimeStepPlot(timeStepPostProcessing);
+    newmarkFeti.SetMinTimeStep(minTimeStep);
+    newmarkFeti.SetMaxTimeStep(maxTimeStep);
+    newmarkFeti.SetMaxNumIterations(5);
+    newmarkFeti.SetAutomaticTimeStepping(automaticTimeStepping);
+    newmarkFeti.SetResultDirectory(resultPath.string(), true);
+    newmarkFeti.SetPerformLineSearch(performLineSearch);
+    newmarkFeti.SetToleranceResidual(eDof::DISPLACEMENTS, toleranceDisp);
+    newmarkFeti.SetToleranceResidual(eDof::CRACKPHASEFIELD, toleranceCrack);
+    newmarkFeti.SetIterativeSolver(NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::ProjectedGmres);
+    newmarkFeti.SetFetiPreconditioner(NuTo::NewmarkFeti<EigenSolver>::eFetiPreconditioner::Lumped);
+    newmarkFeti.SetMinTimeStepPlot(timeStepPostProcessing);
 
 
     Eigen::Matrix2d dispRHS;
@@ -244,32 +202,37 @@ int main(int argc, char* argv[])
     dispRHS(0, 1) = 0;
     dispRHS(1, 1) = loadFactor;
 
-    //    myIntegrationScheme.AddTimeDependentConstraint(loadId, dispRHS);
-    myIntegrationScheme.SetTimeDependentLoadCase(loadId, dispRHS);
+    //    newmarkFeti.AddTimeDependentConstraint(loadId, dispRHS);
+    newmarkFeti.SetTimeDependentLoadCase(loadId, dispRHS);
 
     structure.GetLogger() << "*********************************** \n"
                           << "**      solve                    ** \n"
                           << "*********************************** \n\n";
 
-    myIntegrationScheme.AddResultGroupNodeForce("force", groupNodesLoad);
 
-    if (rank == 0)
-    {
-        nodeCoords[0] = 0;
-        nodeCoords[1] = 1;
-    }
-    else
-    {
-        nodeCoords[0] = 1;
-        nodeCoords[1] = 1;
-    }
-    int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
-    structure.GroupAddNodeRadiusRange(grpNodes_output_disp, nodeCoords, 0, tol);
-    myIntegrationScheme.AddResultNodeDisplacements("displacements",
-                                                   structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
+    //    if (rank == 0)
+    //    {
+    //        newmarkFeti.AddResultGroupNodeForce("force", groupNodesLoad);
+    //        nodeCoords[0] = 0;
+    //        nodeCoords[1] = 1;
+    //        int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
+    //        structure.GroupAddNodeRadiusRange(grpNodes_output_disp, nodeCoords, 0, tol);
+    //        newmarkFeti.AddResultNodeDisplacements("displacements",
+    //                                                       structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
+    //    }
+    //    else if (rank == 1)
+    //    {
+    //        newmarkFeti.AddResultGroupNodeForce("force", groupNodesLoad);
+    //        nodeCoords[0] = 1;
+    //        nodeCoords[1] = 1;
+    //        int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
+    //        structure.GroupAddNodeRadiusRange(grpNodes_output_disp, nodeCoords, 0, tol);
+    //        newmarkFeti.AddResultNodeDisplacements("displacements",
+    //                                                       structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
+    //    }
 
 
-    myIntegrationScheme.Solve(simulationTime);
+    newmarkFeti.Solve(simulationTime);
     structure.GetLogger() << "Total number of Dofs: \t" << structure.GetNumTotalDofs() << "\n\n";
 }
 
@@ -277,7 +240,7 @@ int main(int argc, char* argv[])
 void AssignSection(NuTo::StructureFeti& structure)
 {
 
-    auto section = NuTo::SectionPlane::Create(thickness,true);
+    auto section = NuTo::SectionPlane::Create(thickness, true);
     structure.ElementTotalSetSection(section);
 }
 
@@ -287,37 +250,11 @@ void AssignMaterial(NuTo::StructureFeti& structure)
     structure.GetLogger() << "*********************************** \n"
                           << "**      material                 ** \n"
                           << "*********************************** \n\n";
-//
+
     NuTo::ConstitutiveBase* phaseField = new NuTo::PhaseField(youngsModulus, poissonsRatio, lengthScaleParameter,
                                                               fractureEnergy, artificialViscosity, energyDecomposition);
 
     int material00 = structure.AddConstitutiveLaw(phaseField);
 
     structure.ElementTotalSetConstitutiveLaw(material00);
-
-//            int material00 = structure.ConstitutiveLawCreate(eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
-//
-//            structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::YOUNGS_MODULUS,
-//            youngsModulus);
-//            structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::POISSONS_RATIO,
-//            poissonsRatio);
-//
-//            structure.ElementTotalSetConstitutiveLaw(material00);
-
-    //
-    //    int material00 = structure.ConstitutiveLawCreate(eConstitutiveType::GRADIENT_DAMAGE_ENGINEERING_STRESS);
-    //    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::YOUNGS_MODULUS,
-    //    youngsModulus);
-    //    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::POISSONS_RATIO,
-    //    poissonsRatio);
-    //    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::TENSILE_STRENGTH,
-    //    tensileStrength);
-    //    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::COMPRESSIVE_STRENGTH,
-    //                                                compressiveStrength);
-    //    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::NONLOCAL_RADIUS,
-    //    nonlocalRadius);
-    //    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::FRACTURE_ENERGY,
-    //    fractureEnergy);
-    //
-    //    structure.ElementTotalSetConstitutiveLaw(material00);
 }

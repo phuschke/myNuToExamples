@@ -26,26 +26,25 @@ const unsigned int dimension = 2;
 class Parameters
 {
 public:
-
     static const int mDimension = dimension;
 
     static const bool mPerformLineSearch = true;
     static const bool mAutomaticTimeStepping = true;
 
-    static constexpr double mMatrixYoungsModulus = 4.0e4;   // concrete
+    static constexpr double mMatrixYoungsModulus = 4.0e4; // concrete
     static constexpr double mMatrixPoissonsRatio = 0.2;
     static constexpr double mMatrixThickness = 10;
 
-    static constexpr double mBondYoungsModulus = 1.0e3;   // bond
+    static constexpr double mBondYoungsModulus = 1.0e3; // bond
     static constexpr double mBondPoissonsRatio = 0.2;
     static constexpr double mBondThickness = 10;
 
-    static constexpr double mFibreYoungsModulus = 1.0e3;   // steel
+    static constexpr double mFibreYoungsModulus = 1.0e3; // steel
     static constexpr double mFibrePoissonsRatio = 0.2;
     static constexpr double mFibreCrossSection = 0.01;
 
-    static constexpr double mSpringStiffnessSoft = 1.0e0;   // spring soft
-    static constexpr double mSpringStiffnessRigid = 1.0e0;   // spring rigid
+    static constexpr double mSpringStiffnessSoft = 1.0e0; // spring soft
+    static constexpr double mSpringStiffnessRigid = 1.0e0; // spring rigid
 
     static constexpr double mNonlocalRadius = 4;
     static constexpr double mTensileStrength = 3;
@@ -66,7 +65,8 @@ public:
 };
 
 const boost::filesystem::path Parameters::mOutputPath("/home/phuschke/2d_bond_stress_slip_2_trusses/");
-const boost::filesystem::path Parameters::mMeshFilePath("/home/phuschke/develop/nuto/myNutoExamples/2d_bond_stress_slip.msh");
+const boost::filesystem::path
+        Parameters::mMeshFilePath("/home/phuschke/develop/nuto/myNutoExamples/2d_bond_stress_slip.msh");
 
 const NuTo::FullVector<double, dimension> Parameters::mDirectionX = NuTo::FullVector<double, 2>::UnitX();
 const NuTo::FullVector<double, dimension> Parameters::mDirectionY = NuTo::FullVector<double, 2>::UnitY();
@@ -113,33 +113,52 @@ int main(int argc, char* argv[])
     std::cout << "**********************************************" << std::endl;
 
     int springMaterialRigid = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_SPRING);
-    myStructure.ConstitutiveLawSetParameterDouble(springMaterialRigid, NuTo::Constitutive::eConstitutiveParameter::SPRING_STIFFNESS, Parameters::mSpringStiffnessRigid);
-    myStructure.ConstitutiveLawSetParameterFullVectorDouble(springMaterialRigid, NuTo::Constitutive::eConstitutiveParameter::SPRING_DIRECTION, Parameters::mDirectionY);
+    myStructure.ConstitutiveLawSetParameterDouble(springMaterialRigid,
+                                                  NuTo::Constitutive::eConstitutiveParameter::SPRING_STIFFNESS,
+                                                  Parameters::mSpringStiffnessRigid);
+    myStructure.ConstitutiveLawSetParameterFullVectorDouble(
+            springMaterialRigid, NuTo::Constitutive::eConstitutiveParameter::SPRING_DIRECTION, Parameters::mDirectionY);
 
     int springMaterialSoft = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_SPRING);
-    myStructure.ConstitutiveLawSetParameterDouble(springMaterialSoft, NuTo::Constitutive::eConstitutiveParameter::SPRING_STIFFNESS, Parameters::mSpringStiffnessSoft);
-    myStructure.ConstitutiveLawSetParameterFullVectorDouble(springMaterialSoft, NuTo::Constitutive::eConstitutiveParameter::SPRING_DIRECTION, Parameters::mDirectionX);
+    myStructure.ConstitutiveLawSetParameterDouble(springMaterialSoft,
+                                                  NuTo::Constitutive::eConstitutiveParameter::SPRING_STIFFNESS,
+                                                  Parameters::mSpringStiffnessSoft);
+    myStructure.ConstitutiveLawSetParameterFullVectorDouble(
+            springMaterialSoft, NuTo::Constitutive::eConstitutiveParameter::SPRING_DIRECTION, Parameters::mDirectionX);
 
-    int matrixMaterial = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
-    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::YOUNGS_MODULUS, Parameters::mMatrixYoungsModulus);
-    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::POISSONS_RATIO, Parameters::mMatrixPoissonsRatio);
+    int matrixMaterial =
+            myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial,
+                                                  NuTo::Constitutive::eConstitutiveParameter::YOUNGS_MODULUS,
+                                                  Parameters::mMatrixYoungsModulus);
+    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial,
+                                                  NuTo::Constitutive::eConstitutiveParameter::POISSONS_RATIO,
+                                                  Parameters::mMatrixPoissonsRatio);
 
-    int fibreMaterial = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
-    myStructure.ConstitutiveLawSetParameterDouble(fibreMaterial, NuTo::Constitutive::eConstitutiveParameter::YOUNGS_MODULUS, Parameters::mFibreYoungsModulus);
-    myStructure.ConstitutiveLawSetParameterDouble(fibreMaterial, NuTo::Constitutive::eConstitutiveParameter::POISSONS_RATIO, Parameters::mFibrePoissonsRatio);
+    int fibreMaterial =
+            myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+    myStructure.ConstitutiveLawSetParameterDouble(
+            fibreMaterial, NuTo::Constitutive::eConstitutiveParameter::YOUNGS_MODULUS, Parameters::mFibreYoungsModulus);
+    myStructure.ConstitutiveLawSetParameterDouble(
+            fibreMaterial, NuTo::Constitutive::eConstitutiveParameter::POISSONS_RATIO, Parameters::mFibrePoissonsRatio);
 
     std::cout << "**********************************************" << std::endl;
     std::cout << "                  Interpolation Type          " << std::endl;
     std::cout << "**********************************************" << std::endl;
 
     int springInterpolationType = myStructure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::SPRING);
-    myStructure.InterpolationTypeAdd(springInterpolationType, NuTo::Node::COORDINATES, NuTo::Interpolation::EQUIDISTANT1);
-    myStructure.InterpolationTypeAdd(springInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeAdd(springInterpolationType, NuTo::Node::COORDINATES,
+                                     NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeAdd(springInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                     NuTo::Interpolation::EQUIDISTANT1);
 
     int fibreInterpolationType = myStructure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::TRUSSXD);
-    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::COORDINATES, NuTo::Interpolation::EQUIDISTANT1);
-    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT1);
-    myStructure.InterpolationTypeSetIntegrationType(fibreInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss2Ip, NuTo::IpData::STATICDATA);
+    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::COORDINATES,
+                                     NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                     NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeSetIntegrationType(
+            fibreInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss2Ip, NuTo::IpData::STATICDATA);
 
     std::cout << "**********************************************" << std::endl;
     std::cout << "                  Fibre Geometry              " << std::endl;
@@ -171,29 +190,41 @@ int main(int argc, char* argv[])
     // trusses
     nodeIndicesFibre[0] = node00;
     nodeIndicesFibre[1] = node01;
-    int elementFibre00 = myStructure.ElementCreate(fibreInterpolationType, nodeIndicesFibre, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    int elementFibre00 = myStructure.ElementCreate(fibreInterpolationType, nodeIndicesFibre,
+                                                   NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                                                   NuTo::IpData::eIpDataType::NOIPDATA);
 
     nodeIndicesFibre[0] = node02;
     nodeIndicesFibre[1] = node03;
-    int elementFibre01 = myStructure.ElementCreate(fibreInterpolationType, nodeIndicesFibre, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    int elementFibre01 = myStructure.ElementCreate(fibreInterpolationType, nodeIndicesFibre,
+                                                   NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                                                   NuTo::IpData::eIpDataType::NOIPDATA);
 
     // springs rigid
     nodeIndicesFibre[0] = node00;
     nodeIndicesFibre[1] = node02;
-    int elementSpring00 = myStructure.ElementCreate(springInterpolationType, nodeIndicesFibre, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    int elementSpring00 = myStructure.ElementCreate(springInterpolationType, nodeIndicesFibre,
+                                                    NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                                                    NuTo::IpData::eIpDataType::NOIPDATA);
 
     nodeIndicesFibre[0] = node01;
     nodeIndicesFibre[1] = node03;
-    int elementSpring01 = myStructure.ElementCreate(springInterpolationType, nodeIndicesFibre, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    int elementSpring01 = myStructure.ElementCreate(springInterpolationType, nodeIndicesFibre,
+                                                    NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                                                    NuTo::IpData::eIpDataType::NOIPDATA);
 
     // springs rigid
     nodeIndicesFibre[0] = node00;
     nodeIndicesFibre[1] = node02;
-    int elementSpring02 = myStructure.ElementCreate(springInterpolationType, nodeIndicesFibre, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    int elementSpring02 = myStructure.ElementCreate(springInterpolationType, nodeIndicesFibre,
+                                                    NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                                                    NuTo::IpData::eIpDataType::NOIPDATA);
 
     nodeIndicesFibre[0] = node01;
     nodeIndicesFibre[1] = node03;
-    int elementSpring03 = myStructure.ElementCreate(springInterpolationType, nodeIndicesFibre, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    int elementSpring03 = myStructure.ElementCreate(springInterpolationType, nodeIndicesFibre,
+                                                    NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                                                    NuTo::IpData::eIpDataType::NOIPDATA);
 
     int groupElementFibre = myStructure.GroupCreate(NuTo::Groups::eGroupId::Elements);
     myStructure.GroupAddElement(groupElementFibre, elementFibre00);
@@ -216,7 +247,7 @@ int main(int argc, char* argv[])
     myStructure.Info();
     myStructure.NodeBuildGlobalDofs();
 
-//    myStructure.CheckCoefficientMatrix_0(1e-6, true);
+    //    myStructure.CheckCoefficientMatrix_0(1e-6, true);
 
     std::cout << "**********************************************" << std::endl;
     std::cout << "                  Boundary Conditions         " << std::endl;
@@ -246,8 +277,8 @@ int main(int argc, char* argv[])
     std::cout << "**********************************************" << std::endl;
 
     myStructure.Info();
-//    myStructure.NodeBuildGlobalDofs();
-    //myStructure.CheckCoefficientMatrix_0(1e-6, true);
+    //    myStructure.NodeBuildGlobalDofs();
+    // myStructure.CheckCoefficientMatrix_0(1e-6, true);
     myStructure.Info();
 
     // build global stiffness matrix and equivalent load vector which correspond to prescribed boundary values
@@ -301,4 +332,3 @@ int main(int argc, char* argv[])
     std::cout << "                  End                         " << std::endl;
     std::cout << "**********************************************" << std::endl;
 }
-

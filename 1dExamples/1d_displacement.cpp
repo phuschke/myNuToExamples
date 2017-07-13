@@ -23,14 +23,14 @@
 int main(int argc, char* argv[])
 {
 
-//    if (argc != 4)
-//    {
-//        std::cout << "input arguments: numElements, interpolation order, integration order" << std::endl;
-//        return 1;
-//    }
-    const int numElements = 40;//std::stoi(argv[1]);
-    const int order = 4;//std::stoi(argv[2]);
-    const int ipOrder = 4;//std::stoi(argv[3]);
+    //    if (argc != 4)
+    //    {
+    //        std::cout << "input arguments: numElements, interpolation order, integration order" << std::endl;
+    //        return 1;
+    //    }
+    const int numElements = 40; // std::stoi(argv[1]);
+    const int order = 4; // std::stoi(argv[2]);
+    const int ipOrder = 4; // std::stoi(argv[3]);
 
     const int dimension = 1;
     const double youngsModulus = 4500;
@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
     const double displacement = 10;
 
     const double length = 100;
-    //directionX
+    // directionX
     NuTo::FullVector<double, dimension> directionX;
     directionX[0] = 1;
 
@@ -50,7 +50,8 @@ int main(int argc, char* argv[])
     NuTo::Structure myStructure(dimension);
 
     char resultDirectoryName[200];
-    sprintf(resultDirectoryName, "/home/phuschke/1D_Displacement_results_ele_%04d_disp_order_%02d_ip_%02d/", numElements, order, ipOrder);
+    sprintf(resultDirectoryName, "/home/phuschke/1D_Displacement_results_ele_%04d_disp_order_%02d_ip_%02d/",
+            numElements, order, ipOrder);
     boost::filesystem::path resultDirectory(resultDirectoryName);
     boost::filesystem::remove_all(resultDirectory);
     boost::filesystem::create_directory(resultDirectory);
@@ -85,7 +86,8 @@ int main(int argc, char* argv[])
     //          Material
     //**********************************************
 
-    int myMaterial = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+    int myMaterial =
+            myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
     myStructure.ConstitutiveLawSetPoissonsRatio(myMaterial, poissonsRatio);
     myStructure.ConstitutiveLawSetYoungsModulus(myMaterial, youngsModulus);
 
@@ -94,7 +96,7 @@ int main(int argc, char* argv[])
     //          Geometry
     //**********************************************
 
-    //create nodes
+    // create nodes
     int numNodesX = numElements + 1;
     double deltaX = length / numElements;
 
@@ -113,14 +115,20 @@ int main(int argc, char* argv[])
     // triangular elements
     if (order == 2)
     {
-        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT2);
-    } else if (order == 3)
+        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                         NuTo::Interpolation::EQUIDISTANT2);
+    }
+    else if (order == 3)
     {
-        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT3);
-    } else if (order == 4)
+        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                         NuTo::Interpolation::EQUIDISTANT3);
+    }
+    else if (order == 4)
     {
-        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT4);
-    } else
+        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                         NuTo::Interpolation::EQUIDISTANT4);
+    }
+    else
     {
         return 1;
     }
@@ -128,25 +136,29 @@ int main(int argc, char* argv[])
     switch (ipOrder)
     {
     case 2:
-        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss2Ip, NuTo::IpData::STATICDATA);
+        myStructure.InterpolationTypeSetIntegrationType(
+                myInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss2Ip, NuTo::IpData::STATICDATA);
         break;
     case 3:
-        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss3Ip, NuTo::IpData::STATICDATA);
+        myStructure.InterpolationTypeSetIntegrationType(
+                myInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss3Ip, NuTo::IpData::STATICDATA);
         break;
     case 4:
-        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss5Ip, NuTo::IpData::STATICDATA);
+        myStructure.InterpolationTypeSetIntegrationType(
+                myInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss5Ip, NuTo::IpData::STATICDATA);
         break;
     default:
         return 1;
     }
 
-    //create elements
+    // create elements
     for (int countX = 0; countX < numElements; countX++)
     {
         NuTo::FullVector<int, Eigen::Dynamic> nodes(2);
         nodes(0) = countX;
         nodes(1) = countX + 1;
-        myStructure.ElementCreate(myInterpolationType, nodes, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::STATICDATA);
+        myStructure.ElementCreate(myInterpolationType, nodes, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                                  NuTo::IpData::eIpDataType::STATICDATA);
     }
 
     myStructure.ElementTotalConvertToInterpolationType(1.e-6, 10);
@@ -159,7 +171,7 @@ int main(int argc, char* argv[])
     int weakElemets = myStructure.GroupCreate(NuTo::Groups::Elements);
     myStructure.GroupAddElementsFromNodes(weakElemets, weakNodes, true);
     myStructure.ElementGroupSetSection(weakElemets, weakSection);
-    //myStructure.ElementGroupSetConstitutiveLaw(weakElemets, weakMaterial);
+    // myStructure.ElementGroupSetConstitutiveLaw(weakElemets, weakMaterial);
     myStructure.IntegrationTypeInfo(10);
 
     //**********************************************
@@ -200,7 +212,8 @@ int main(int argc, char* argv[])
     dispRHS << 0, 0, simulationTime, displacement;
 
     myIntegrationScheme.AddResultGroupNodeForce("myforce", nodesRight);
-    myIntegrationScheme.AddResultNodeDisplacements("mydisplacements", myStructure.GroupGetMemberIds(nodesRight).GetValue(0, 0));
+    myIntegrationScheme.AddResultNodeDisplacements("mydisplacements",
+                                                   myStructure.GroupGetMemberIds(nodesRight).GetValue(0, 0));
 
     myIntegrationScheme.SetTimeDependentConstraint(load, dispRHS);
 
@@ -230,21 +243,23 @@ int main(int argc, char* argv[])
         {
             stressOutput << stress.GetValue(0, ip) << "\t" << coords.GetValue(0, ip) << std::endl;
         }
-
     }
     stressOutput.close();
 
 
-
     char forceDispName[200];
-    sprintf(forceDispName, "/home/phuschke/develop/nuto/myNutoExamples/GradientEnhancedDamageProject/latex/data/forceDisp1Ddisplacement_%03d_%02d_%02d.dat", numElements, order, ipOrder);
-    std::string command = "paste " + resultDirectory.string() + "myforce.dat " + resultDirectory.string() + "mydisplacements.dat > " + forceDispName;
+    sprintf(forceDispName, "/home/phuschke/develop/nuto/myNutoExamples/GradientEnhancedDamageProject/latex/data/"
+                           "forceDisp1Ddisplacement_%03d_%02d_%02d.dat",
+            numElements, order, ipOrder);
+    std::string command = "paste " + resultDirectory.string() + "myforce.dat " + resultDirectory.string() +
+                          "mydisplacements.dat > " + forceDispName;
     system(command.c_str());
 
     char stressName[200];
-    sprintf(stressName, "/home/phuschke/develop/nuto/myNutoExamples/GradientEnhancedDamageProject/latex/data/stress1Ddisplacement_%03d_%02d_%02d.dat", numElements, order, ipOrder);
+    sprintf(stressName, "/home/phuschke/develop/nuto/myNutoExamples/GradientEnhancedDamageProject/latex/data/"
+                        "stress1Ddisplacement_%03d_%02d_%02d.dat",
+            numElements, order, ipOrder);
     command = "mv " + resultDirectory.string() + "stressFile.dat " + stressName;
     system(command.c_str());
     std::cout << " ===> End 1DGradient <=== " << std::endl;
 }
-

@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
             boost::filesystem::path(getenv("HOME")).string() +
             std::string("/results/2d/2d_miehe_single_edge_notched_tension_test_phase_field/" +
                         std::to_string(subdirectory) + "/"));
-    const boost::filesystem::path meshFilePath("2d_single_edge_notched_tension_test.msh");
+    const boost::filesystem::path meshFilePath("2d_single_edge_notched_tension_test_quads.msh");
 
     const Eigen::Vector2d directionX = Eigen::Vector2d::UnitX();
     const Eigen::Vector2d directionY = Eigen::Vector2d::UnitY();
@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
     myIntegrationScheme.SetToleranceResidual(NuTo::Node::eDof::CRACKPHASEFIELD, toleranceCrack);
     myIntegrationScheme.SetToleranceResidual(NuTo::Node::eDof::DISPLACEMENTS, toleranceDisp);
     myIntegrationScheme.SetExportDataFileNodes(false);
-    //myIntegrationScheme.SetMinTimeStepPlot(timeStepPostProcessing);
+    // myIntegrationScheme.SetMinTimeStepPlot(timeStepPostProcessing);
 
     std::ofstream file;
     file.open(std::string(resultPath.string() + "parameters.txt"));
@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
     auto createdGroupIds = myStructure.ImportFromGmsh(meshFilePath.string());
     int groupId = createdGroupIds[0].first;
 
-    int myInterpolationType = myStructure.InterpolationTypeCreate(eShapeType::TRIANGLE2D);
+    int myInterpolationType = myStructure.InterpolationTypeCreate(eShapeType::QUAD2D);
     myStructure.InterpolationTypeAdd(myInterpolationType, eDof::COORDINATES, eTypeOrder::EQUIDISTANT1);
 
     switch (dispOrder)

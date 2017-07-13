@@ -26,22 +26,21 @@ const unsigned int dimension = 2;
 class Parameters
 {
 public:
-
     static const int mDimension = dimension;
 
     static const bool mPerformLineSearch = false;
     static const bool mAutomaticTimeStepping = false;
 
-    static constexpr double mMatrixYoungsModulus = 2.0e3;   // concrete
+    static constexpr double mMatrixYoungsModulus = 2.0e3; // concrete
     static constexpr double mMatrixPoissonsRatio = 0.3;
     static constexpr double mMatrixThickness = 1;
 
-    static constexpr double mInterfaceYoungsModulus = 1.0e3;   // bond
+    static constexpr double mInterfaceYoungsModulus = 1.0e3; // bond
 
     static constexpr double mInterfaceNormalStiffness = 1e10;
     static constexpr double mInterfaceTangentialStiffness = 1e4;
 
-    static constexpr double mFibreYoungsModulus = 2.0e4;   // steel
+    static constexpr double mFibreYoungsModulus = 2.0e4; // steel
     static constexpr double mFibrePoissonsRatio = 0.2;
     static constexpr double mFibreCrossSection = 1.0;
 
@@ -109,33 +108,51 @@ int main(int argc, char* argv[])
     std::cout << "                  Material                    " << std::endl;
     std::cout << "**********************************************" << std::endl;
 
-    int fibreMaterial = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS );
-    myStructure.ConstitutiveLawSetParameterDouble(fibreMaterial, NuTo::Constitutive::eConstitutiveParameter::YOUNGS_MODULUS, Parameters::mFibreYoungsModulus);
-    myStructure.ConstitutiveLawSetParameterDouble(fibreMaterial, NuTo::Constitutive::eConstitutiveParameter::POISSONS_RATIO, Parameters::mFibrePoissonsRatio);
+    int fibreMaterial =
+            myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+    myStructure.ConstitutiveLawSetParameterDouble(
+            fibreMaterial, NuTo::Constitutive::eConstitutiveParameter::YOUNGS_MODULUS, Parameters::mFibreYoungsModulus);
+    myStructure.ConstitutiveLawSetParameterDouble(
+            fibreMaterial, NuTo::Constitutive::eConstitutiveParameter::POISSONS_RATIO, Parameters::mFibrePoissonsRatio);
 
-    int matrixMaterial = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
-    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::YOUNGS_MODULUS, Parameters::mMatrixYoungsModulus);
-    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::POISSONS_RATIO, Parameters::mMatrixPoissonsRatio);
+    int matrixMaterial =
+            myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial,
+                                                  NuTo::Constitutive::eConstitutiveParameter::YOUNGS_MODULUS,
+                                                  Parameters::mMatrixYoungsModulus);
+    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial,
+                                                  NuTo::Constitutive::eConstitutiveParameter::POISSONS_RATIO,
+                                                  Parameters::mMatrixPoissonsRatio);
 
     int interfaceMaterial = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::INTERFACE_GOODMAN);
-    myStructure.ConstitutiveLawSetParameterDouble(interfaceMaterial, NuTo::Constitutive::eConstitutiveParameter::NORMAL_STIFFNESS, Parameters::mInterfaceNormalStiffness);
-    myStructure.ConstitutiveLawSetParameterDouble(interfaceMaterial, NuTo::Constitutive::eConstitutiveParameter::TANGENTIAL_STIFFNESS, Parameters::mInterfaceTangentialStiffness);
+    myStructure.ConstitutiveLawSetParameterDouble(interfaceMaterial,
+                                                  NuTo::Constitutive::eConstitutiveParameter::NORMAL_STIFFNESS,
+                                                  Parameters::mInterfaceNormalStiffness);
+    myStructure.ConstitutiveLawSetParameterDouble(interfaceMaterial,
+                                                  NuTo::Constitutive::eConstitutiveParameter::TANGENTIAL_STIFFNESS,
+                                                  Parameters::mInterfaceTangentialStiffness);
 
     std::cout << "**********************************************" << std::endl;
     std::cout << "                  Interpolation Type          " << std::endl;
     std::cout << "**********************************************" << std::endl;
 
     int fibreInterpolationType = myStructure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::TRUSSXD);
-    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::COORDINATES, NuTo::Interpolation::EQUIDISTANT1);
-    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::COORDINATES,
+                                     NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                     NuTo::Interpolation::EQUIDISTANT1);
 
     int matrixInterpolationType = myStructure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::QUAD2D);
-    myStructure.InterpolationTypeAdd(matrixInterpolationType, NuTo::Node::COORDINATES, NuTo::Interpolation::EQUIDISTANT1);
-    myStructure.InterpolationTypeAdd(matrixInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeAdd(matrixInterpolationType, NuTo::Node::COORDINATES,
+                                     NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeAdd(matrixInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                     NuTo::Interpolation::EQUIDISTANT1);
 
     int interfaceInterpolationType = myStructure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::INTERFACE);
-    myStructure.InterpolationTypeAdd(interfaceInterpolationType, NuTo::Node::COORDINATES, NuTo::Interpolation::EQUIDISTANT1);
-    myStructure.InterpolationTypeAdd(interfaceInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeAdd(interfaceInterpolationType, NuTo::Node::COORDINATES,
+                                     NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeAdd(interfaceInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                     NuTo::Interpolation::EQUIDISTANT1);
 
     std::cout << "**********************************************" << std::endl;
     std::cout << "                  Nodes                       " << std::endl;
@@ -176,25 +193,33 @@ int main(int argc, char* argv[])
     nodeIndicesMatrix[1] = node02;
     nodeIndicesMatrix[2] = node05;
     nodeIndicesMatrix[3] = node04;
-    int elementMatirx01 = myStructure.ElementCreate(matrixInterpolationType, nodeIndicesMatrix, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    int elementMatirx01 = myStructure.ElementCreate(matrixInterpolationType, nodeIndicesMatrix,
+                                                    NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                                                    NuTo::IpData::eIpDataType::NOIPDATA);
 
     nodeIndicesMatrix[0] = node02;
     nodeIndicesMatrix[1] = node03;
     nodeIndicesMatrix[2] = node06;
     nodeIndicesMatrix[3] = node05;
-    int elementMatirx02 = myStructure.ElementCreate(matrixInterpolationType, nodeIndicesMatrix, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    int elementMatirx02 = myStructure.ElementCreate(matrixInterpolationType, nodeIndicesMatrix,
+                                                    NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                                                    NuTo::IpData::eIpDataType::NOIPDATA);
 
     nodeIndicesMatrix[0] = node10;
     nodeIndicesMatrix[1] = node11;
     nodeIndicesMatrix[2] = node14;
     nodeIndicesMatrix[3] = node13;
-    int elementMatirx03 = myStructure.ElementCreate(matrixInterpolationType, nodeIndicesMatrix, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    int elementMatirx03 = myStructure.ElementCreate(matrixInterpolationType, nodeIndicesMatrix,
+                                                    NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                                                    NuTo::IpData::eIpDataType::NOIPDATA);
 
     nodeIndicesMatrix[0] = node11;
     nodeIndicesMatrix[1] = node12;
     nodeIndicesMatrix[2] = node15;
     nodeIndicesMatrix[3] = node14;
-    int elementMatirx04 = myStructure.ElementCreate(matrixInterpolationType, nodeIndicesMatrix, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    int elementMatirx04 = myStructure.ElementCreate(matrixInterpolationType, nodeIndicesMatrix,
+                                                    NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                                                    NuTo::IpData::eIpDataType::NOIPDATA);
 
     int groupElementsMatrix = myStructure.GroupCreate(NuTo::Groups::eGroupId::Elements);
     myStructure.GroupAddElement(groupElementsMatrix, elementMatirx01);
@@ -215,25 +240,33 @@ int main(int argc, char* argv[])
     nodeIndicesInterface[1] = node05;
     nodeIndicesInterface[2] = node08;
     nodeIndicesInterface[3] = node07;
-    int elementInterface05 = myStructure.ElementCreate(interfaceInterpolationType, nodeIndicesInterface, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    int elementInterface05 = myStructure.ElementCreate(interfaceInterpolationType, nodeIndicesInterface,
+                                                       NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                                                       NuTo::IpData::eIpDataType::NOIPDATA);
 
     nodeIndicesInterface[0] = node05;
     nodeIndicesInterface[1] = node06;
     nodeIndicesInterface[2] = node09;
     nodeIndicesInterface[3] = node08;
-    int elementInterface06 = myStructure.ElementCreate(interfaceInterpolationType, nodeIndicesInterface, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    int elementInterface06 = myStructure.ElementCreate(interfaceInterpolationType, nodeIndicesInterface,
+                                                       NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                                                       NuTo::IpData::eIpDataType::NOIPDATA);
 
     nodeIndicesInterface[0] = node07;
     nodeIndicesInterface[1] = node08;
     nodeIndicesInterface[2] = node11;
     nodeIndicesInterface[3] = node10;
-    int elementInterface07 = myStructure.ElementCreate(interfaceInterpolationType, nodeIndicesInterface, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    int elementInterface07 = myStructure.ElementCreate(interfaceInterpolationType, nodeIndicesInterface,
+                                                       NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                                                       NuTo::IpData::eIpDataType::NOIPDATA);
 
     nodeIndicesInterface[0] = node08;
     nodeIndicesInterface[1] = node09;
     nodeIndicesInterface[2] = node12;
     nodeIndicesInterface[3] = node11;
-    int elementInterface08 = myStructure.ElementCreate(interfaceInterpolationType, nodeIndicesInterface, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    int elementInterface08 = myStructure.ElementCreate(interfaceInterpolationType, nodeIndicesInterface,
+                                                       NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                                                       NuTo::IpData::eIpDataType::NOIPDATA);
 
     int groupElementsInterface = myStructure.GroupCreate(NuTo::Groups::eGroupId::Elements);
     myStructure.GroupAddElement(groupElementsInterface, elementInterface05);
@@ -251,16 +284,19 @@ int main(int argc, char* argv[])
     std::cout << "**********************************************" << std::endl;
 
 
-
     NuTo::FullVector<int, Eigen::Dynamic> nodeIndicesFibre(2);
 
     nodeIndicesFibre[0] = node07;
     nodeIndicesFibre[1] = node08;
-    int elementFibre09 = myStructure.ElementCreate(fibreInterpolationType, nodeIndicesFibre, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    int elementFibre09 = myStructure.ElementCreate(fibreInterpolationType, nodeIndicesFibre,
+                                                   NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                                                   NuTo::IpData::eIpDataType::NOIPDATA);
 
     nodeIndicesFibre[0] = node08;
     nodeIndicesFibre[1] = node09;
-    int elementFibre10 = myStructure.ElementCreate(fibreInterpolationType, nodeIndicesFibre, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    int elementFibre10 = myStructure.ElementCreate(fibreInterpolationType, nodeIndicesFibre,
+                                                   NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                                                   NuTo::IpData::eIpDataType::NOIPDATA);
 
     int groupElementsFibre = myStructure.GroupCreate(NuTo::Groups::eGroupId::Elements);
     myStructure.GroupAddElement(groupElementsFibre, elementFibre09);
@@ -308,8 +344,6 @@ int main(int argc, char* argv[])
     myStructure.LoadCreateNodeForce(loadCase, node15, Parameters::mDirectionY, -5e0);
 
 
-
-
     std::cout << "**********************************************" << std::endl;
     std::cout << "                  Visualisation               " << std::endl;
     std::cout << "**********************************************" << std::endl;
@@ -340,4 +374,3 @@ int main(int argc, char* argv[])
     std::cout << "                  End                         " << std::endl;
     std::cout << "**********************************************" << std::endl;
 }
-

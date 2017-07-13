@@ -14,13 +14,12 @@ constexpr unsigned int dimension = 2;
 class Parameters
 {
 public:
-
     static const int mDimension = dimension;
 
     static const bool mPerformLineSearch = true;
     static const bool mAutomaticTimeStepping = true;
 
-    static constexpr double mMatrixYoungsModulus = 4.0e4;   // concrete
+    static constexpr double mMatrixYoungsModulus = 4.0e4; // concrete
     static constexpr double mMatrixPoissonsRatio = 0.2;
     static constexpr double mMatrixThickness = 50;
     static constexpr double mMatrixNonlocalRadius = 4;
@@ -34,7 +33,7 @@ public:
     static constexpr double mMaxTimeStep = 1e-1;
     static constexpr double mToleranceForce = 1e-6;
     static constexpr double mSimulationTime = 1.0;
-    static constexpr double mLoad = -10*0.04;
+    static constexpr double mLoad = -10 * 0.04;
 
     static boost::filesystem::path mOutputPath;
     static const boost::filesystem::path mMeshFilePathMatrix;
@@ -61,10 +60,10 @@ int main(int argc, char* argv[])
     }
 
     // material
-    const int           dispOrder   = std::stoi(argv[1]);
-    const int           nlOrder     = std::stoi(argv[2]);
-    const int           ipOrder     = std::stoi(argv[3]);
-    const int           meshSize    = std::stoi(argv[4]);
+    const int dispOrder = std::stoi(argv[1]);
+    const int nlOrder = std::stoi(argv[2]);
+    const int ipOrder = std::stoi(argv[3]);
+    const int meshSize = std::stoi(argv[4]);
 
 
     cout << "**********************************************" << endl;
@@ -74,7 +73,9 @@ int main(int argc, char* argv[])
     NuTo::Structure myStructure(dimension);
     myStructure.SetShowTime(false);
     char resultDirectoryName[200];
-    sprintf(resultDirectoryName, "/home/phuschke/2d_phase_field_4_point_bending/dispOrder_%02d_damageOrder_%02d_ip_%02d_meshSize_%02d/", dispOrder, nlOrder, ipOrder, meshSize);
+    sprintf(resultDirectoryName,
+            "/home/phuschke/2d_phase_field_4_point_bending/dispOrder_%02d_damageOrder_%02d_ip_%02d_meshSize_%02d/",
+            dispOrder, nlOrder, ipOrder, meshSize);
     boost::filesystem::path resultDirectory(resultDirectoryName);
     boost::filesystem::remove_all(resultDirectory);
     boost::filesystem::create_directory(resultDirectory);
@@ -106,16 +107,24 @@ int main(int argc, char* argv[])
     cout << "**********************************************" << endl;
 
     int matrixMaterial = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::PHASE_FIELD);
-    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::YOUNGS_MODULUS, Parameters::mMatrixYoungsModulus);
-    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::POISSONS_RATIO, Parameters::mMatrixPoissonsRatio);
-    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::LENGTH_SCALE_PARAMETER, 10);
-    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::FRACTURE_ENERGY, 5);
+    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial,
+                                                  NuTo::Constitutive::eConstitutiveParameter::YOUNGS_MODULUS,
+                                                  Parameters::mMatrixYoungsModulus);
+    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial,
+                                                  NuTo::Constitutive::eConstitutiveParameter::POISSONS_RATIO,
+                                                  Parameters::mMatrixPoissonsRatio);
+    myStructure.ConstitutiveLawSetParameterDouble(
+            matrixMaterial, NuTo::Constitutive::eConstitutiveParameter::LENGTH_SCALE_PARAMETER, 10);
+    myStructure.ConstitutiveLawSetParameterDouble(matrixMaterial,
+                                                  NuTo::Constitutive::eConstitutiveParameter::FRACTURE_ENERGY, 5);
 
     cout << "**********************************************" << endl;
     cout << "**  geometry                                **" << endl;
     cout << "**********************************************" << endl;
 
-    NuTo::FullMatrix<int, Eigen::Dynamic, Eigen::Dynamic> createdGroupIds = myStructure.ImportFromGmsh(Parameters::mMeshFilePathMatrix.string(), NuTo::ElementData::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::STATICDATA);
+    NuTo::FullMatrix<int, Eigen::Dynamic, Eigen::Dynamic> createdGroupIds =
+            myStructure.ImportFromGmsh(Parameters::mMeshFilePathMatrix.string(), NuTo::ElementData::CONSTITUTIVELAWIP,
+                                       NuTo::IpData::eIpDataType::STATICDATA);
     int groupId = createdGroupIds.GetValue(0, 0);
 
     int myInterpolationType = myStructure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::TRIANGLE2D);
@@ -124,16 +133,20 @@ int main(int argc, char* argv[])
     switch (dispOrder)
     {
     case 1:
-        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT1);
+        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                         NuTo::Interpolation::EQUIDISTANT1);
         break;
     case 2:
-        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT2);
+        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                         NuTo::Interpolation::EQUIDISTANT2);
         break;
     case 3:
-        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT3);
+        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                         NuTo::Interpolation::EQUIDISTANT3);
         break;
     case 4:
-        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT4);
+        myStructure.InterpolationTypeAdd(myInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                         NuTo::Interpolation::EQUIDISTANT4);
         break;
     default:
         std::cout << "dispOrder either 2,3 or 4." << std::endl;
@@ -155,16 +168,20 @@ int main(int argc, char* argv[])
     switch (ipOrder)
     {
     case 1:
-        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::IntegrationType::IntegrationType2D3NGauss1Ip, NuTo::IpData::STATICDATA);
+        myStructure.InterpolationTypeSetIntegrationType(
+                myInterpolationType, NuTo::IntegrationType::IntegrationType2D3NGauss1Ip, NuTo::IpData::STATICDATA);
         break;
     case 2:
-        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::IntegrationType::IntegrationType2D3NGauss3Ip, NuTo::IpData::STATICDATA);
+        myStructure.InterpolationTypeSetIntegrationType(
+                myInterpolationType, NuTo::IntegrationType::IntegrationType2D3NGauss3Ip, NuTo::IpData::STATICDATA);
         break;
     case 3:
-        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::IntegrationType::IntegrationType2D3NGauss6Ip, NuTo::IpData::STATICDATA);
+        myStructure.InterpolationTypeSetIntegrationType(
+                myInterpolationType, NuTo::IntegrationType::IntegrationType2D3NGauss6Ip, NuTo::IpData::STATICDATA);
         break;
     case 4:
-        myStructure.InterpolationTypeSetIntegrationType(myInterpolationType, NuTo::IntegrationType::IntegrationType2D3NGauss12Ip, NuTo::IpData::STATICDATA);
+        myStructure.InterpolationTypeSetIntegrationType(
+                myInterpolationType, NuTo::IntegrationType::IntegrationType2D3NGauss12Ip, NuTo::IpData::STATICDATA);
         break;
     default:
         std::cout << "ipOrder either 2, 3 or 4." << std::endl;
@@ -189,7 +206,7 @@ int main(int argc, char* argv[])
     int grpNodes_bottom_left = myStructure.GroupCreate(NuTo::Groups::Nodes);
     myStructure.GroupAddNodeRadiusRange(grpNodes_bottom_left, center, 0, tol);
     myStructure.ConstraintLinearSetDisplacementNodeGroup(grpNodes_bottom_left, Parameters::mDirectionY, 0);
-//    myStructure.ConstraintLinearSetDisplacementNodeGroup(grpNodes_bottom_left, Parameters::mDirectionX, 0);
+    //    myStructure.ConstraintLinearSetDisplacementNodeGroup(grpNodes_bottom_left, Parameters::mDirectionX, 0);
 
     int group_nodes_tmp_01 = myStructure.GroupCreate(NuTo::Groups::Nodes);
     myStructure.GroupAddNodeCoordinateRange(group_nodes_tmp_01, 0, 250 - tol, 250 + tol);
@@ -201,10 +218,6 @@ int main(int argc, char* argv[])
     int group_nodes_symmetry = myStructure.GroupIntersection(group_nodes_tmp_01, group_nodes_tmp_02);
 
 
-
-
-
-
     // remove nodes with only nonlocal eq strains
     int group_only_nonlocal = myStructure.GroupCreate(NuTo::Groups::Nodes);
 
@@ -214,14 +227,12 @@ int main(int argc, char* argv[])
         int node_id = group_member_ids[iNode];
         auto node_ptr = myStructure.NodeGetNodePtr(node_id);
 
-        if (node_ptr->GetNumDisplacements()==0 and node_ptr->GetNumNonlocalEqStrain()>0)
+        if (node_ptr->GetNumDisplacements() == 0 and node_ptr->GetNumNonlocalEqStrain() > 0)
             myStructure.GroupAddNode(group_only_nonlocal, node_id);
-
     }
 
 
     int group_nodes_test = myStructure.GroupDifference(group_nodes_symmetry, group_only_nonlocal);
-
 
 
     myStructure.ConstraintLinearSetDisplacementNodeGroup(group_nodes_test, Parameters::mDirectionX, 0);
@@ -259,18 +270,19 @@ int main(int argc, char* argv[])
 
     myStructure.NodeInfo(10);
 
-//    center[0] = 175;
-//    center[1] = 100;
-//    int grpNodes_output = myStructure.GroupCreate(NuTo::Groups::Nodes);
-//    myStructure.GroupAddNodeRadiusRange(grpNodes_output, center, 0, 5e-1);
-//
-//    myIntegrationScheme.AddResultGroupNodeForce("myforce", grpNodes_output);
-//
-//    center[0] = 240;
-//    center[1] = 0;
-//    int grpNodes_output_disp = myStructure.GroupCreate(NuTo::Groups::Nodes);
-//    myStructure.GroupAddNodeRadiusRange(grpNodes_output_disp, center, 0, 7e-1);
-//    myIntegrationScheme.AddResultNodeDisplacements("mydisplacements", myStructure.GroupGetMemberIds(grpNodes_output_disp).GetValue(0, 0));
+    //    center[0] = 175;
+    //    center[1] = 100;
+    //    int grpNodes_output = myStructure.GroupCreate(NuTo::Groups::Nodes);
+    //    myStructure.GroupAddNodeRadiusRange(grpNodes_output, center, 0, 5e-1);
+    //
+    //    myIntegrationScheme.AddResultGroupNodeForce("myforce", grpNodes_output);
+    //
+    //    center[0] = 240;
+    //    center[1] = 0;
+    //    int grpNodes_output_disp = myStructure.GroupCreate(NuTo::Groups::Nodes);
+    //    myStructure.GroupAddNodeRadiusRange(grpNodes_output_disp, center, 0, 7e-1);
+    //    myIntegrationScheme.AddResultNodeDisplacements("mydisplacements",
+    //    myStructure.GroupGetMemberIds(grpNodes_output_disp).GetValue(0, 0));
 
     NuTo::FullMatrix<double, 2, 2> dispRHS;
     dispRHS(0, 0) = 0;
@@ -283,10 +295,11 @@ int main(int argc, char* argv[])
 
     myIntegrationScheme.Solve(Parameters::mSimulationTime);
 
-//    std::string command = "paste " + Parameters::mOutputPath.string() + "myforce.dat " + Parameters::mOutputPath.string() + "mydisplacements.dat > " + Parameters::mOutputPath.string() + "forceDisp.dat";
-//            system(command.c_str());
+    //    std::string command = "paste " + Parameters::mOutputPath.string() + "myforce.dat " +
+    //    Parameters::mOutputPath.string() + "mydisplacements.dat > " + Parameters::mOutputPath.string() +
+    //    "forceDisp.dat";
+    //            system(command.c_str());
     cout << "**********************************************" << endl;
     cout << "**  end                                     **" << endl;
     cout << "**********************************************" << endl;
 }
-

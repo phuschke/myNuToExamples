@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
 
     auto importContainer = structure.CreateRectangularMesh2D(meshDimensions, numElements);
     const int interpolationTypeId = importContainer.second;
-    structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS,   eTypeOrder::EQUIDISTANT1);
+    structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT1);
     structure.ElementTotalConvertToInterpolationType();
 
     const int materialId = structure.ConstitutiveLawCreate(eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
     std::vector<int> nodeIdsBoundaries = structure.GroupGetMemberIds(groupNodesLeftBoundary);
     std::vector<int> nodeIdsLoads = structure.GroupGetMemberIds(loadNodeGroup);
 
-//    std::cout << nodeIdsBoundaries << "\n";
+    //    std::cout << nodeIdsBoundaries << "\n";
 
     structure.ApplyVirtualConstraints(nodeIdsBoundaries, nodeIdsLoads);
 

@@ -26,7 +26,6 @@ constexpr unsigned int dimension = 2;
 class Parameters
 {
 public:
-
     static const int mDimension = dimension;
 
     static const bool mPerformLineSearch = true;
@@ -36,7 +35,6 @@ public:
     static constexpr double mInterfaceTangentialStiffness = 1;
 
     static constexpr double mInterfaceThickness = 10;
-
 
 
     static constexpr double mNonlocalRadius = 4;
@@ -98,16 +96,22 @@ int main(int argc, char* argv[])
     std::cout << "**********************************************" << std::endl;
 
     int interfaceMaterial = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::INTERFACE_GOODMAN);
-    myStructure.ConstitutiveLawSetParameterDouble(interfaceMaterial, NuTo::Constitutive::eConstitutiveParameter::NORMAL_STIFFNESS, Parameters::mInterfaceNormalStiffness);
-    myStructure.ConstitutiveLawSetParameterDouble(interfaceMaterial, NuTo::Constitutive::eConstitutiveParameter::TANGENTIAL_STIFFNESS, Parameters::mInterfaceTangentialStiffness);
+    myStructure.ConstitutiveLawSetParameterDouble(interfaceMaterial,
+                                                  NuTo::Constitutive::eConstitutiveParameter::NORMAL_STIFFNESS,
+                                                  Parameters::mInterfaceNormalStiffness);
+    myStructure.ConstitutiveLawSetParameterDouble(interfaceMaterial,
+                                                  NuTo::Constitutive::eConstitutiveParameter::TANGENTIAL_STIFFNESS,
+                                                  Parameters::mInterfaceTangentialStiffness);
 
     std::cout << "**********************************************" << std::endl;
     std::cout << "                  Interpolation Type          " << std::endl;
     std::cout << "**********************************************" << std::endl;
 
     int matrixInterpolationType = myStructure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::INTERFACE);
-    myStructure.InterpolationTypeAdd(matrixInterpolationType, NuTo::Node::COORDINATES, NuTo::Interpolation::EQUIDISTANT2);
-    myStructure.InterpolationTypeAdd(matrixInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT2);
+    myStructure.InterpolationTypeAdd(matrixInterpolationType, NuTo::Node::COORDINATES,
+                                     NuTo::Interpolation::EQUIDISTANT2);
+    myStructure.InterpolationTypeAdd(matrixInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                     NuTo::Interpolation::EQUIDISTANT2);
 
     std::cout << "**********************************************" << std::endl;
     std::cout << "                  Nodes                       " << std::endl;
@@ -154,7 +158,9 @@ int main(int argc, char* argv[])
     nodeIndicesMatrix[3] = nodeInterface03;
     nodeIndicesMatrix[4] = nodeInterface04;
     nodeIndicesMatrix[5] = nodeInterface05;
-    int elementMatirx00 = myStructure.ElementCreate(matrixInterpolationType, nodeIndicesMatrix, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    int elementMatirx00 = myStructure.ElementCreate(matrixInterpolationType, nodeIndicesMatrix,
+                                                    NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                                                    NuTo::IpData::eIpDataType::NOIPDATA);
 
     myStructure.ElementSetSection(elementMatirx00, interfaceSection);
     myStructure.ElementSetConstitutiveLaw(elementMatirx00, interfaceMaterial);
@@ -165,8 +171,8 @@ int main(int argc, char* argv[])
 
     NuTo::FullVector<double, dimension> directionAligned = NuTo::FullVector<double, dimension>::Ones();
     NuTo::FullVector<double, dimension> directionOrthogonal;
-    directionOrthogonal(0,0) = -1.0;
-    directionOrthogonal(1,0) = 1.0;
+    directionOrthogonal(0, 0) = -1.0;
+    directionOrthogonal(1, 0) = 1.0;
 
 
     int groupNodeBC = myStructure.GroupCreate(NuTo::Groups::eGroupId::Nodes);
@@ -203,16 +209,15 @@ int main(int argc, char* argv[])
     myStructure.Info();
 
 
-    NuTo::FullMatrix<double, -1, -1> dispRHS(2,2);
+    NuTo::FullMatrix<double, -1, -1> dispRHS(2, 2);
     dispRHS << 0, 0, 1, 1;
 
 
-    myIntegrationScheme.SetTimeDependentLoadCase(loadCase,dispRHS);
+    myIntegrationScheme.SetTimeDependentLoadCase(loadCase, dispRHS);
     myIntegrationScheme.Solve(Parameters::mSimulationTime);
 
-    myStructure.CheckCoefficientMatrix_0(1e-6,true);
+    myStructure.CheckCoefficientMatrix_0(1e-6, true);
     std::cout << "**********************************************" << std::endl;
     std::cout << "                  End                         " << std::endl;
     std::cout << "**********************************************" << std::endl;
 }
-

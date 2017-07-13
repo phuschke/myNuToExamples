@@ -23,13 +23,12 @@
 class Parameters
 {
 public:
-
     static const int mDimension = 3;
 
     static const bool mPerformLineSearch = true;
     static const bool mAutomaticTimeStepping = true;
 
-    static constexpr double mMatrixYoungsModulus = 4.0e4;   // concrete
+    static constexpr double mMatrixYoungsModulus = 4.0e4; // concrete
     static constexpr double mMatrixPoissonsRatio = 0.2;
 
     static constexpr double mFibreYoungsModulus = 2.1e9;
@@ -56,7 +55,8 @@ public:
 };
 
 const boost::filesystem::path Parameters::mOutputPath("/home/phuschke/3d_fibre_pullout_result/");
-const boost::filesystem::path Parameters::mMeshFilePath("/home/phuschke/develop/nuto/myNutoExamples/3d_fibre_pullout_mesh.msh");
+const boost::filesystem::path
+        Parameters::mMeshFilePath("/home/phuschke/develop/nuto/myNutoExamples/3d_fibre_pullout_mesh.msh");
 
 const NuTo::FullVector<double, 3> Parameters::mDirectionX = NuTo::FullVector<double, 3>::UnitX();
 const NuTo::FullVector<double, 3> Parameters::mDirectionY = NuTo::FullVector<double, 3>::UnitY();
@@ -98,11 +98,13 @@ int main(int argc, char* argv[])
     std::cout << "                  Material                    " << std::endl;
     std::cout << "**********************************************" << std::endl;
 
-    int matrixMaterial = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+    int matrixMaterial =
+            myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
     myStructure.ConstitutiveLawSetYoungsModulus(matrixMaterial, Parameters::mMatrixYoungsModulus);
     myStructure.ConstitutiveLawSetPoissonsRatio(matrixMaterial, Parameters::mMatrixPoissonsRatio);
 
-    int fibreMaterial = myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+    int fibreMaterial =
+            myStructure.ConstitutiveLawCreate(NuTo::Constitutive::eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
     myStructure.ConstitutiveLawSetYoungsModulus(fibreMaterial, Parameters::mFibreYoungsModulus);
     myStructure.ConstitutiveLawSetPoissonsRatio(fibreMaterial, Parameters::mFibrePoissonsRatio);
 
@@ -111,20 +113,28 @@ int main(int argc, char* argv[])
     std::cout << "**********************************************" << std::endl;
 
     int matrixInterpolationType = myStructure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::BRICK3D);
-    myStructure.InterpolationTypeAdd(matrixInterpolationType, NuTo::Node::COORDINATES, NuTo::Interpolation::EQUIDISTANT1);
-    myStructure.InterpolationTypeAdd(matrixInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT1);
-    myStructure.InterpolationTypeSetIntegrationType(matrixInterpolationType, NuTo::IntegrationType::IntegrationType3D8NGauss2x2x2Ip, NuTo::IpData::STATICDATA);
+    myStructure.InterpolationTypeAdd(matrixInterpolationType, NuTo::Node::COORDINATES,
+                                     NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeAdd(matrixInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                     NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeSetIntegrationType(
+            matrixInterpolationType, NuTo::IntegrationType::IntegrationType3D8NGauss2x2x2Ip, NuTo::IpData::STATICDATA);
 
     int fibreInterpolationType = myStructure.InterpolationTypeCreate(NuTo::Interpolation::eShapeType::TRUSSXD);
-    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::COORDINATES, NuTo::Interpolation::EQUIDISTANT1);
-    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::DISPLACEMENTS, NuTo::Interpolation::EQUIDISTANT1);
-    myStructure.InterpolationTypeSetIntegrationType(fibreInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss1Ip, NuTo::IpData::STATICDATA);
+    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::COORDINATES,
+                                     NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeAdd(fibreInterpolationType, NuTo::Node::DISPLACEMENTS,
+                                     NuTo::Interpolation::EQUIDISTANT1);
+    myStructure.InterpolationTypeSetIntegrationType(
+            fibreInterpolationType, NuTo::IntegrationType::IntegrationType1D2NGauss1Ip, NuTo::IpData::STATICDATA);
 
     std::cout << "**********************************************" << std::endl;
     std::cout << "                  Matrix Geometry             " << std::endl;
     std::cout << "**********************************************" << std::endl;
 
-    NuTo::FullMatrix<int, Eigen::Dynamic, Eigen::Dynamic> createdGroupIds = myStructure.ImportFromGmsh(Parameters::mMeshFilePath.string(), NuTo::ElementData::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::STATICDATA);
+    NuTo::FullMatrix<int, Eigen::Dynamic, Eigen::Dynamic> createdGroupIds =
+            myStructure.ImportFromGmsh(Parameters::mMeshFilePath.string(), NuTo::ElementData::CONSTITUTIVELAWIP,
+                                       NuTo::IpData::eIpDataType::STATICDATA);
     int groupIdMatrix = createdGroupIds.GetValue(0, 0);
 
     myStructure.ElementGroupSetInterpolationType(groupIdMatrix, matrixInterpolationType);
@@ -155,10 +165,12 @@ int main(int argc, char* argv[])
 
     nodeIndicesFibre[0] = node00;
     nodeIndicesFibre[1] = node01;
-    int elementFibre01 = myStructure.ElementCreate(fibreInterpolationType, nodeIndicesFibre, NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP, NuTo::IpData::eIpDataType::NOIPDATA);
+    int elementFibre01 = myStructure.ElementCreate(fibreInterpolationType, nodeIndicesFibre,
+                                                   NuTo::ElementData::eElementDataType::CONSTITUTIVELAWIP,
+                                                   NuTo::IpData::eIpDataType::NOIPDATA);
 
     int groupElementFibre = myStructure.GroupCreate(NuTo::Groups::eGroupId::Elements);
-//    myStructure.GroupAddElement(groupElementFibre, elementFibre00);
+    //    myStructure.GroupAddElement(groupElementFibre, elementFibre00);
     myStructure.GroupAddElement(groupElementFibre, elementFibre01);
     myStructure.ElementGroupSetSection(groupElementFibre, fibreSection);
     myStructure.ElementGroupSetConstitutiveLaw(groupElementFibre, fibreMaterial);
@@ -194,8 +206,9 @@ int main(int argc, char* argv[])
     int loadCase = 0;
     int groupNodeLoad = myStructure.GroupCreate(NuTo::Groups::eGroupId::Nodes);
     myStructure.GroupAddNodeCoordinateRange(groupNodeLoad, 0, 1 - 1e-6, 1 + 1e-6);
-    //myStructure.LoadCreateNodeGroupForce(loadCase, groupNodeLoad, Parameters::mDirectionX, 1);
-    int timeDependentConstraint = myStructure.ConstraintLinearSetDisplacementNodeGroup(groupNodeLoad, Parameters::mDirectionX, 1);
+    // myStructure.LoadCreateNodeGroupForce(loadCase, groupNodeLoad, Parameters::mDirectionX, 1);
+    int timeDependentConstraint =
+            myStructure.ConstraintLinearSetDisplacementNodeGroup(groupNodeLoad, Parameters::mDirectionX, 1);
 
     std::cout << "**********************************************" << std::endl;
     std::cout << "                  Visualisation               " << std::endl;
@@ -227,7 +240,7 @@ int main(int argc, char* argv[])
     timeDependentLoad(0, 1) = 0;
     timeDependentLoad(1, 1) = Parameters::mLoad;
 
-    //myIntegrationScheme.SetTimeDependentLoadCase(loadCase, timeDependentLoad);
+    // myIntegrationScheme.SetTimeDependentLoadCase(loadCase, timeDependentLoad);
     myIntegrationScheme.SetTimeDependentConstraint(timeDependentConstraint, timeDependentLoad);
 
     myIntegrationScheme.SetResultDirectory(Parameters::mOutputPath.string(), false);
@@ -238,4 +251,3 @@ int main(int argc, char* argv[])
     std::cout << "                  End                         " << std::endl;
     std::cout << "**********************************************" << std::endl;
 }
-

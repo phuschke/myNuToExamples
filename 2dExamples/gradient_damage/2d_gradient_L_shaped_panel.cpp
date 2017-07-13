@@ -102,7 +102,9 @@ int main(int argc, char* argv[])
                                                 compressiveStrength);
     structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::NONLOCAL_RADIUS, nonlocalRadius);
 
-    structure.ConstitutiveLawSetDamageLaw(materialId, NuTo::Constitutive::DamageLawExponential::Create(tensileStrength/youngsModulus,tensileStrength/fractureEnergy,alpha));
+    structure.ConstitutiveLawSetDamageLaw(
+            materialId, NuTo::Constitutive::DamageLawExponential::Create(tensileStrength / youngsModulus,
+                                                                         tensileStrength / fractureEnergy, alpha));
 
     structure.ElementTotalSetConstitutiveLaw(materialId);
 
@@ -160,4 +162,3 @@ int main(int argc, char* argv[])
     cout << "**  end                                     **" << endl;
     cout << "**********************************************" << endl;
 }
-

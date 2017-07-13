@@ -34,25 +34,23 @@ using std::cout;
 using std::endl;
 
 
-
-
-constexpr   int         dimension                   = 2;
-constexpr   double      thickness                   = 1.0;
+constexpr int dimension = 2;
+constexpr double thickness = 1.0;
 
 // material
-constexpr   double      youngsModulus               = 2.1e5;                // N/mm^2
-constexpr   double      poissonsRatio               = 0.3;
-constexpr   double      nonlocalRadius              = 1.0e-1;                   // mm
-constexpr   double      fractureEnergy              = 100.0;                   // N/mm
-constexpr   double      compressiveStrength         = 30000;                  // N/mm
-constexpr   double      tensileStrength             = 3000;                  // N/mm
+constexpr double youngsModulus = 2.1e5; // N/mm^2
+constexpr double poissonsRatio = 0.3;
+constexpr double nonlocalRadius = 1.0e-1; // mm
+constexpr double fractureEnergy = 100.0; // N/mm
+constexpr double compressiveStrength = 30000; // N/mm
+constexpr double tensileStrength = 3000; // N/mm
 
 
 // integration
-constexpr   double      timeStep                    = 1.0;
-constexpr   double      toleranceDisp               = 1e-6;
-constexpr   double      simulationTime              = 1.0;
-constexpr   double      loadFactor                  = 1.0;
+constexpr double timeStep = 1.0;
+constexpr double toleranceDisp = 1e-6;
+constexpr double simulationTime = 1.0;
+constexpr double loadFactor = 1.0;
 
 const Eigen::Vector2d directionX = Eigen::Vector2d::UnitX();
 const Eigen::Vector2d directionY = Eigen::Vector2d::UnitY();
@@ -63,21 +61,20 @@ void SingleDomain();
 
 int main(int argc, char* argv[])
 {
-    boost::mpi::environment     env;
-    boost::mpi::communicator    world;
+    boost::mpi::environment env;
+    boost::mpi::communicator world;
 
     Feti();
 
 
-    if(world.rank() == 0)
+    if (world.rank() == 0)
         SingleDomain();
-
 }
 
 
 void Feti()
 {
-    boost::mpi::communicator    world;
+    boost::mpi::communicator world;
 
     const int rank = world.rank();
 
@@ -87,10 +84,10 @@ void Feti()
     std::string meshFile = "linear_benchmark.msh_" + std::to_string(rank);
 
     const int interpolationTypeId = structure.InterpolationTypeCreate(eShapeType::TRIANGLE2D);
-    structure.InterpolationTypeAdd(interpolationTypeId, eDof::COORDINATES,     eTypeOrder::EQUIDISTANT1);
-    structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS,   eTypeOrder::EQUIDISTANT1);
+    structure.InterpolationTypeAdd(interpolationTypeId, eDof::COORDINATES, eTypeOrder::EQUIDISTANT1);
+    structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT1);
 
-    structure.ImportMeshJson(meshFile,interpolationTypeId);
+    structure.ImportMeshJson(meshFile, interpolationTypeId);
 
     // section
     int sectionId = structure.SectionCreate(eSectionType::PLANE_STRESS);
@@ -139,9 +136,9 @@ void Feti()
     NuTo::NewmarkFeti timeIntegration(&structure);
     boost::filesystem::path resultPath("/home/phuschke/results/feti/benchmark/" + std::to_string(structure.mRank));
 
-    timeIntegration.SetTimeStep                 ( timeStep                  );
-    timeIntegration.SetResultDirectory          ( resultPath.string(), true );
-    timeIntegration.SetToleranceResidual        ( eDof::DISPLACEMENTS, toleranceDisp );
+    timeIntegration.SetTimeStep(timeStep);
+    timeIntegration.SetResultDirectory(resultPath.string(), true);
+    timeIntegration.SetToleranceResidual(eDof::DISPLACEMENTS, toleranceDisp);
 
     Eigen::Matrix2d dispRHS;
     dispRHS(0, 0) = 0;
@@ -169,8 +166,8 @@ void SingleDomain()
     std::string meshFile = "linear_benchmark.msh";
 
     const int interpolationTypeId = structure.InterpolationTypeCreate(eShapeType::TRIANGLE2D);
-    structure.InterpolationTypeAdd(interpolationTypeId, eDof::COORDINATES,     eTypeOrder::EQUIDISTANT1);
-    structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS,   eTypeOrder::EQUIDISTANT1);
+    structure.InterpolationTypeAdd(interpolationTypeId, eDof::COORDINATES, eTypeOrder::EQUIDISTANT1);
+    structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT1);
     structure.ElementTotalSetInterpolationType(interpolationTypeId);
 
     cout << "Start import" << endl;
@@ -233,11 +230,12 @@ void SingleDomain()
 
     // time integration
     NuTo::NewmarkDirect timeIntegration(&structure);
-    boost::filesystem::path resultPath(boost::filesystem::initial_path().string() + std::string("/resultFeti_reference"));
+    boost::filesystem::path resultPath(boost::filesystem::initial_path().string() +
+                                       std::string("/resultFeti_reference"));
 
-    timeIntegration.SetTimeStep                 ( timeStep                  );
-    timeIntegration.SetResultDirectory          ( resultPath.string(), true );
-    timeIntegration.SetToleranceResidual        ( eDof::DISPLACEMENTS, toleranceDisp );
+    timeIntegration.SetTimeStep(timeStep);
+    timeIntegration.SetResultDirectory(resultPath.string(), true);
+    timeIntegration.SetToleranceResidual(eDof::DISPLACEMENTS, toleranceDisp);
 
     Eigen::Matrix2d dispRHS;
     dispRHS(0, 0) = 0;
@@ -252,5 +250,4 @@ void SingleDomain()
     timeIntegration.Solve(simulationTime);
     timer.Reset();
     cout << "End solve" << endl;
-
 }

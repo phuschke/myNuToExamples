@@ -33,26 +33,26 @@ bool BiCGStab(const Eigen::MatrixXd& mat, const Eigen::VectorXd& rhs, Eigen::Vec
     using std::sqrt;
     using std::abs;
     using RealScalar = double;
-    using Scalar     = double;
+    using Scalar = double;
     using VectorType = Eigen::VectorXd;
-    RealScalar tol   = tol_error;
-    using Index      = int;
-    Index maxIters   = iters;
+    RealScalar tol = tol_error;
+    using Index = int;
+    Index maxIters = iters;
 
-    Index n       = mat.cols();
-    VectorType r  = rhs - mat * x;
+    Index n = mat.cols();
+    VectorType r = rhs - mat * x;
     VectorType r0 = r;
 
-    RealScalar r0_sqnorm  = r0.squaredNorm();
+    RealScalar r0_sqnorm = r0.squaredNorm();
     RealScalar rhs_sqnorm = rhs.squaredNorm();
     if (rhs_sqnorm == 0)
     {
         x.setZero();
         return true;
     }
-    Scalar rho   = 1;
+    Scalar rho = 1;
     Scalar alpha = 1;
-    Scalar w     = 1;
+    Scalar w = 1;
 
     VectorType v = VectorType::Zero(n), p = VectorType::Zero(n);
     VectorType y(n), z(n);
@@ -62,8 +62,8 @@ bool BiCGStab(const Eigen::MatrixXd& mat, const Eigen::VectorXd& rhs, Eigen::Vec
 
     RealScalar tol2 = tol * tol * rhs_sqnorm;
     RealScalar eps2 = Eigen::NumTraits<Scalar>::epsilon() * Eigen::NumTraits<Scalar>::epsilon();
-    Index i         = 0;
-    Index restarts  = 0;
+    Index i = 0;
+    Index restarts = 0;
 
     while (r.squaredNorm() > tol2 && i < maxIters)
     {
@@ -74,23 +74,23 @@ bool BiCGStab(const Eigen::MatrixXd& mat, const Eigen::VectorXd& rhs, Eigen::Vec
         {
             // The new residual vector became too orthogonal to the arbitrarily chosen direction r0
             // Let's restart with a new r0:
-            r   = rhs - mat * x;
-            r0  = r;
+            r = rhs - mat * x;
+            r0 = r;
             rho = r0_sqnorm = r.squaredNorm();
             if (restarts++ == 0)
                 i = 0;
         }
         Scalar beta = (rho / rho_old) * (alpha / w);
-        p           = r + beta * (p - w * v);
+        p = r + beta * (p - w * v);
 
         y = precond.solve(p);
 
         v.noalias() = mat * y;
 
         alpha = rho / r0.dot(v);
-        s     = r - alpha * v;
+        s = r - alpha * v;
 
-        z           = precond.solve(s);
+        z = precond.solve(s);
         t.noalias() = mat * z;
 
         RealScalar tmp = t.squaredNorm();
@@ -103,10 +103,9 @@ bool BiCGStab(const Eigen::MatrixXd& mat, const Eigen::VectorXd& rhs, Eigen::Vec
         ++i;
     }
     tol_error = sqrt(r.squaredNorm() / rhs_sqnorm);
-    iters     = i;
+    iters = i;
     return true;
 }
-
 
 
 } // namespace NuTo

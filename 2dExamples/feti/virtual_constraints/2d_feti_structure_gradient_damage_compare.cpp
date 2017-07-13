@@ -19,38 +19,36 @@ using Eigen::VectorXd;
 using Eigen::MatrixXd;
 
 
-
-constexpr   int         dimension                   = 2;
-constexpr   double      thickness                   = 1.0;
+constexpr int dimension = 2;
+constexpr double thickness = 1.0;
 
 // material
-constexpr   double      youngsModulus               = 4.0;                // N/mm^2
-constexpr   double      poissonsRatio               = 0.2;
-constexpr   double      nonlocalRadius              = 5;                   // mm
-constexpr   double      fractureEnergy              = 1e-6;                   // N/mm
-constexpr   double      compressiveStrength         = 30.e-4;                  // N/mm
-constexpr   double      tensileStrength             = 3.e-4;                  // N/mm
+constexpr double youngsModulus = 4.0; // N/mm^2
+constexpr double poissonsRatio = 0.2;
+constexpr double nonlocalRadius = 5; // mm
+constexpr double fractureEnergy = 1e-6; // N/mm
+constexpr double compressiveStrength = 30.e-4; // N/mm
+constexpr double tensileStrength = 3.e-4; // N/mm
 
 // integration
-constexpr   bool        performLineSearch           = true;
-constexpr   bool        automaticTimeStepping       = true;
-constexpr   double      timeStep                    = 1e-2;
-constexpr   double      minTimeStep                 = 1e-3;
-constexpr   double      maxTimeStep                 =  1e-2;
+constexpr bool performLineSearch = true;
+constexpr bool automaticTimeStepping = true;
+constexpr double timeStep = 1e-2;
+constexpr double minTimeStep = 1e-3;
+constexpr double maxTimeStep = 1e-2;
 
-constexpr   double      toleranceDisp              = 1e-6;
-constexpr   double      toleranceNlEqStrain        = 1e-6;
+constexpr double toleranceDisp = 1e-6;
+constexpr double toleranceNlEqStrain = 1e-6;
 
-constexpr   double      simulationTime              = 1.0;
-constexpr   double      loadFactor                  = -2e-2;
-constexpr   double      maxInterations              = 10;
+constexpr double simulationTime = 1.0;
+constexpr double loadFactor = -2e-2;
+constexpr double maxInterations = 10;
 
-const Eigen::Vector2d directionX    = Eigen::Vector2d::UnitX();
-const Eigen::Vector2d directionY    = Eigen::Vector2d::UnitY();
+const Eigen::Vector2d directionX = Eigen::Vector2d::UnitX();
+const Eigen::Vector2d directionY = Eigen::Vector2d::UnitY();
 
 void AssignSection(NuTo::Structure& structure);
-void AssignMaterial(NuTo::Structure &structure);
-
+void AssignMaterial(NuTo::Structure& structure);
 
 
 int main(int argc, char* argv[])
@@ -68,18 +66,17 @@ int main(int argc, char* argv[])
     auto bla = structure.ImportFromGmsh(meshFile);
 
 
-
     const int interpolationTypeId = bla[0].second;
 
-//    structure.InterpolationTypeAdd(interpolationTypeId, eDof::COORDINATES,     eTypeOrder::EQUIDISTANT1);
-    structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS,    eTypeOrder::EQUIDISTANT1);
+    //    structure.InterpolationTypeAdd(interpolationTypeId, eDof::COORDINATES,     eTypeOrder::EQUIDISTANT1);
+    structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT1);
     structure.InterpolationTypeAdd(interpolationTypeId, eDof::NONLOCALEQSTRAIN, eTypeOrder::EQUIDISTANT1);
-    structure.InterpolationTypeSetIntegrationType(interpolationTypeId,NuTo::eIntegrationType::IntegrationType2D4NGauss4Ip);
-
+    structure.InterpolationTypeSetIntegrationType(interpolationTypeId,
+                                                  NuTo::eIntegrationType::IntegrationType2D4NGauss4Ip);
 
 
     std::cout << " set interpolation type" << std::endl;
-//    structure.ElementTotalSetInterpolationType(interpolationTypeId);
+    //    structure.ElementTotalSetInterpolationType(interpolationTypeId);
     std::cout << " convert to interpolation type" << std::endl;
     structure.ElementTotalConvertToInterpolationType();
 
@@ -92,11 +89,14 @@ int main(int argc, char* argv[])
 
     structure.NodeBuildGlobalDofs(__PRETTY_FUNCTION__);
 
-    structure.GetLogger() << "**********************************************" << "\n";
-    structure.GetLogger() << "**  real constraints                        **" << "\n";
-    structure.GetLogger() << "**********************************************" << "\n\n";
+    structure.GetLogger() << "**********************************************"
+                          << "\n";
+    structure.GetLogger() << "**  real constraints                        **"
+                          << "\n";
+    structure.GetLogger() << "**********************************************"
+                          << "\n\n";
 
-Eigen::VectorXd nodeCoords(2);
+    Eigen::VectorXd nodeCoords(2);
     nodeCoords[0] = 0;
     nodeCoords[1] = 0;
 
@@ -118,11 +118,12 @@ Eigen::VectorXd nodeCoords(2);
     structure.ConstraintLinearSetDisplacementNodeGroup(groupNodesRightBoundary, directionY, 0.0);
 
 
-    structure.GetLogger() << "**********************************************" << "\n";
-    structure.GetLogger() << "**  load                                    **" << "\n";
-    structure.GetLogger() << "**********************************************" << "\n\n";
-
-
+    structure.GetLogger() << "**********************************************"
+                          << "\n";
+    structure.GetLogger() << "**  load                                    **"
+                          << "\n";
+    structure.GetLogger() << "**********************************************"
+                          << "\n\n";
 
 
     int loadNodeGroup = structure.GroupCreate(eGroupId::Nodes);
@@ -133,9 +134,12 @@ Eigen::VectorXd nodeCoords(2);
     int loadId = structure.ConstraintLinearSetDisplacementNodeGroup(loadNodeGroup, directionY, 1);
 
 
-    structure.GetLogger() << "***********************************" << "\n";
-    structure.GetLogger() << "**      Visualization            **" << "\n";
-    structure.GetLogger() << "***********************************" << "\n\n";
+    structure.GetLogger() << "***********************************"
+                          << "\n";
+    structure.GetLogger() << "**      Visualization            **"
+                          << "\n";
+    structure.GetLogger() << "***********************************"
+                          << "\n\n";
 
     int groupAllElements = 9999;
     structure.GroupCreate(groupAllElements, eGroupId::Elements);
@@ -147,23 +151,26 @@ Eigen::VectorXd nodeCoords(2);
     structure.AddVisualizationComponent(groupAllElements, eVisualizeWhat::DAMAGE);
 
 
-    structure.GetLogger() << "**********************************************" << "\n";
-    structure.GetLogger() << "**  integration sheme                       **" << "\n";
-    structure.GetLogger() << "**********************************************" << "\n\n";
+    structure.GetLogger() << "**********************************************"
+                          << "\n";
+    structure.GetLogger() << "**  integration sheme                       **"
+                          << "\n";
+    structure.GetLogger() << "**********************************************"
+                          << "\n\n";
 
 
     NuTo::NewmarkDirect myIntegrationScheme(&structure);
     boost::filesystem::path resultPath(std::string("/home/phuschke/results/feti/compare"));
 
-    myIntegrationScheme.SetTimeStep                 ( timeStep                  );
-    myIntegrationScheme.SetMaxNumIterations         ( maxInterations            );
-    myIntegrationScheme.SetMinTimeStep              ( minTimeStep               );
-    myIntegrationScheme.SetMaxTimeStep              ( maxTimeStep               );
-    myIntegrationScheme.SetAutomaticTimeStepping    ( automaticTimeStepping     );
-    myIntegrationScheme.SetResultDirectory          ( resultPath.string(), true );
-    myIntegrationScheme.SetPerformLineSearch        ( performLineSearch         );
-    myIntegrationScheme.SetToleranceResidual        ( eDof::DISPLACEMENTS, toleranceDisp );
-    myIntegrationScheme.SetToleranceResidual        ( eDof::NONLOCALEQSTRAIN, toleranceNlEqStrain );
+    myIntegrationScheme.SetTimeStep(timeStep);
+    myIntegrationScheme.SetMaxNumIterations(maxInterations);
+    myIntegrationScheme.SetMinTimeStep(minTimeStep);
+    myIntegrationScheme.SetMaxTimeStep(maxTimeStep);
+    myIntegrationScheme.SetAutomaticTimeStepping(automaticTimeStepping);
+    myIntegrationScheme.SetResultDirectory(resultPath.string(), true);
+    myIntegrationScheme.SetPerformLineSearch(performLineSearch);
+    myIntegrationScheme.SetToleranceResidual(eDof::DISPLACEMENTS, toleranceDisp);
+    myIntegrationScheme.SetToleranceResidual(eDof::NONLOCALEQSTRAIN, toleranceNlEqStrain);
 
     Eigen::Matrix2d dispRHS;
     dispRHS(0, 0) = 0;
@@ -177,28 +184,33 @@ Eigen::VectorXd nodeCoords(2);
     nodeCoords[1] = 10;
     int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
     structure.GroupAddNodeRadiusRange(grpNodes_output_disp, nodeCoords, 0, 1.e-6);
-    myIntegrationScheme.AddResultNodeDisplacements("mydisplacements", structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
+    myIntegrationScheme.AddResultNodeDisplacements("mydisplacements",
+                                                   structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
 
     myIntegrationScheme.AddTimeDependentConstraint(loadId, dispRHS);
-//    myIntegrationScheme.SetTimeDependentLoadCase(loadId, dispRHS);
+    //    myIntegrationScheme.SetTimeDependentLoadCase(loadId, dispRHS);
 
-    structure.GetLogger() << "***********************************" << "\n";
-    structure.GetLogger() << "**      Solve                    **" << "\n";
-    structure.GetLogger() << "***********************************" << "\n\n";
+    structure.GetLogger() << "***********************************"
+                          << "\n";
+    structure.GetLogger() << "**      Solve                    **"
+                          << "\n";
+    structure.GetLogger() << "***********************************"
+                          << "\n\n";
 
-    structure.GetLogger()   << "Total number of Dofs: \t"
-                            << structure.GetNumTotalDofs() << "\n\n";
+    structure.GetLogger() << "Total number of Dofs: \t" << structure.GetNumTotalDofs() << "\n\n";
 
     myIntegrationScheme.Solve(simulationTime);
-
 }
 
 
 void AssignSection(NuTo::Structure& structure)
 {
-    structure.GetLogger() << "***********************************" << "\n";
-    structure.GetLogger() << "**      Section                  **" << "\n";
-    structure.GetLogger() << "***********************************" << "\n\n";
+    structure.GetLogger() << "***********************************"
+                          << "\n";
+    structure.GetLogger() << "**      Section                  **"
+                          << "\n";
+    structure.GetLogger() << "***********************************"
+                          << "\n\n";
 
     int section00 = structure.SectionCreate(NuTo::eSectionType::PLANE_STRESS);
     structure.SectionSetThickness(section00, thickness);
@@ -208,19 +220,22 @@ void AssignSection(NuTo::Structure& structure)
 
 void AssignMaterial(NuTo::Structure& structure)
 {
-    structure.GetLogger() << "***********************************" << "\n";
-    structure.GetLogger() << "**      Material                 **" << "\n";
-    structure.GetLogger() << "***********************************" << "\n\n";
+    structure.GetLogger() << "***********************************"
+                          << "\n";
+    structure.GetLogger() << "**      Material                 **"
+                          << "\n";
+    structure.GetLogger() << "***********************************"
+                          << "\n\n";
 
 
     int material00 = structure.ConstitutiveLawCreate(eConstitutiveType::GRADIENT_DAMAGE_ENGINEERING_STRESS);
     structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
     structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::POISSONS_RATIO, poissonsRatio);
     structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::TENSILE_STRENGTH, tensileStrength);
-    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::COMPRESSIVE_STRENGTH, compressiveStrength);
+    structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::COMPRESSIVE_STRENGTH,
+                                                compressiveStrength);
     structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::NONLOCAL_RADIUS, nonlocalRadius);
     structure.ConstitutiveLawSetParameterDouble(material00, eConstitutiveParameter::FRACTURE_ENERGY, fractureEnergy);
 
     structure.ElementTotalSetConstitutiveLaw(material00);
-
 }

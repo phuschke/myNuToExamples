@@ -1,6 +1,11 @@
 #include <iostream>
 
-enum eDirection {X = 0, Y = 1, Z =2};
+enum eDirection
+{
+    X = 0,
+    Y = 1,
+    Z = 2
+};
 
 
 void func(eDirection dir)
@@ -11,7 +16,4 @@ void func(eDirection dir)
 
 int main()
 {
-
-
-
 }

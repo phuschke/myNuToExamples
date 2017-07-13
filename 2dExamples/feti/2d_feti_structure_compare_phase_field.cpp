@@ -28,30 +28,30 @@ using std::cout;
 using std::endl;
 
 
-constexpr int dimension    = 2;
+constexpr int dimension = 2;
 constexpr double thickness = 1.0;
 
 // material
-constexpr double youngsModulus                               = 2.0; // N/mm^2
-constexpr double poissonsRatio                               = 0.3;
-constexpr double lengthScaleParameter                        = 1.0e-1   ; // mm
-constexpr double fractureEnergy                              = 2.0e-4; // N/mm
-constexpr double artificialViscosity                         = 0; // Ns/mm^2
+constexpr double youngsModulus = 2.0; // N/mm^2
+constexpr double poissonsRatio = 0.3;
+constexpr double lengthScaleParameter = 1.0e-1; // mm
+constexpr double fractureEnergy = 2.0e-4; // N/mm
+constexpr double artificialViscosity = 0; // Ns/mm^2
 constexpr ePhaseFieldEnergyDecomposition energyDecomposition = ePhaseFieldEnergyDecomposition::ISOTROPIC;
 
 // integration
-constexpr bool performLineSearch     = false;
+constexpr bool performLineSearch = false;
 constexpr bool automaticTimeStepping = true;
-constexpr double timeStep            = 5e-2;
-constexpr double minTimeStep         = 1e-5;
-constexpr double maxTimeStep         = 5e-2;
-constexpr double toleranceDisp       = 1e-8;
-constexpr double toleranceCrack      = 1e-8;
-constexpr double simulationTime      = 1.0;
-constexpr double loadFactor          = 1;
-constexpr double maxIterations       = 10;
-constexpr double tol                 = 1.e-6;
-constexpr double lengthX             = 60.0;
+constexpr double timeStep = 5e-2;
+constexpr double minTimeStep = 1e-5;
+constexpr double maxTimeStep = 5e-2;
+constexpr double toleranceDisp = 1e-8;
+constexpr double toleranceCrack = 1e-8;
+constexpr double simulationTime = 1.0;
+constexpr double loadFactor = 1;
+constexpr double maxIterations = 10;
+constexpr double tol = 1.e-6;
+constexpr double lengthX = 60.0;
 
 
 const Eigen::Vector2d directionX = Eigen::Vector2d::UnitX();
@@ -59,7 +59,7 @@ const Eigen::Vector2d directionY = Eigen::Vector2d::UnitY();
 
 void AssignSection(NuTo::Structure& rStructure)
 {
-    auto section = NuTo::SectionPlane::Create(thickness,true);
+    auto section = NuTo::SectionPlane::Create(thickness, true);
     rStructure.ElementTotalSetSection(section);
 }
 
@@ -157,7 +157,7 @@ int main(int argc, char* argv[])
     cout << "** section weak                       **" << endl;
     cout << "**********************************************" << endl;
 
-    auto sectionWeak = NuTo::SectionPlane::Create(thickness,true);
+    auto sectionWeak = NuTo::SectionPlane::Create(thickness, true);
     structure.ElementTotalSetSection(sectionWeak);
 
 
@@ -198,13 +198,13 @@ int main(int argc, char* argv[])
     myIntegrationScheme.SetToleranceResidual(eDof::CRACKPHASEFIELD, toleranceCrack);
 
 
-//    myIntegrationScheme.AddResultGroupNodeForce("myforce", loadNodeGroup);
-//    nodeCoords[0]            = 60;
-//    nodeCoords[1]            = 10;
-//    int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
-//    structure.GroupAddNodeRadiusRange(grpNodes_output_disp, nodeCoords, 0, 1.e-6);
-//    myIntegrationScheme.AddResultNodeDisplacements("mydisplacements",
-//                                                   structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
+    //    myIntegrationScheme.AddResultGroupNodeForce("myforce", loadNodeGroup);
+    //    nodeCoords[0]            = 60;
+    //    nodeCoords[1]            = 10;
+    //    int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
+    //    structure.GroupAddNodeRadiusRange(grpNodes_output_disp, nodeCoords, 0, 1.e-6);
+    //    myIntegrationScheme.AddResultNodeDisplacements("mydisplacements",
+    //                                                   structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
 
 
     Eigen::Matrix2d dispRHS;

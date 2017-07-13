@@ -95,7 +95,9 @@ int main(int argc, char* argv[])
                                                 compressiveStrength);
     structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::NONLOCAL_RADIUS, nonlocalRadius);
 
-    structure.ConstitutiveLawSetDamageLaw(materialId, NuTo::Constitutive::DamageLawExponential::Create(tensileStrength/youngsModulus,tensileStrength/fractureEnergy,alpha));
+    structure.ConstitutiveLawSetDamageLaw(
+            materialId, NuTo::Constitutive::DamageLawExponential::Create(tensileStrength / youngsModulus,
+                                                                         tensileStrength / fractureEnergy, alpha));
 
     structure.ElementTotalSetConstitutiveLaw(materialId);
 
@@ -202,7 +204,7 @@ int main(int argc, char* argv[])
 
     NuTo::NewmarkFeti<EigenSolver> myIntegrationScheme(&structure);
     boost::filesystem::path resultPath(boost::filesystem::path(getenv("HOME")).string() +
-                                       std::string("/results/feti/") + std::to_string(structure.mRank));
+                                       std::string("/results/feti/gradient_damage/") + std::to_string(structure.mRank));
 
     myIntegrationScheme.SetTimeStep(timeStep);
     myIntegrationScheme.SetMaxNumIterations(maxIterations);
@@ -213,8 +215,7 @@ int main(int argc, char* argv[])
     myIntegrationScheme.SetPerformLineSearch(performLineSearch);
     myIntegrationScheme.SetToleranceResidual(eDof::DISPLACEMENTS, toleranceDisp);
     myIntegrationScheme.SetToleranceResidual(eDof::NONLOCALEQSTRAIN, toleranceNlEqStrain);
-    myIntegrationScheme.SetIterativeSolver(
-            NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::ProjectedGmres);
+    myIntegrationScheme.SetIterativeSolver(NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::ProjectedGmres);
     myIntegrationScheme.SetToleranceIterativeSolver(tolerance);
 
     Eigen::Matrix2d dispRHS;
