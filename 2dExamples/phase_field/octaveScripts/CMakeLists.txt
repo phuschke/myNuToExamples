@@ -1,0 +1,2 @@
+configure_file(wedge_split_test.m wedge_split_test.m)
+configure_file(single_edge_notched_tension_test.m single_edge_notched_tension_test.m)

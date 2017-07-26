@@ -1,3 +1,7 @@
+//
+// Created by phuschke on 7/18/17.
+//
+
 
 #include <mpi.h>
 #include <boost/mpi.hpp>
@@ -30,6 +34,7 @@ constexpr int dimension = 2;
 constexpr double thickness = 1.0;
 constexpr double lengthY = 1.0;
 const Vector2d coordinateAtBottomLeft(0., 0.);
+const Vector2d coordinateAtRight(1., 0.);
 
 constexpr double tol = 1e-6;
 constexpr double toleranceDisp = 1e-6;
@@ -42,19 +47,19 @@ constexpr double toleranceCrack = 1e-6;
 // material
 constexpr double youngsModulus = 2.1e5; // N/mm^2
 constexpr double poissonsRatio = 0.3;
-constexpr double lengthScaleParameter = 0.04; // mm
+constexpr double lengthScaleParameter = 0.02; // mm
 constexpr double fractureEnergy = 2.7; // N/mm
 constexpr double artificialViscosity = 0.01; // Ns/mm^2
 constexpr ePhaseFieldEnergyDecomposition energyDecomposition = ePhaseFieldEnergyDecomposition::ISOTROPIC;
 
-constexpr bool performLineSearch = true;
 constexpr bool automaticTimeStepping = true;
 constexpr double timeStep = 1.e-3;
-constexpr double minTimeStep = 1.e-8;
+constexpr double minTimeStep = 1.e-10;
 constexpr double maxTimeStep = 1.e-2;
-constexpr double timeStepPostProcessing = 1.e-5;
+constexpr double timeStepPostProcessing = 5.e-5;
 
-constexpr double simulationTime = 10.0e-3;
+
+constexpr double simulationTime = 20.0e-3;
 constexpr double loadFactor = simulationTime;
 
 
@@ -77,10 +82,9 @@ int main(int argc, char* argv[])
     structure.GetLogger().SetQuiet(true);
 
 
-    std::string meshFile = argv[1] + std::to_string(rank);
-    structure.GetLogger() << meshFile << "\n";
+    std::string meshFile = "meshes/wedge_split_test_5_subdomains.mesh" + std::to_string(rank);
 
-    const int interpolationTypeId = structure.InterpolationTypeCreate(eShapeType::TRIANGLE2D);
+    const int interpolationTypeId = structure.InterpolationTypeCreate(eShapeType::QUAD2D);
     structure.InterpolationTypeAdd(interpolationTypeId, eDof::COORDINATES, eTypeOrder::EQUIDISTANT1);
     structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT1);
     structure.InterpolationTypeAdd(interpolationTypeId, eDof::CRACKPHASEFIELD, eTypeOrder::EQUIDISTANT1);
@@ -97,8 +101,15 @@ int main(int argc, char* argv[])
                           << "**      create node groups       ** \n"
                           << "*********************************** \n\n";
 
-    const auto& groupNodesBottomBoundary = structure.GroupGetNodesAtCoordinate(eDirection::Y, 0.);
-    const auto& groupNodesLoad = structure.GroupGetNodesAtCoordinate(eDirection::Y, lengthY);
+    const auto& groupNodesBottomBoundary = structure.GroupGetNodeRadiusRange(coordinateAtRight);
+
+    Vector2d coordinateTop({0.1, 0.3});
+    auto& groupNodesLoad01 = structure.GroupGetNodeRadiusRange(coordinateTop, 0, 0.1);
+
+    Vector2d coordinateBottom({0.1, -0.3});
+    auto& groupNodesLoad02 = structure.GroupGetNodeRadiusRange(coordinateBottom, 0, 0.1);
+
+    auto groupNodesLoad = NuTo::Group<NuTo::NodeBase>::Unite(groupNodesLoad01, groupNodesLoad02);
 
     structure.GetLogger() << "*********************************** \n"
                           << "**      virtual constraints      ** \n"
@@ -118,13 +129,6 @@ int main(int argc, char* argv[])
     for (const int nodeId : groupNodesBottomBoundary.GetMemberIds())
     {
         std::vector<int> dofIds = structure.NodeGetDofIds(nodeId, eDof::DISPLACEMENTS);
-        boundaryDofIds.push_back(dofIds[1]);
-    }
-
-    const auto& groupNodeAtBottomLeftCorner = structure.GroupGetNodeRadiusRange(coordinateAtBottomLeft);
-    for (const int nodeId : groupNodeAtBottomLeftCorner.GetMemberIds())
-    {
-        std::vector<int> dofIds = structure.NodeGetDofIds(nodeId, eDof::DISPLACEMENTS);
         boundaryDofIds.push_back(dofIds[0]);
     }
 
@@ -135,10 +139,16 @@ int main(int argc, char* argv[])
                           << "*********************************** \n\n";
 
     std::map<int, double> dofIdAndPrescribedDisplacementMap;
-    for (auto const& nodeId : groupNodesLoad.GetMemberIds())
+    for (auto const& nodeId : groupNodesLoad01.GetMemberIds())
     {
         std::vector<int> dofIds = structure.NodeGetDofIds(nodeId, eDof::DISPLACEMENTS);
         dofIdAndPrescribedDisplacementMap.emplace(dofIds[1], 1.);
+    }
+
+    for (auto const& nodeId : groupNodesLoad02.GetMemberIds())
+    {
+        std::vector<int> dofIds = structure.NodeGetDofIds(nodeId, eDof::DISPLACEMENTS);
+        dofIdAndPrescribedDisplacementMap.emplace(dofIds[1], -1.);
     }
 
     structure.ApplyPrescribedDisplacements(dofIdAndPrescribedDisplacementMap);
@@ -168,13 +178,13 @@ int main(int argc, char* argv[])
     newmarkFeti.SetMaxNumIterations(5);
     newmarkFeti.SetAutomaticTimeStepping(automaticTimeStepping);
     newmarkFeti.SetResultDirectory(resultPath.string(), true);
-    newmarkFeti.SetPerformLineSearch(performLineSearch);
     newmarkFeti.SetToleranceResidual(eDof::DISPLACEMENTS, toleranceDisp);
     newmarkFeti.SetToleranceResidual(eDof::CRACKPHASEFIELD, toleranceCrack);
     newmarkFeti.SetIterativeSolver(NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::ProjectedGmres);
     newmarkFeti.SetFetiPreconditioner(std::make_unique<NuTo::FetiLumpedPreconditioner>());
     newmarkFeti.SetMinTimeStepPlot(timeStepPostProcessing);
     newmarkFeti.SetMaxNumberOfFetiIterations(10);
+    newmarkFeti.SetToleranceIterativeSolver(1.e-10);
 
     Matrix2d dispRHS;
     dispRHS(0, 0) = 0;
@@ -184,28 +194,28 @@ int main(int argc, char* argv[])
 
     newmarkFeti.SetTimeDependentLoadCase(loadId, dispRHS);
 
-    if (rank == 3)
-    {
-        int groupNodesLoadId = structure.GroupCreateNodeGroup();
-        structure.GroupAddNodeCoordinateRange(groupNodesLoadId, eDirection::Y, 1.-tol, 1.+tol);
-
-        newmarkFeti.AddResultGroupNodeForce("force", groupNodesLoadId);
-        Vector2d coordinateAtTopLeft(1., 1.);
-        int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
-        structure.GroupAddNodeRadiusRange(grpNodes_output_disp, coordinateAtTopLeft, 0, tol);
-        newmarkFeti.AddResultNodeDisplacements("displacements", structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
-    }
-    else if (rank == 5)
-    {
-        int groupNodesLoadId = structure.GroupCreateNodeGroup();
-        structure.GroupAddNodeCoordinateRange(groupNodesLoadId, eDirection::Y, 1.-tol, 1.+tol);
-
-        newmarkFeti.AddResultGroupNodeForce("force", groupNodesLoadId);
-        Vector2d coordinateAtTopRight(0., 1.);
-        int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
-        structure.GroupAddNodeRadiusRange(grpNodes_output_disp, coordinateAtTopRight, 0, tol);
-        newmarkFeti.AddResultNodeDisplacements("displacements", structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
-    }
+//    if (rank == 3)
+//    {
+//        int groupNodesLoadId = structure.GroupCreateNodeGroup();
+//        structure.GroupAddNodeCoordinateRange(groupNodesLoadId, eDirection::Y, 1. - tol, 1. + tol);
+//
+//        newmarkFeti.AddResultGroupNodeForce("force", groupNodesLoadId);
+//        Vector2d coordinateAtTopLeft(1., 1.);
+//        int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
+//        structure.GroupAddNodeRadiusRange(grpNodes_output_disp, coordinateAtTopLeft, 0, tol);
+//        newmarkFeti.AddResultNodeDisplacements("displacements", structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
+//    }
+//    else if (rank == 5)
+//    {
+//        int groupNodesLoadId = structure.GroupCreateNodeGroup();
+//        structure.GroupAddNodeCoordinateRange(groupNodesLoadId, eDirection::Y, 1. - tol, 1. + tol);
+//
+//        newmarkFeti.AddResultGroupNodeForce("force", groupNodesLoadId);
+//        Vector2d coordinateAtTopRight(0., 1.);
+//        int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
+//        structure.GroupAddNodeRadiusRange(grpNodes_output_disp, coordinateAtTopRight, 0, tol);
+//        newmarkFeti.AddResultNodeDisplacements("displacements", structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
+//    }
 
     structure.GetLogger() << "*********************************** \n"
                           << "**      solve                    ** \n"

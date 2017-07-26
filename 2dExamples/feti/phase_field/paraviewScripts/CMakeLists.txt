@@ -1,0 +1,2 @@
+configure_file(single_edge_notched_tension_test.py single_edge_notched_tension_test.py)
+configure_file(feti_wedge_split_test.py feti_wedge_split_test.py)

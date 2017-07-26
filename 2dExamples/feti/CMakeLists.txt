@@ -20,7 +20,6 @@ endforeach()
 
 
 foreach(task RANGE 0 4)
-    message("Task ${task}")
 execute_process(
   COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "/home/phuschke/gmshReader_project/build/examples/feti_beam_fine_tri.mesh${task}" "${CMAKE_CURRENT_BINARY_DIR}/feti_beam_fine_tri.msh_${task}"
 )
