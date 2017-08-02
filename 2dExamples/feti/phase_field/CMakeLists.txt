@@ -2,6 +2,7 @@ add_subdirectory(paraviewScripts)
 add_subdirectory(octaveScripts)
 add_subdirectory(meshes)
 
+
 set(MESH_DIR "${CMAKE_SOURCE_DIR}/applications/custom/myNutoExamples/meshFiles/2d/feti/phase_field")
 if (ENABLE_MPI)
     foreach(task RANGE 0 1)
@@ -62,6 +63,7 @@ if (ENABLE_MPI)
 
     foreach(file
             2d_feti_structure_phase_field_single_edge_notched_tension_test
+            2d_feti_structure_phase_field_single_edge_notched_tension_test_quads_coarse
             feti_wedge_split_test
             )
 
@@ -72,4 +74,21 @@ if (ENABLE_MPI)
         target_link_libraries(${file} FetiLib)
         target_link_libraries(${file} ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
     endforeach()
+
+
+    foreach(file
+            2d_feti_single_edge_notched_tension_compare
+            )
+        add_executable        (${file} ${file}.cpp)
+        target_link_libraries (${file} Mechanics Math Base ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
+        target_link_libraries (${file} Visualize)
+        target_link_libraries (${file} ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+    endforeach()
+
+
+
 endif ()
+
+
+
+

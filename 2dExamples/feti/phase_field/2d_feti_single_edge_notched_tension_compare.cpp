@@ -7,7 +7,7 @@
 #include "mechanics/integrationtypes/IntegrationTypeBase.h"
 #include "mechanics/constitutive/inputoutput/ConstitutiveCalculateStaticData.h"
 
-#include "../../EnumsAndTypedefs.h"
+#include "../../../EnumsAndTypedefs.h"
 #include <boost/filesystem.hpp>
 #include <mechanics/groups/Group.h>
 
@@ -36,7 +36,7 @@ constexpr ePhaseFieldEnergyDecomposition energyDecomposition = ePhaseFieldEnergy
 constexpr bool performLineSearch = true;
 constexpr bool automaticTimeStepping = true;
 constexpr double timeStep = 1.e-4;
-constexpr double minTimeStep = 1.e-10;
+constexpr double minTimeStep = 1.e-8;
 constexpr double maxTimeStep = 1.e-4;
 constexpr double timeStepPostProcessing = 1.e-5;
 constexpr double simulationTime = 1.e-2;
@@ -48,21 +48,15 @@ constexpr double toleranceDisp = 1e-6;
 constexpr double tol = 1.0e-8;
 
 boost::filesystem::path resultPath("results_single_edge_notched_tension_test/");
-const boost::filesystem::path meshFilePath("single_edge_notched_tension_test_quads_coarse.msh");
+const boost::filesystem::path meshFilePath("meshes/2d_single_edge_notched_tension_test_quads.msh");
 
 int main(int argc, char* argv[])
 {
-    if (argc != 4)
-    {
-        cout << "Input arguments: length scale parameter, artificial viscosity, subdirectory" << endl;
-        return EXIT_FAILURE;
-    }
-
-    double lengthScaleParameter = std::stod(argv[1]); //0.005; // mm
-    double artificialViscosity =  std::stod(argv[2]); //0.0001; // Ns/mm^2
+    double lengthScaleParameter = 0.04; // mm
+    double artificialViscosity =  0.01; // Ns/mm^2
 
     boost::filesystem::create_directory(resultPath);
-    boost::filesystem::path resultPath("results_single_edge_notched_tension_test/" + std::string(argv[3]));
+    boost::filesystem::path resultPath("results_single_edge_notched_tension_test/");
     cout << "**********************************************" << endl;
     cout << "**  strucutre                               **" << endl;
     cout << "**********************************************" << endl;

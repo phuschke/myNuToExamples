@@ -1,3 +1,5 @@
+add_subdirectory(meshes)
+
 #set(MESH_DIR "${CMAKE_SOURCE_DIR}/applications/custom/myNutoExamples/meshFiles/2d")
 #
 #
@@ -11,11 +13,11 @@
 #
 #
 #
-#foreach(file
-#        2d_gradient_L_shaped_panel
-#        )
-#  add_executable        (${file} ${file}.cpp)
-#  target_link_libraries (${file} NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
-#  target_link_libraries (${file} NuToVisualize)
-#  target_link_libraries (${file} ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-#endforeach()
+foreach(file
+        2d_single_edge_notched_tension_test_quads_ged
+        )
+  add_executable        (${file} ${file}.cpp)
+  target_link_libraries (${file} Mechanics Math Base ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
+  target_link_libraries (${file} Visualize)
+  target_link_libraries (${file} ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+endforeach()

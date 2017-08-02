@@ -75,17 +75,17 @@ Transfinite Surface{12,14,16,17,22,27};
 Recombine Surface{12,14,16,17,22,27};
 Physical Surface(9999) = {12,14,16,17,22,27};
 
-Transfinite Line{2,8,10,18,24} = 80 Using Progression 1.02;
+Transfinite Line{2,8,10,18,24} = 50 Using Progression 1.02;
 
-Transfinite Line{7,6,21} = 40 Using Progression 1.02;
-Transfinite Line{19} = 40 Using Progression 1/1.02;
+Transfinite Line{7,6,21} = 20 Using Progression 1.02;
+Transfinite Line{19} = 20 Using Progression 1/1.02;
 
-Transfinite Line{3,4,5} = 20 Using Progression 1.1;
-Transfinite Line{23,28} = 20 Using Progression 1.1;
-Transfinite Line{25} = 20 Using Progression 1/1.1;
+Transfinite Line{3,4,5} = 10 Using Progression 1.1;
+Transfinite Line{23,28} = 10 Using Progression 1.1;
+Transfinite Line{25} = 10 Using Progression 1/1.1;
 
-Transfinite Line{1,9,29} = 15 Using Progression 1/1.1;
-Transfinite Line{31} = 15 Using Progression 1.1;
+Transfinite Line{1,9,29} = 8 Using Progression 1/1.1;
+Transfinite Line{31} = 8 Using Progression 1.1;
 
 
 

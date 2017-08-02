@@ -4,7 +4,7 @@ from paraview.simple import *
 Disconnect()
 Connect()
 value = 'CrackPhaseField'
-for i in range(0,6):
+for i in range(0,5):
     # open data file with corresponding reader
     reader = OpenDataFile("../results_" + str(i) + "/Group9999_ElementsAll.pvd")
     reader.UpdatePipeline()
@@ -26,7 +26,7 @@ for i in range(0,6):
 
     # select representation
     displayProperties = GetDisplayProperties()
-    displayProperties.Representation = 'Surface With Edges'
+    displayProperties.Representation = 'Surface'
 
     view = GetActiveViewOrCreate('RenderView')
 

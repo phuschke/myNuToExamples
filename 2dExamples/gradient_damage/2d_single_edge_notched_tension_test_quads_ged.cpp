@@ -6,6 +6,7 @@
 #include "mechanics/interpolationtypes/InterpolationType.h"
 #include "mechanics/integrationtypes/IntegrationTypeBase.h"
 #include "mechanics/constitutive/inputoutput/ConstitutiveCalculateStaticData.h"
+#include "mechanics/constitutive/damageLaws/DamageLawExponential.h"
 
 #include "../../EnumsAndTypedefs.h"
 #include <boost/filesystem.hpp>
@@ -17,7 +18,6 @@
 
 using std::cout;
 using std::endl;
-using NuTo::Constitutive::ePhaseFieldEnergyDecomposition;
 using NuTo::Constraint::Component;
 using NuTo::Constraint::RhsRamp;
 
@@ -26,20 +26,22 @@ constexpr int dimension = 2;
 constexpr double thickness = 1.0; // mm
 
 // material
-constexpr double youngsModulus = 2.1e5; // N/mm^2
-constexpr double poissonsRatio = 0.3;
-constexpr double fractureEnergy = 2.7; // N/mm
-
-constexpr ePhaseFieldEnergyDecomposition energyDecomposition = ePhaseFieldEnergyDecomposition::ISOTROPIC;
+constexpr double youngsModulus = 4.0e5; // N/mm^2
+constexpr double poissonsRatio = 0.2;
+constexpr double tensileStrength = 3;
+constexpr double compressiveStrength = 30;
+constexpr double alpha = 0.99;
+constexpr double fractureEnergy = 0.01; // N/mm
+constexpr double nonlocalRadius = 1.e-6; // mm
 
 // integration
 constexpr bool performLineSearch = true;
 constexpr bool automaticTimeStepping = true;
-constexpr double timeStep = 1.e-4;
+constexpr double timeStep = 1.e-6;
 constexpr double minTimeStep = 1.e-10;
-constexpr double maxTimeStep = 1.e-4;
-constexpr double timeStepPostProcessing = 1.e-5;
-constexpr double simulationTime = 1.e-2;
+constexpr double maxTimeStep = 1.e-6;
+constexpr double timeStepPostProcessing = 1.e-6;
+constexpr double simulationTime = 1.e-4;
 constexpr double loadFactor = simulationTime;
 
 // auxiliary
@@ -48,21 +50,16 @@ constexpr double toleranceDisp = 1e-6;
 constexpr double tol = 1.0e-8;
 
 boost::filesystem::path resultPath("results_single_edge_notched_tension_test/");
-const boost::filesystem::path meshFilePath("single_edge_notched_tension_test_quads_coarse.msh");
+const boost::filesystem::path meshFilePath("meshes/2d_single_edge_notched_tension_test_quads.msh");
 
 int main(int argc, char* argv[])
 {
-    if (argc != 4)
-    {
-        cout << "Input arguments: length scale parameter, artificial viscosity, subdirectory" << endl;
-        return EXIT_FAILURE;
-    }
 
-    double lengthScaleParameter = std::stod(argv[1]); //0.005; // mm
-    double artificialViscosity =  std::stod(argv[2]); //0.0001; // Ns/mm^2
+
 
     boost::filesystem::create_directory(resultPath);
-    boost::filesystem::path resultPath("results_single_edge_notched_tension_test/" + std::string(argv[3]));
+    boost::filesystem::path resultPath("results_single_edge_notched_tension_test/");
+
     cout << "**********************************************" << endl;
     cout << "**  strucutre                               **" << endl;
     cout << "**********************************************" << endl;
@@ -95,9 +92,7 @@ int main(int argc, char* argv[])
     file << "youngsModulus        \t" << youngsModulus << std::endl;
     file << "poissonsRatio        \t" << poissonsRatio << std::endl;
     file << "thickness            \t" << thickness << std::endl;
-    file << "lengthScaleParameter \t" << lengthScaleParameter << std::endl;
     file << "fractureEnergy       \t" << fractureEnergy << std::endl;
-    file << "artificialViscosity  \t" << artificialViscosity << std::endl;
     file << "timeStep             \t" << timeStep << std::endl;
     file << "minTimeStep          \t" << minTimeStep << std::endl;
     file << "maxTimeStep          \t" << maxTimeStep << std::endl;
@@ -118,10 +113,19 @@ int main(int argc, char* argv[])
     cout << "**  material                                **" << endl;
     cout << "**********************************************" << endl;
 
-    NuTo::ConstitutiveBase* phaseField = new NuTo::PhaseField(youngsModulus, poissonsRatio, lengthScaleParameter,
-                                                              fractureEnergy, artificialViscosity, energyDecomposition);
+    int materialId = structure.ConstitutiveLawCreate(eConstitutiveType::GRADIENT_DAMAGE_ENGINEERING_STRESS);
+    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
+    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::POISSONS_RATIO, poissonsRatio);
+    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::TENSILE_STRENGTH, tensileStrength);
+    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::COMPRESSIVE_STRENGTH,
+                                                compressiveStrength);
+    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::NONLOCAL_RADIUS, nonlocalRadius);
 
-    int matrixMaterial = structure.AddConstitutiveLaw(phaseField);
+    structure.ConstitutiveLawSetDamageLaw(
+            materialId, NuTo::Constitutive::DamageLawExponential::Create(tensileStrength / youngsModulus,
+                                                                         tensileStrength / fractureEnergy, alpha));
+
+
 
     cout << "**********************************************" << endl;
     cout << "**  geometry                                **" << endl;
@@ -133,13 +137,13 @@ int main(int argc, char* argv[])
     const int interpolationTypeId = structure.InterpolationTypeCreate(eShapeType::QUAD2D);
     structure.InterpolationTypeAdd(interpolationTypeId, eDof::COORDINATES, eTypeOrder::EQUIDISTANT1);
     structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT1);
-    structure.InterpolationTypeAdd(interpolationTypeId, eDof::CRACKPHASEFIELD, eTypeOrder::EQUIDISTANT1);
+    structure.InterpolationTypeAdd(interpolationTypeId, eDof::NONLOCALEQSTRAIN, eTypeOrder::EQUIDISTANT1);
     structure.ElementGroupSetInterpolationType(groupId, interpolationTypeId);
 
     structure.InterpolationTypeInfo(interpolationTypeId);
     structure.ElementTotalConvertToInterpolationType(1.e-9, 1);
     structure.ElementTotalSetSection(section);
-    structure.ElementTotalSetConstitutiveLaw(matrixMaterial);
+    structure.ElementTotalSetConstitutiveLaw(materialId);
 
     cout << "**********************************************" << endl;
     cout << "**  bc                                      **" << endl;
@@ -167,7 +171,10 @@ int main(int argc, char* argv[])
     cout << "**********************************************" << endl;
 
     structure.AddVisualizationComponent(groupId, eVisualizeWhat::DISPLACEMENTS);
-    structure.AddVisualizationComponent(groupId, eVisualizeWhat::CRACK_PHASE_FIELD);
+    structure.AddVisualizationComponent(groupId, eVisualizeWhat::DAMAGE);
+    structure.AddVisualizationComponent(groupId, eVisualizeWhat::NONLOCAL_EQ_STRAIN);
+    structure.AddVisualizationComponent(groupId, eVisualizeWhat::ENGINEERING_STRESS);
+    structure.AddVisualizationComponent(groupId, eVisualizeWhat::ENGINEERING_STRAIN);
 
     cout << "**********************************************" << endl;
     cout << "**  solver                                  **" << endl;

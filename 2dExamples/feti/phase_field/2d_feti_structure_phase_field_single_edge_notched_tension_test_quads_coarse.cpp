@@ -30,11 +30,11 @@ using FetiScaling = NewmarkFeti<EigenSolver>::eFetiScaling;
 constexpr int dimension = 2;
 constexpr double thickness = 1.0;
 constexpr double lengthY = 1.0;
-const Vector2d coordinateAtBottomLeft(0., 0.);
+const Vector2d coordinateAtCenterRight(1., 0.5);
 
-constexpr double tol = 1e-6;
-constexpr double toleranceDisp = 1e-6;
-constexpr double toleranceCrack = 1e-6;
+constexpr double tol = 1e-10;
+constexpr double toleranceDisp = 1e-10;
+constexpr double toleranceCrack = 1e-10;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //          phase-field model parameters
@@ -43,7 +43,7 @@ constexpr double toleranceCrack = 1e-6;
 // material
 constexpr double youngsModulus = 2.1e5; // N/mm^2
 constexpr double poissonsRatio = 0.3;
-constexpr double lengthScaleParameter = 0.04; // mm
+constexpr double lengthScaleParameter = 0.01; // mm
 constexpr double fractureEnergy = 2.7; // N/mm
 constexpr double artificialViscosity = 0.01; // Ns/mm^2
 constexpr ePhaseFieldEnergyDecomposition energyDecomposition = ePhaseFieldEnergyDecomposition::ISOTROPIC;
@@ -52,10 +52,8 @@ constexpr bool performLineSearch = true;
 constexpr bool automaticTimeStepping = true;
 constexpr double timeStep = 1.e-4;
 constexpr double minTimeStep = 1.e-8;
-constexpr double maxTimeStep = 1.e-2;
-constexpr double timeStepPostProcessing = 1.e-5;
-
-constexpr double simulationTime = 10.0e-3;
+constexpr double maxTimeStep = 1.e-4;
+constexpr double simulationTime = 1.e-2;
 constexpr double loadFactor = simulationTime;
 
 
@@ -78,7 +76,7 @@ int main(int argc, char* argv[])
     structure.GetLogger().SetQuiet(true);
 
 
-    std::string meshFile = "meshes/single_edge_notched_tension_test_quads.mesh" + std::to_string(rank);
+    std::string meshFile = "meshes/single_edge_notched_tension_test_quads_coarse_4_subs.mesh" + std::to_string(rank);
     structure.GetLogger() << meshFile << "\n";
 
     const int interpolationTypeId = structure.InterpolationTypeCreate(eShapeType::QUAD2D);
@@ -98,14 +96,18 @@ int main(int argc, char* argv[])
                           << "**      create node groups       ** \n"
                           << "*********************************** \n\n";
 
-    const auto& groupNodesBottomBoundary = structure.GroupGetNodesAtCoordinate(eDirection::Y, 0.);
-    const auto& groupNodesLoad = structure.GroupGetNodesAtCoordinate(eDirection::Y, lengthY);
+    const auto& groupNodesLoadBottom = structure.GroupGetNodesAtCoordinate(eDirection::Y, 0.);
+    const auto& groupNodesLoadTop = structure.GroupGetNodesAtCoordinate(eDirection::Y, lengthY);
+
+    const auto& groupNodesLoad = Group<NodeBase>::Unite(groupNodesLoadBottom, groupNodesLoadTop);
+
+    const auto& groupNodeBoundary = structure.GroupGetNodeRadiusRange(coordinateAtCenterRight);
 
     structure.GetLogger() << "*********************************** \n"
                           << "**      virtual constraints      ** \n"
                           << "*********************************** \n\n";
 
-    structure.ApplyVirtualConstraints(groupNodesBottomBoundary.GetMemberIds(), groupNodesLoad.GetMemberIds());
+    structure.ApplyVirtualConstraints(groupNodesLoad.GetMemberIds(), groupNodesLoadTop.GetMemberIds());
 
     structure.GetLogger() << "*********************************** \n"
                           << "**      real constraints         ** \n"
@@ -114,17 +116,11 @@ int main(int argc, char* argv[])
     structure.NodeBuildGlobalDofs(__PRETTY_FUNCTION__);
 
     std::vector<int> boundaryDofIds;
-    for (const int nodeId : groupNodesBottomBoundary.GetMemberIds())
-    {
-        std::vector<int> dofIds = structure.NodeGetDofIds(nodeId, eDof::DISPLACEMENTS);
-        boundaryDofIds.push_back(dofIds[1]);
-    }
-
-    const auto& groupNodeAtBottomLeftCorner = structure.GroupGetNodeRadiusRange(coordinateAtBottomLeft);
-    for (const int nodeId : groupNodeAtBottomLeftCorner.GetMemberIds())
+    for (const int nodeId : groupNodeBoundary.GetMemberIds())
     {
         std::vector<int> dofIds = structure.NodeGetDofIds(nodeId, eDof::DISPLACEMENTS);
         boundaryDofIds.push_back(dofIds[0]);
+        boundaryDofIds.push_back(dofIds[1]);
     }
 
     structure.ApplyConstraintsTotalFeti(boundaryDofIds);
@@ -134,7 +130,13 @@ int main(int argc, char* argv[])
                           << "*********************************** \n\n";
 
     std::map<int, double> dofIdAndPrescribedDisplacementMap;
-    for (auto const& nodeId : groupNodesLoad.GetMemberIds())
+    for (auto const& nodeId : groupNodesLoadBottom.GetMemberIds())
+    {
+        std::vector<int> dofIds = structure.NodeGetDofIds(nodeId, eDof::DISPLACEMENTS);
+        dofIdAndPrescribedDisplacementMap.emplace(dofIds[1], -1.);
+    }
+
+    for (auto const& nodeId : groupNodesLoadTop.GetMemberIds())
     {
         std::vector<int> dofIds = structure.NodeGetDofIds(nodeId, eDof::DISPLACEMENTS);
         dofIdAndPrescribedDisplacementMap.emplace(dofIds[1], 1.);
@@ -172,9 +174,8 @@ int main(int argc, char* argv[])
     newmarkFeti.SetToleranceResidual(eDof::CRACKPHASEFIELD, toleranceCrack);
     newmarkFeti.SetIterativeSolver(NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::ProjectedGmres);
     newmarkFeti.SetFetiPreconditioner(std::make_unique<NuTo::FetiLumpedPreconditioner>());
-    newmarkFeti.PostProcessing().SetMinTimeStepPlot(timeStepPostProcessing);
     newmarkFeti.SetMaxNumberOfFetiIterations(50);
-    newmarkFeti.SetToleranceIterativeSolver(1.e-10);
+    newmarkFeti.SetToleranceIterativeSolver(1.e-12);
 
     Matrix2d dispRHS;
     dispRHS(0, 0) = 0;

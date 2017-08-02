@@ -16,6 +16,7 @@
 #include "boost/filesystem.hpp"
 
 #include "mechanics/sections/SectionPlane.h"
+#include "mechanics/timeIntegration/postProcessing/PostProcessor.h"
 
 using namespace NuTo;
 using namespace Constitutive;
@@ -55,11 +56,9 @@ constexpr ePhaseFieldEnergyDecomposition energyDecomposition = ePhaseFieldEnergy
 constexpr bool automaticTimeStepping = true;
 constexpr double timeStep = 1.e-3;
 constexpr double minTimeStep = 1.e-10;
-constexpr double maxTimeStep = 1.e-2;
-constexpr double timeStepPostProcessing = 5.e-5;
+constexpr double maxTimeStep = 1.e-3;
 
-
-constexpr double simulationTime = 20.0e-3;
+constexpr double simulationTime = 2.0e-1;
 constexpr double loadFactor = simulationTime;
 
 
@@ -82,7 +81,7 @@ int main(int argc, char* argv[])
     structure.GetLogger().SetQuiet(true);
 
 
-    std::string meshFile = "meshes/wedge_split_test_5_subdomains.mesh" + std::to_string(rank);
+    std::string meshFile = "meshes/wedge_split_test.mesh" + std::to_string(rank);
 
     const int interpolationTypeId = structure.InterpolationTypeCreate(eShapeType::QUAD2D);
     structure.InterpolationTypeAdd(interpolationTypeId, eDof::COORDINATES, eTypeOrder::EQUIDISTANT1);
@@ -177,12 +176,11 @@ int main(int argc, char* argv[])
     newmarkFeti.SetMaxTimeStep(maxTimeStep);
     newmarkFeti.SetMaxNumIterations(5);
     newmarkFeti.SetAutomaticTimeStepping(automaticTimeStepping);
-    newmarkFeti.SetResultDirectory(resultPath.string(), true);
+    newmarkFeti.PostProcessing().SetResultDirectory(resultPath.string(), true);
     newmarkFeti.SetToleranceResidual(eDof::DISPLACEMENTS, toleranceDisp);
     newmarkFeti.SetToleranceResidual(eDof::CRACKPHASEFIELD, toleranceCrack);
     newmarkFeti.SetIterativeSolver(NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::ProjectedGmres);
     newmarkFeti.SetFetiPreconditioner(std::make_unique<NuTo::FetiLumpedPreconditioner>());
-    newmarkFeti.SetMinTimeStepPlot(timeStepPostProcessing);
     newmarkFeti.SetMaxNumberOfFetiIterations(10);
     newmarkFeti.SetToleranceIterativeSolver(1.e-10);
 
