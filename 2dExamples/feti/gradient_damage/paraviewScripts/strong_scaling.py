@@ -3,10 +3,10 @@ from paraview.simple import *
 
 Disconnect()
 Connect()
-value = 'CrackPhaseField'
-for i in range(0,6):
+value = 'Damage'
+for i in range(0,3):
     # open data file with corresponding reader
-    reader = OpenDataFile("../results_" + str(i) + "/Group9999_ElementsAll.pvd")
+    reader = OpenDataFile("../results_strong_scaling" + str(i) + "/Group9999_ElementsAll.pvd")
     reader.UpdatePipeline()
 
     # store time steps in vector
@@ -15,7 +15,7 @@ for i in range(0,6):
     # create a new 'Calculator'
     calculator 	= Calculator()
     calculator.CoordinateResults = 1
-    calculator.Function = 'coords+Displacements'
+    calculator.Function = 'coords+Displacements*100'
 
     # create a new 'Cell Data to Point Data'
     cellDatatoPointData1 = CellDatatoPointData(Input=calculator)

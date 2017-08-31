@@ -49,11 +49,11 @@ constexpr double artificialViscosity = 0.01; // Ns/mm^2
 constexpr ePhaseFieldEnergyDecomposition energyDecomposition = ePhaseFieldEnergyDecomposition::ISOTROPIC;
 
 
-constexpr bool performLineSearch = true;
+constexpr bool performLineSearch = false;
 constexpr bool automaticTimeStepping = true;
 constexpr double timeStep = 1.e-4;
 constexpr double minTimeStep = 1.e-8;
-constexpr double maxTimeStep = 1.e-4;
+constexpr double maxTimeStep = 1.e-2;
 constexpr double timeStepPostProcessing = 1.e-5;
 
 constexpr double simulationTime = 10.0e-3;
@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
     newmarkFeti.SetTimeStep(timeStep);
     newmarkFeti.SetMinTimeStep(minTimeStep);
     newmarkFeti.SetMaxTimeStep(maxTimeStep);
-    newmarkFeti.SetMaxNumIterations(5);
+    newmarkFeti.SetMaxNumIterations(20);
     newmarkFeti.SetAutomaticTimeStepping(automaticTimeStepping);
     newmarkFeti.PostProcessing().SetResultDirectory(resultPath.string(), true);
     newmarkFeti.SetPerformLineSearch(performLineSearch);
@@ -173,6 +173,7 @@ int main(int argc, char* argv[])
     newmarkFeti.SetFetiPreconditioner(std::make_unique<NuTo::FetiLumpedPreconditioner>());
     newmarkFeti.SetMaxNumberOfFetiIterations(50);
     newmarkFeti.SetToleranceIterativeSolver(1.e-10);
+    newmarkFeti.SetFetiScaling(FetiScaling::Multiplicity);
     newmarkFeti.PostProcessing().SetMinTimeStepPlot(timeStepPostProcessing);
 
     Matrix2d dispRHS;
@@ -183,28 +184,30 @@ int main(int argc, char* argv[])
 
     newmarkFeti.SetTimeDependentLoadCase(loadId, dispRHS);
 
-//    if (rank == 3)
-//    {
-//        int groupNodesLoadId = structure.GroupCreateNodeGroup();
-//        structure.GroupAddNodeCoordinateRange(groupNodesLoadId, eDirection::Y, 1.-tol, 1.+tol);
-//
-//        newmarkFeti.PostProcessing().AddResultGroupNodeForce("force", groupNodesLoadId);
-//        Vector2d coordinateAtTopLeft(1., 1.);
-//        int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
-//        structure.GroupAddNodeRadiusRange(grpNodes_output_disp, coordinateAtTopLeft, 0, tol);
-//        newmarkFeti.PostProcessing().AddResultNodeDisplacements("displacements", structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
-//    }
-//    else if (rank == 5)
-//    {
-//        int groupNodesLoadId = structure.GroupCreateNodeGroup();
-//        structure.GroupAddNodeCoordinateRange(groupNodesLoadId, eDirection::Y, 1.-tol, 1.+tol);
-//
-//        newmarkFeti.PostProcessing().AddResultGroupNodeForce("force", groupNodesLoadId);
-//        Vector2d coordinateAtTopRight(0., 1.);
-//        int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
-//        structure.GroupAddNodeRadiusRange(grpNodes_output_disp, coordinateAtTopRight, 0, tol);
-//        newmarkFeti.PostProcessing().AddResultNodeDisplacements("displacements", structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
-//    }
+    //    if (rank == 3)
+    //    {
+    //        int groupNodesLoadId = structure.GroupCreateNodeGroup();
+    //        structure.GroupAddNodeCoordinateRange(groupNodesLoadId, eDirection::Y, 1.-tol, 1.+tol);
+    //
+    //        newmarkFeti.PostProcessing().AddResultGroupNodeForce("force", groupNodesLoadId);
+    //        Vector2d coordinateAtTopLeft(1., 1.);
+    //        int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
+    //        structure.GroupAddNodeRadiusRange(grpNodes_output_disp, coordinateAtTopLeft, 0, tol);
+    //        newmarkFeti.PostProcessing().AddResultNodeDisplacements("displacements",
+    //        structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
+    //    }
+    //    else if (rank == 5)
+    //    {
+    //        int groupNodesLoadId = structure.GroupCreateNodeGroup();
+    //        structure.GroupAddNodeCoordinateRange(groupNodesLoadId, eDirection::Y, 1.-tol, 1.+tol);
+    //
+    //        newmarkFeti.PostProcessing().AddResultGroupNodeForce("force", groupNodesLoadId);
+    //        Vector2d coordinateAtTopRight(0., 1.);
+    //        int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
+    //        structure.GroupAddNodeRadiusRange(grpNodes_output_disp, coordinateAtTopRight, 0, tol);
+    //        newmarkFeti.PostProcessing().AddResultNodeDisplacements("displacements",
+    //        structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
+    //    }
 
     structure.GetLogger() << "*********************************** \n"
                           << "**      solve                    ** \n"

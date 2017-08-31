@@ -9,9 +9,11 @@ foreach(task RANGE 0 4)
 endforeach()
 
 
-foreach(task RANGE 0 4)
+foreach(task RANGE 0 5)
     foreach(mesh wedge_split_test_5_subdomains.mesh
-            2d_single_edge_notched_tension_test_quads_5_subs.mesh)
+            2d_single_edge_notched_tension_test_quads_5_subs.mesh
+            2d_single_edge_notched_tension_test_quads_6_subs.mesh
+            )
 
         create_symlink(${mesh}${task})
 

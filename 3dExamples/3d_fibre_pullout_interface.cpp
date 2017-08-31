@@ -234,7 +234,7 @@ int main(int argc, char* argv[])
 
 
         std::cout << "***********************************" << std::endl;
-        std::cout << "**      Loads                	   **" << std::endl;
+        std::cout << "**      Loads                    **" << std::endl;
         std::cout << "***********************************" << std::endl;
 
         //        int groupNodeBCRight = myStructure.GroupCreate(NuTo::Groups::eGroupId::Nodes);

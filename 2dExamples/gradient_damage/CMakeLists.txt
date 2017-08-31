@@ -1,4 +1,5 @@
 add_subdirectory(meshes)
+add_subdirectory(octaveScripts)
 
 #set(MESH_DIR "${CMAKE_SOURCE_DIR}/applications/custom/myNutoExamples/meshFiles/2d")
 #
@@ -15,6 +16,7 @@ add_subdirectory(meshes)
 #
 foreach(file
         2d_single_edge_notched_tension_test_quads_ged
+        2d_test_convergence_of_damage_laws
         )
   add_executable        (${file} ${file}.cpp)
   target_link_libraries (${file} Mechanics Math Base ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})

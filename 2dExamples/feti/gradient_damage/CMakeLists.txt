@@ -1,3 +1,5 @@
+add_subdirectory(paraviewScripts)
+add_subdirectory(octaveScripts)
 #set(MESH_DIR "${CMAKE_SOURCE_DIR}/applications/custom/myNutoExamples/meshFiles/2d/feti/")
 #
 #########################################################################################################################
@@ -31,18 +33,17 @@
 #    endforeach()
 #endforeach()
 #
-#
-#if (ENABLE_MPI)
-#    foreach(file
-#            2d_gradient_4_point_bending_symmetry
-#            2d_feti_gradient_damage_3_point_bending
-#            )
-#
-#        add_executable(${file} ${file}.cpp)
-#        target_link_libraries(${file} ${MPI_LIBRARIES})
-#        target_link_libraries(${file} NuToMechanics NuToMath NuToBase ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
-#        target_link_libraries(${file} NuToVisualize)
-#        target_link_libraries(${file} NuToFeti)
-#        target_link_libraries(${file} ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-#    endforeach()
-#endif ()
+
+if (ENABLE_MPI)
+    foreach(file
+            strong_scaling
+            )
+
+        add_executable(${file} ${file}.cpp)
+        target_link_libraries(${file} ${MPI_LIBRARIES})
+        target_link_libraries(${file} Mechanics Math Base ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${ANN_LIBRARIES})
+        target_link_libraries(${file} Visualize)
+        target_link_libraries(${file} FetiLib)
+        target_link_libraries(${file} ${MUMPS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+    endforeach()
+endif ()

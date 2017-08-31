@@ -58,8 +58,8 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    double lengthScaleParameter = std::stod(argv[1]); //0.005; // mm
-    double artificialViscosity =  std::stod(argv[2]); //0.0001; // Ns/mm^2
+    double lengthScaleParameter = std::stod(argv[1]); // 0.005; // mm
+    double artificialViscosity = std::stod(argv[2]); // 0.0001; // Ns/mm^2
 
     boost::filesystem::create_directory(resultPath);
     boost::filesystem::path resultPath("results_single_edge_notched_tension_test/" + std::string(argv[3]));

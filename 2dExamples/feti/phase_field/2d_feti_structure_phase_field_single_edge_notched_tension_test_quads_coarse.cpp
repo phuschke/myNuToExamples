@@ -185,28 +185,30 @@ int main(int argc, char* argv[])
 
     newmarkFeti.SetTimeDependentLoadCase(loadId, dispRHS);
 
-//    if (rank == 3)
-//    {
-//        int groupNodesLoadId = structure.GroupCreateNodeGroup();
-//        structure.GroupAddNodeCoordinateRange(groupNodesLoadId, eDirection::Y, 1.-tol, 1.+tol);
-//
-//        newmarkFeti.PostProcessing().AddResultGroupNodeForce("force", groupNodesLoadId);
-//        Vector2d coordinateAtTopLeft(1., 1.);
-//        int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
-//        structure.GroupAddNodeRadiusRange(grpNodes_output_disp, coordinateAtTopLeft, 0, tol);
-//        newmarkFeti.PostProcessing().AddResultNodeDisplacements("displacements", structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
-//    }
-//    else if (rank == 5)
-//    {
-//        int groupNodesLoadId = structure.GroupCreateNodeGroup();
-//        structure.GroupAddNodeCoordinateRange(groupNodesLoadId, eDirection::Y, 1.-tol, 1.+tol);
-//
-//        newmarkFeti.PostProcessing().AddResultGroupNodeForce("force", groupNodesLoadId);
-//        Vector2d coordinateAtTopRight(0., 1.);
-//        int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
-//        structure.GroupAddNodeRadiusRange(grpNodes_output_disp, coordinateAtTopRight, 0, tol);
-//        newmarkFeti.PostProcessing().AddResultNodeDisplacements("displacements", structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
-//    }
+    //    if (rank == 3)
+    //    {
+    //        int groupNodesLoadId = structure.GroupCreateNodeGroup();
+    //        structure.GroupAddNodeCoordinateRange(groupNodesLoadId, eDirection::Y, 1.-tol, 1.+tol);
+    //
+    //        newmarkFeti.PostProcessing().AddResultGroupNodeForce("force", groupNodesLoadId);
+    //        Vector2d coordinateAtTopLeft(1., 1.);
+    //        int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
+    //        structure.GroupAddNodeRadiusRange(grpNodes_output_disp, coordinateAtTopLeft, 0, tol);
+    //        newmarkFeti.PostProcessing().AddResultNodeDisplacements("displacements",
+    //        structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
+    //    }
+    //    else if (rank == 5)
+    //    {
+    //        int groupNodesLoadId = structure.GroupCreateNodeGroup();
+    //        structure.GroupAddNodeCoordinateRange(groupNodesLoadId, eDirection::Y, 1.-tol, 1.+tol);
+    //
+    //        newmarkFeti.PostProcessing().AddResultGroupNodeForce("force", groupNodesLoadId);
+    //        Vector2d coordinateAtTopRight(0., 1.);
+    //        int grpNodes_output_disp = structure.GroupCreate(eGroupId::Nodes);
+    //        structure.GroupAddNodeRadiusRange(grpNodes_output_disp, coordinateAtTopRight, 0, tol);
+    //        newmarkFeti.PostProcessing().AddResultNodeDisplacements("displacements",
+    //        structure.GroupGetMemberIds(grpNodes_output_disp)[0]);
+    //    }
 
     structure.GetLogger() << "*********************************** \n"
                           << "**      solve                    ** \n"

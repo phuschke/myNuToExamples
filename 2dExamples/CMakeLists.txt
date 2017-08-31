@@ -4,6 +4,7 @@ ADD_SUBDIRECTORY(feti)
 ADD_SUBDIRECTORY(phase_field)
 ADD_SUBDIRECTORY(benchmark)
 ADD_SUBDIRECTORY(gradient_damage)
+ADD_SUBDIRECTORY(local_damage)
 
 set(MESH_DIR "${CMAKE_SOURCE_DIR}/applications/custom/myNutoExamples/meshFiles/2d")
 

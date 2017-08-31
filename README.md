@@ -1,4 +1,4 @@
 # myNuToExamples
 
-* most examples will not compile
-* private examples
+- most examples will not compile
+- private examples

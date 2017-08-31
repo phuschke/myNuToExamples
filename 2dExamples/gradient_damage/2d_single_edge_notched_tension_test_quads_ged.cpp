@@ -56,7 +56,6 @@ int main(int argc, char* argv[])
 {
 
 
-
     boost::filesystem::create_directory(resultPath);
     boost::filesystem::path resultPath("results_single_edge_notched_tension_test/");
 
@@ -124,7 +123,6 @@ int main(int argc, char* argv[])
     structure.ConstitutiveLawSetDamageLaw(
             materialId, NuTo::Constitutive::DamageLawExponential::Create(tensileStrength / youngsModulus,
                                                                          tensileStrength / fractureEnergy, alpha));
-
 
 
     cout << "**********************************************" << endl;
