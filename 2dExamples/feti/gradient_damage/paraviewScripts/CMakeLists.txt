@@ -1,1 +1,2 @@
 create_symlink(strong_scaling.py)
+create_symlink(three_point_bending.py)

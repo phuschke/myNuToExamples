@@ -37,6 +37,8 @@ add_subdirectory(octaveScripts)
 if (ENABLE_MPI)
     foreach(file
             strong_scaling
+            2d_feti_gradient_damage_3_point_bending
+            paper_horizontal_split
             )
 
         add_executable(${file} ${file}.cpp)

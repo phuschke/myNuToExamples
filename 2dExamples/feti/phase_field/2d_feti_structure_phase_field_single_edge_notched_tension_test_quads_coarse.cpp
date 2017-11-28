@@ -5,6 +5,7 @@
 #include "mechanics/feti/StructureFeti.h"
 #include <ctime>
 #include <chrono>
+#include <mechanics/feti/FetiDirichletPreconditioner.h>
 #include "mechanics/groups/Group.h"
 #include "mechanics/feti/NewmarkFeti.h"
 #include "../../../EnumsAndTypedefs.h"
@@ -53,7 +54,7 @@ constexpr bool automaticTimeStepping = true;
 constexpr double timeStep = 1.e-4;
 constexpr double minTimeStep = 1.e-8;
 constexpr double maxTimeStep = 1.e-4;
-constexpr double simulationTime = 1.e-2;
+constexpr double simulationTime = 7.5e-3;
 constexpr double loadFactor = simulationTime;
 
 
@@ -76,7 +77,7 @@ int main(int argc, char* argv[])
     structure.GetLogger().SetQuiet(true);
 
 
-    std::string meshFile = "meshes/single_edge_notched_tension_test_quads_coarse_4_subs.mesh" + std::to_string(rank);
+    std::string meshFile = "meshes/2d_single_edge_notched_tension_test_quads_6_subs.mesh" + std::to_string(rank);
     structure.GetLogger() << meshFile << "\n";
 
     const int interpolationTypeId = structure.InterpolationTypeCreate(eShapeType::QUAD2D);
@@ -173,9 +174,10 @@ int main(int argc, char* argv[])
     newmarkFeti.SetToleranceResidual(eDof::DISPLACEMENTS, toleranceDisp);
     newmarkFeti.SetToleranceResidual(eDof::CRACKPHASEFIELD, toleranceCrack);
     newmarkFeti.SetIterativeSolver(NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::ProjectedGmres);
-    newmarkFeti.SetFetiPreconditioner(std::make_unique<NuTo::FetiLumpedPreconditioner>());
+    newmarkFeti.SetFetiPreconditioner(std::make_unique<NuTo::FetiDirichletPreconditioner>());
     newmarkFeti.SetMaxNumberOfFetiIterations(50);
-    newmarkFeti.SetToleranceIterativeSolver(1.e-12);
+    newmarkFeti.SetToleranceIterativeSolver(1.e-8);
+    newmarkFeti.SetFetiScaling(FetiScaling::Multiplicity);
 
     Matrix2d dispRHS;
     dispRHS(0, 0) = 0;

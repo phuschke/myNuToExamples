@@ -24,7 +24,7 @@ using FetiScaling = NewmarkFeti<EigenSolver>::eFetiScaling;
 constexpr double thickness = 1.0;
 
 // material
-constexpr double nonlocalRadius = 0.5; // mm
+constexpr double nonlocalRadius = 0.2; // mm
 constexpr double youngsModulus = 4.0e4;
 constexpr double poissonsRatio = 0.2;
 constexpr double tensileStrength = 3;
@@ -35,7 +35,7 @@ constexpr double alpha = 0.99;
 // integration
 constexpr bool performLineSearch = false;
 constexpr bool automaticTimeStepping = false;
-constexpr double timeStep = 1e-2;
+constexpr double timeStep = 1e-1;
 constexpr double minTimeStep = 1e-5;
 constexpr double maxTimeStep = 1e-1;
 
@@ -44,7 +44,7 @@ constexpr double toleranceNlEqStrain = 1e-8;
 constexpr double tolerance = 1e-5;
 
 constexpr double simulationTime = 1.0;
-constexpr double loadFactor = -0.1;
+constexpr double loadFactor = -0.03;
 constexpr double maxIterations = 10;
 
 
@@ -66,12 +66,12 @@ int main(int argc, char* argv[])
     structure.GetLogger().SetQuiet(true);
 
     std::vector<double> meshDimensions;
-    meshDimensions.push_back(60.);
     meshDimensions.push_back(10.);
+    meshDimensions.push_back(60.);
 
     std::vector<int> numElements;
-    numElements.push_back(20);
-    numElements.push_back(10);
+    numElements.push_back(5);
+    numElements.push_back(120);
 
     const auto importContainer = structure.CreateRectangularMesh2D(meshDimensions, numElements);
 
@@ -96,6 +96,11 @@ int main(int argc, char* argv[])
             materialId, NuTo::Constitutive::DamageLawExponential::Create(tensileStrength / youngsModulus,
                                                                          tensileStrength / fractureEnergy, alpha));
 
+//    const int materialId = structure.ConstitutiveLawCreate(eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+//    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
+//    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::POISSONS_RATIO, poissonsRatio);
+
+
     structure.ElementTotalSetConstitutiveLaw(materialId);
 
     auto section = NuTo::SectionPlane::Create(thickness, true);
@@ -112,14 +117,14 @@ int main(int argc, char* argv[])
     const int groupNodesBottomLeft = structure.GroupCreate(eGroupId::Nodes);
     structure.GroupAddNodeRadiusRange(groupNodesBottomLeft, coordinates, 0, tolerance);
 
-    coordinates << 60., 0.;
+    coordinates << 0., 60.;
     const int groupNodesBottomRight = structure.GroupCreate(eGroupId::Nodes);
     structure.GroupAddNodeRadiusRange(groupNodesBottomRight, coordinates, 0, tolerance);
 
     const int groupNodesBoundary = structure.GroupUnion(groupNodesBottomLeft, groupNodesBottomRight);
 
-    coordinates[0] = 30;
-    coordinates[1] = 10;
+    coordinates[0] = 10.;
+    coordinates[1] = 30;
     const auto& groupNodeLoad = structure.GroupGetNodeRadiusRange(coordinates);
 
 
@@ -153,7 +158,7 @@ int main(int argc, char* argv[])
     for (const int nodeId : nodeIdsBoundaryRight)
     {
         std::vector<int> dofIds = structure.NodeGetDofIds(nodeId, eDof::DISPLACEMENTS);
-        boundaryDofIds.push_back(dofIds[1]);
+        boundaryDofIds.push_back(dofIds[0]);
     }
 
     structure.ApplyConstraintsTotalFeti(boundaryDofIds);
@@ -170,12 +175,12 @@ int main(int argc, char* argv[])
     for (auto const& nodeId : nodeIds)
     {
         std::vector<int> dofIds = structure.NodeGetDofIds(nodeId, eDof::DISPLACEMENTS);
-        dofIdAndPrescribedDisplacementMap.emplace(dofIds[1], 1.);
+        dofIdAndPrescribedDisplacementMap.emplace(dofIds[0], 1.);
     }
 
     structure.ApplyPrescribedDisplacements(dofIdAndPrescribedDisplacementMap);
 
-    int loadId = structure.LoadCreateNodeGroupForce(&groupNodeLoad, Vector2d::UnitY(), 0.);
+    int loadId = structure.LoadCreateNodeGroupForce(&groupNodeLoad, Vector2d::UnitX(), 0.);
 
     structure.GetLogger() << "*********************************** \n"
                           << "**      visualization            ** \n"
@@ -193,11 +198,9 @@ int main(int argc, char* argv[])
                           << "**      integration scheme       ** \n"
                           << "*********************************** \n\n";
 
-
     NuTo::NewmarkFeti<EigenSolver> newmarkFeti(&structure);
 
     boost::filesystem::path resultPath("results_three_point_bending_" + std::to_string(structure.mRank));
-
 
     newmarkFeti.SetTimeStep(timeStep);
     newmarkFeti.SetMaxNumIterations(maxIterations);
@@ -210,8 +213,8 @@ int main(int argc, char* argv[])
     newmarkFeti.SetToleranceResidual(eDof::NONLOCALEQSTRAIN, toleranceNlEqStrain);
     newmarkFeti.SetToleranceIterativeSolver(1.e-6);
     newmarkFeti.SetIterativeSolver(NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::ProjectedGmres);
-    newmarkFeti.SetFetiPreconditioner(std::make_unique<NuTo::FetiLumpedPreconditioner>());
-    newmarkFeti.SetFetiScaling(FetiScaling::Superlumped);
+    newmarkFeti.SetFetiPreconditioner(std::make_unique<NuTo::FetiDirichletPreconditioner>());
+    newmarkFeti.SetFetiScaling(FetiScaling::Multiplicity);
 
     Eigen::Matrix2d dispRHS;
     dispRHS(0, 0) = 0;
@@ -224,7 +227,6 @@ int main(int argc, char* argv[])
     structure.GetLogger() << "*********************************** \n"
                           << "**      solve                    ** \n"
                           << "*********************************** \n\n";
-
 
     newmarkFeti.Solve(simulationTime);
     structure.GetLogger() << "Total number of Dofs: \t" << structure.GetNumTotalDofs() << "\n\n";
