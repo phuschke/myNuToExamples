@@ -24,13 +24,13 @@ using FetiScaling = NewmarkFeti<EigenSolver>::eFetiScaling;
 constexpr double thickness = 1.0;
 
 // material
-constexpr double nonlocalRadius = 0.2; // mm
+constexpr double nonlocalRadius = 0.1; // mm
 constexpr double youngsModulus = 4.0e4;
 constexpr double poissonsRatio = 0.2;
 constexpr double tensileStrength = 3;
 constexpr double compressiveStrength = 30;
 constexpr double fractureEnergy = 0.01;
-constexpr double alpha = 0.99;
+constexpr double alpha = 1;
 
 // integration
 constexpr bool performLineSearch = false;
@@ -44,7 +44,7 @@ constexpr double toleranceNlEqStrain = 1e-8;
 constexpr double tolerance = 1e-5;
 
 constexpr double simulationTime = 1.0;
-constexpr double loadFactor = -0.03;
+constexpr double loadFactor = -0.025;
 constexpr double maxIterations = 10;
 
 
@@ -213,8 +213,8 @@ int main(int argc, char* argv[])
     newmarkFeti.SetToleranceResidual(eDof::NONLOCALEQSTRAIN, toleranceNlEqStrain);
     newmarkFeti.SetToleranceIterativeSolver(1.e-6);
     newmarkFeti.SetIterativeSolver(NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::ProjectedGmres);
-    newmarkFeti.SetFetiPreconditioner(std::make_unique<NuTo::FetiDirichletPreconditioner>());
-    newmarkFeti.SetFetiScaling(FetiScaling::Multiplicity);
+    newmarkFeti.SetFetiPreconditioner(std::make_unique<NuTo::FetiLumpedPreconditioner>());
+    newmarkFeti.SetFetiScaling(FetiScaling::Superlumped);
 
     Eigen::Matrix2d dispRHS;
     dispRHS(0, 0) = 0;

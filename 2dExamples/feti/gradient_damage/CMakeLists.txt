@@ -39,6 +39,7 @@ if (ENABLE_MPI)
             strong_scaling
             2d_feti_gradient_damage_3_point_bending
             paper_horizontal_split
+            paper_20_subs_chaco
             )
 
         add_executable(${file} ${file}.cpp)

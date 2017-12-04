@@ -35,7 +35,7 @@ constexpr double alpha = 1;
 // integration
 constexpr bool performLineSearch = false;
 constexpr bool automaticTimeStepping = false;
-constexpr double timeStep = 1.e-2;
+constexpr double timeStep = 0.5e-1;
 constexpr double minTimeStep = 1e-5;
 constexpr double maxTimeStep = 1e-1;
 
@@ -44,7 +44,7 @@ constexpr double toleranceNlEqStrain = 1e-8;
 constexpr double tolerance = 1e-5;
 
 constexpr double simulationTime = 1.0;
-constexpr double loadFactor = -0.025;
+constexpr double loadFactor = -0.018;
 constexpr double maxIterations = 10;
 
 
@@ -65,20 +65,16 @@ int main(int argc, char* argv[])
     structure.GetLogger().OpenFile("output" + std::to_string(rank));
     structure.GetLogger().SetQuiet(true);
 
-    std::vector<double> meshDimensions;
-    meshDimensions.push_back(60.);
-    meshDimensions.push_back(10.);
+    std::string meshFile = "three_point_bending.mesh" + std::to_string(rank);
+    structure.GetLogger() << meshFile << "\n";
 
-    std::vector<int> numElements;
-    numElements.push_back(20);
-    numElements.push_back(20);
+    const int interpolationTypeId = structure.InterpolationTypeCreate(eShapeType::QUAD2D);
+    structure.InterpolationTypeAdd(interpolationTypeId, eDof::COORDINATES, eTypeOrder::EQUIDISTANT1);
+    structure.InterpolationTypeAdd(interpolationTypeId, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT1);
+    structure.InterpolationTypeAdd(interpolationTypeId, eDof::NONLOCALEQSTRAIN, eTypeOrder::EQUIDISTANT1);
 
-    const auto importContainer = structure.CreateRectangularMesh2D(meshDimensions, numElements);
+    structure.ImportMeshJson(meshFile, interpolationTypeId);
 
-    const int interpolationTypeIdDamage = importContainer.second;
-    structure.InterpolationTypeAdd(interpolationTypeIdDamage, eDof::DISPLACEMENTS, eTypeOrder::EQUIDISTANT1);
-    structure.InterpolationTypeAdd(interpolationTypeIdDamage, eDof::NONLOCALEQSTRAIN, eTypeOrder::EQUIDISTANT1);
-    structure.ElementTotalConvertToInterpolationType();
 
     structure.GetLogger() << "*********************************** \n"
                           << "**      material                 ** \n"
@@ -95,6 +91,10 @@ int main(int argc, char* argv[])
     structure.ConstitutiveLawSetDamageLaw(
             materialId, NuTo::Constitutive::DamageLawExponential::Create(tensileStrength / youngsModulus,
                                                                          tensileStrength / fractureEnergy, alpha));
+
+//    const int materialId = structure.ConstitutiveLawCreate(eConstitutiveType::LINEAR_ELASTIC_ENGINEERING_STRESS);
+//    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::YOUNGS_MODULUS, youngsModulus);
+//    structure.ConstitutiveLawSetParameterDouble(materialId, eConstitutiveParameter::POISSONS_RATIO, poissonsRatio);
 
     structure.ElementTotalSetConstitutiveLaw(materialId);
 
@@ -208,10 +208,10 @@ int main(int argc, char* argv[])
     newmarkFeti.SetPerformLineSearch(performLineSearch);
     newmarkFeti.SetToleranceResidual(eDof::DISPLACEMENTS, toleranceDisp);
     newmarkFeti.SetToleranceResidual(eDof::NONLOCALEQSTRAIN, toleranceNlEqStrain);
-    newmarkFeti.SetToleranceIterativeSolver(1.e-6);
+    newmarkFeti.SetToleranceIterativeSolver(1.e-10);
     newmarkFeti.SetIterativeSolver(NuTo::NewmarkFeti<EigenSolver>::eIterativeSolver::ProjectedGmres);
     newmarkFeti.SetFetiPreconditioner(std::make_unique<NuTo::FetiDirichletPreconditioner>());
-    newmarkFeti.SetFetiScaling(FetiScaling::None);
+    newmarkFeti.SetFetiScaling(FetiScaling::Superlumped);
 
     Eigen::Matrix2d dispRHS;
     dispRHS(0, 0) = 0;

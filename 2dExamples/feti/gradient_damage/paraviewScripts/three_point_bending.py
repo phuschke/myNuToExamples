@@ -4,7 +4,7 @@ from paraview.simple import *
 Disconnect()
 Connect()
 value = 'Damage'
-for i in range(0,4):
+for i in range(0,20):
     # open data file with corresponding reader
     reader = OpenDataFile("../results_three_point_bending_" + str(i) + "/Group9999_ElementsAll.pvd")
     reader.UpdatePipeline()
@@ -15,7 +15,7 @@ for i in range(0,4):
     # create a new 'Calculator'
     calculator 	= Calculator()
     calculator.CoordinateResults = 1
-    calculator.Function = 'coords+Displacements*5'
+    calculator.Function = 'coords+Displacements*50'
 
     # create a new 'Cell Data to Point Data'
     cellDatatoPointData1 = CellDatatoPointData(Input=calculator)
